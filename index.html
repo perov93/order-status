@@ -82,7 +82,8 @@
 
 <footer class="footer mt-auto py-3">
   <div class="container">
-    <span class="text-muted">Проверка на статус</span>
+    <span class="text-muted">Проверка на статус на поръчка</span>
+    <span class="date-clock" id="date"></span>
   </div>
 </footer>
 <script>
@@ -142,5 +143,8 @@
             }
           }
           </script>
+          <script>
+              document.getElementById("date").innerHTML = Date();
+              </script>
     </body>
 </html>
