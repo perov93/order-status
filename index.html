@@ -34,7 +34,7 @@
     <!-- Custom styles for this template -->
     <link href="style.css" rel="stylesheet">
   </head>
-  <body class="d-flex flex-column h-100">
+  <body class="d-flex flex-column h-100" onload="startTime()">
     <header>
   <!-- Fixed navbar -->
   <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
@@ -143,8 +143,22 @@
             }
           }
           </script>
-          <script>
-              document.getElementById("date").innerHTML = Date();
-              </script>
+         <script>
+            function startTime() {
+              var today = new Date();
+              var h = today.getHours();
+              var m = today.getMinutes();
+              var s = today.getSeconds();
+              m = checkTime(m);
+              s = checkTime(s);
+              document.getElementById('date').innerHTML =
+              h + ":" + m + ":" + s;
+              var t = setTimeout(startTime, 500);
+            }
+            function checkTime(i) {
+              if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+              return i;
+            }
+            </script>
     </body>
 </html>
