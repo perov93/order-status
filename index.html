@@ -75,6 +75,7 @@
     <p id='showCD'></p>
     <div class="table-responsive">
     <table class="table table-striped" id="demo"></table>
+    
   </div>
    
   </div>
@@ -103,7 +104,7 @@
       table +=  x[i].getElementsByTagName("CLIENT")[0].childNodes[0].nodeValue;
       table += "</td><td>";
       table +=  x[i].getElementsByTagName("PROJECT")[0].childNodes[0].nodeValue;
-      table += "</td><td>";
+      table += "</td><td class='count-me'>";
       table +=  x[i].getElementsByTagName("PRICE")[0].childNodes[0].nodeValue;
       table += "</td><td>";
       table +=  x[i].getElementsByTagName("STATUS")[0].childNodes[0].nodeValue;
@@ -160,5 +161,15 @@
               return i;
             }
             </script>
+            <script language="javascript" type="text/javascript">
+              var tds = document.getElementById('demo').getElementsByTagName('td');
+              var sum = 0;
+              for(var i = 0; i < tds.length; i ++) {
+                  if(tds[i].className == 'count-me') {
+                      sum += isNaN(tds[i].innerHTML) ? 0 : parseFloat(tds[i].innerHTML);
+                  }
+              }
+              document.getElementById('demo').innerHTML += '<tr id="result"><td style="font-weight: 600">Total: ' + sum + ' лв.' + '</td></tr>';
+          </script>
     </body>
 </html>
