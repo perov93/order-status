@@ -15,4 +15,13 @@
 <PRICE>136.62</PRICE>
 <STATUS>В изработка</STATUS>
 </CD>
+<CD>
+<CLIENT>Топ Мебели</CLIENT>
+<ID>200</ID>
+<DATE>25-08-19</DATE>
+<PROJECT>test</PROJECT>
+<PRICE>136.62</PRICE>
+<STATUS>В изработка</STATUS>
+</CD>
+
 </CATALOG>
