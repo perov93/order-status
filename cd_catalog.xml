@@ -6,6 +6,7 @@
 <PROJECT>Луляци доп.</PROJECT>
 <PRICE>55.80</PRICE>
 <STATUS>Очаквам стъкла</STATUS>
+<NOTES>Принтовете са готови. Очаквам стъклата.</NOTES>
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
@@ -14,6 +15,7 @@
 <PROJECT>Планина</PROJECT>
 <PRICE>136.62</PRICE>
 <STATUS>Очаквам стъкла</STATUS>
+<NOTES>Принтовете са готови. Очаквам стъклата.</NOTES>
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
@@ -22,5 +24,6 @@
 <PROJECT>Плаж</PROJECT>
 <PRICE>97.20</PRICE>
 <STATUS>Очаквам стъкла</STATUS>
+<NOTES>Принтовете са готови. Очаквам стъклата.</NOTES>
 </CD>
 </CATALOG>
