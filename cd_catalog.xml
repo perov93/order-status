@@ -17,7 +17,14 @@
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
-<<<<<<< HEAD
+<ID>2608_beach</ID>
+<DATE>26-08-19</DATE>
+<PROJECT>Плаж</PROJECT>
+<PRICE>97.20</PRICE>
+<STATUS>В изработка</STATUS>
+</CD>
+<CD>
+<CLIENT>Топ Мебели</CLIENT>
 <ID>2608_beach</ID>
 <DATE>26-08-19</DATE>
 <PROJECT>Плаж</PROJECT>
@@ -25,13 +32,3 @@
 <STATUS>В изработка</STATUS>
 </CD>
 </CATALOG>
-=======
-<ID>200</ID>
-<DATE>25-08-19</DATE>
-<PROJECT>test</PROJECT>
-<PRICE>136.62</PRICE>
-<STATUS>В изработка</STATUS>
-</CD>
-
-</CATALOG>
->>>>>>> 87d2414d87a63d5b8e5707e6f4a288482052a55e
