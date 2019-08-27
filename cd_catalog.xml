@@ -23,8 +23,8 @@
 <DATE>26-08-19</DATE>
 <PROJECT>Плаж</PROJECT>
 <PRICE>97.20</PRICE>
-<STATUS>Очаквам стъкла</STATUS>
-<NOTES>Принтовете са готови. Очаквам стъклата.</NOTES>
+<STATUS>Изпратен за печат</STATUS>
+<NOTES>Изпратен за печат</NOTES>
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
@@ -32,7 +32,7 @@
 <DATE>27-08-19</DATE>
 <PROJECT>Кон</PROJECT>
 <PRICE>151.20</PRICE>
-<STATUS>Не е изпратен за печат</STATUS>
-<NOTES>Не е изпратен за печат</NOTES>
+<STATUS>Изпратен за печат</STATUS>
+<NOTES>Изпратен за печат</NOTES>
 </CD>
 </CATALOG>
