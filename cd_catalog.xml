@@ -35,4 +35,23 @@
 <STATUS>Изпратен за печат</STATUS>
 <NOTES>Изпратен за печат</NOTES>
 </CD>
+<CD>
+<CLIENT>Топ Мебели</CLIENT>
+<ID></ID>
+<DATE></DATE>
+<PROJECT>плаж 190_60</PROJECT>
+<PRICE>102.60</PRICE>
+<STATUS>не е изпратен за печат</STATUS>
+<NOTES>трябва да се промени размера на 190х60</NOTES>
+</CD>
+<CD>
+<CLIENT>Топ Мебели</CLIENT>
+<ID></ID>
+<DATE></DATE>
+<PROJECT>лодка</PROJECT>
+<PRICE>102.60</PRICE>
+<STATUS>не е Изпратен за печат</STATUS>
+<NOTES>не еИзпратен за печат</NOTES>
+</CD>
+
 </CATALOG>
