@@ -5,8 +5,8 @@
 <DATE>12-08-19</DATE>
 <PROJECT>Луляци доп.</PROJECT>
 <PRICE>55.80</PRICE>
-<STATUS>Очаквам стъкла</STATUS>
-<NOTES>Принтовете са готови. Очаквам стъклата.</NOTES>
+<STATUS>Залепен. Трябва да се отреже.</STATUS>
+<NOTES>---</NOTES>
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
@@ -14,8 +14,8 @@
 <DATE>20-08-19</DATE>
 <PROJECT>Планина</PROJECT>
 <PRICE>136.62</PRICE>
-<STATUS>Очаквам стъкла</STATUS>
-<NOTES>Принтовете са готови. Очаквам стъклата.</NOTES>
+<STATUS>Залепено. Трябва да се отреже.</STATUS>
+<NOTES>---</NOTES>
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
@@ -37,11 +37,20 @@
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
-<ID>2908_boat</ID>
-<DATE>29-08-19</DATE>
-<PROJECT>Лодка</PROJECT>
+<ID>nan</ID>
+<DATE>nan</DATE>
+<PROJECT>плаж 190_60</PROJECT>
 <PRICE>102.60</PRICE>
-<STATUS>Очаква одобрение</STATUS>
-<NOTES>Очаква одобрение</NOTES>
+<STATUS>не е изпратен за печат</STATUS>
+<NOTES>трябва да се промени размера на 190х60</NOTES>
+</CD>
+<CD>
+<CLIENT>Топ Мебели</CLIENT>
+<ID>nan</ID>
+<DATE>nan</DATE>
+<PROJECT>лодка</PROJECT>
+<PRICE>102.60</PRICE>
+<STATUS>не е Изпратен за печат</STATUS>
+<NOTES>не еИзпратен за печат</NOTES>
 </CD>
 </CATALOG>
