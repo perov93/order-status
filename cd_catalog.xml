@@ -23,8 +23,8 @@
 <DATE>26-08-19</DATE>
 <PROJECT>Плаж</PROJECT>
 <PRICE>97.20</PRICE>
-<STATUS>Изпратен за печат</STATUS>
-<NOTES>Изпратен за печат</NOTES>
+<STATUS>Готов. Но е объркан размера. Ще бъде печатан наново</STATUS>
+<NOTES>---</NOTES>
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
@@ -37,12 +37,12 @@
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
-<ID>nan</ID>
-<DATE>nan</DATE>
+<ID>0309_beach_re_190x60</ID>
+<DATE>03-09-19</DATE>
 <PROJECT>плаж 190_60</PROJECT>
 <PRICE>102.60</PRICE>
 <STATUS>не е изпратен за печат</STATUS>
-<NOTES>трябва да се промени размера на 190х60</NOTES>
+<NOTES>---</NOTES>
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
