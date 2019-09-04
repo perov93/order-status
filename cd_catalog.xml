@@ -41,7 +41,7 @@
 <DATE>03-09-19</DATE>
 <PROJECT>плаж 190_60</PROJECT>
 <PRICE>102.60</PRICE>
-<STATUS>не е изпратен за печат</STATUS>
+<STATUS>Изпратен за печат</STATUS>
 <NOTES>---</NOTES>
 </CD>
 <CD>
@@ -50,7 +50,7 @@
 <DATE>03-09-19</DATE>
 <PROJECT>лодка</PROJECT>
 <PRICE>102.60</PRICE>
-<STATUS>не е Изпратен за печат</STATUS>
-<NOTES>не еИзпратен за печат</NOTES>
+<STATUS>Изпратен за печат</STATUS>
+<NOTES>зпратен за печат</NOTES>
 </CD>
 </CATALOG>
