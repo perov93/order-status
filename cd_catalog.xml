@@ -4,8 +4,8 @@
 <ID>lulqci_addon_124</ID>
 <DATE>12-08-19</DATE>
 <PROJECT>Луляци доп.</PROJECT>
-<PRICE>55.80</PRICE>
-<STATUS>Залепен. Трябва да се отреже.</STATUS>
+<PRICE>0.00</PRICE>
+<STATUS>Завършено. Платено 55.80</STATUS>
 <NOTES>---</NOTES>
 </CD>
 <CD>
@@ -14,7 +14,7 @@
 <DATE>20-08-19</DATE>
 <PROJECT>Планина</PROJECT>
 <PRICE>136.62</PRICE>
-<STATUS>Залепено. Трябва да се отреже.</STATUS>
+<STATUS>Завършено. Платено 136.62</STATUS>
 <NOTES>---</NOTES>
 </CD>
 <CD>
@@ -22,7 +22,7 @@
 <ID>2608_beach</ID>
 <DATE>26-08-19</DATE>
 <PROJECT>Плаж</PROJECT>
-<PRICE>97.20</PRICE>
+<PRICE>0.00</PRICE>
 <STATUS>Готов. Но е объркан размера. Ще бъде печатан наново</STATUS>
 <NOTES>---</NOTES>
 </CD>
@@ -31,9 +31,9 @@
 <ID>2708_horse</ID>
 <DATE>27-08-19</DATE>
 <PROJECT>Кон</PROJECT>
-<PRICE>151.20</PRICE>
-<STATUS>04.09 ще бъде залепен</STATUS>
-<NOTES>04.09 ще бъде залепен</NOTES>
+<PRICE>0.00</PRICE>
+<STATUS>Завършено. Платено 151.20</STATUS>
+<NOTES>---</NOTES>
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
