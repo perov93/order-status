@@ -51,13 +51,13 @@
 <PROJECT>лодка</PROJECT>
 <PRICE>40</PRICE>
 <STATUS>Готово. За плащане само фолиото. Цена с труд 102.60</STATUS>
-<NOTES>Цена с труд 102.60</NOTES>
+<NOTES>Цена с труд 102.60.</NOTES>
 </CD>
   <CD>
 <CLIENT>Топ Мебели</CLIENT>
 <ID>1009_cherries</ID>
 <DATE>10-09-19</DATE>
-<PROJECT>лодка</PROJECT>
+<PROJECT>череши</PROJECT>
 <PRICE>0</PRICE>
 <STATUS>Готово! Платено 331.02 + 29.98 = 360.00 лв.</STATUS>
 <NOTES>изпратен за печат</NOTES>
