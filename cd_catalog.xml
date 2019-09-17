@@ -40,8 +40,8 @@
 <ID>0309_beach_re_190x60</ID>
 <DATE>03-09-19</DATE>
 <PROJECT>плаж 190_60</PROJECT>
-<PRICE>102.60</PRICE>
-<STATUS>Готово. Очаква плащане</STATUS>
+<PRICE>0</PRICE>
+<STATUS>Платено.Готово. Очаква плащане</STATUS>
 <NOTES>---</NOTES>
 </CD>
 <CD>
@@ -49,8 +49,8 @@
 <ID>0309_beach</ID>
 <DATE>03-09-19</DATE>
 <PROJECT>лодка</PROJECT>
-<PRICE>40</PRICE>
-<STATUS>Готово. За плащане само фолиото. Цена с труд 102.60</STATUS>
+<PRICE>0</PRICE>
+<STATUS>Платено.Готово. За плащане само фолиото. Цена с труд 102.60</STATUS>
 <NOTES>Цена с труд 102.60.</NOTES>
 </CD>
   <CD>
