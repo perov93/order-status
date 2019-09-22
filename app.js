@@ -1,5 +1,8 @@
  
-  const orderList = document.querySelector('#demo');
+  console.log('%c STOP!', 'color: red; font-size: 32px; font-weight: 700;');
+  
+
+  const orderList = document.querySelector('tbody');
   const form = document.querySelector('#entry-data');
   
   function renderOrder(doc) {
@@ -10,7 +13,7 @@
     let project = document.createElement('td');
     let kin = document.createElement('td');
     let status = document.createElement('td');
-    let cross = document.createElement('td');
+ 
   
   
     tr.setAttribute('data-id', doc.id);
@@ -21,11 +24,10 @@
     price.textContent = doc.data().price;
     project.textContent = doc.data().project;
     status.textContent = doc.data().status;
-    cross.textContent = 'x';
+
   
   
-  
-    cross.setAttribute("class", "cross_btn");
+
     price.setAttribute("class", "count-me")
   
   
@@ -35,7 +37,7 @@
     tr.appendChild(project);
     tr.appendChild(price);
     tr.appendChild(status);
-    tr.appendChild(cross);
+
   
   
     orderList.appendChild(tr);
