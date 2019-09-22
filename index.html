@@ -14,7 +14,9 @@
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
-
+    <script src="https://www.gstatic.com/firebasejs/6.6.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.6.2/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.6.2/firebase-firestore.js"></script>
     <style>
       .bd-placeholder-img {
         font-size: 1.125rem;
@@ -84,9 +86,14 @@
 
 <footer class="footer mt-auto py-3">
   <div class="container">
+      
     <span class="text-muted">Проверка на статус на поръчка</span>
+    <br>
+    <span class="total-sum" id="result"></span>
     <span class="date-clock" id="date"></span>
+    <br>
     <span class="clock" id="clock"></span>
+    
   </div>
 </footer>
 <script>
@@ -173,7 +180,7 @@
                       sum += isNaN(tds[i].innerHTML) ? 0 : parseFloat(tds[i].innerHTML);
                   }
               }
-              document.getElementById('demo').innerHTML += '<tr id="result"><td style="font-weight: 600">Total: ' + sum + ' лв.' + '</td></tr>';
+             // document.getElementById('demo').innerHTML += '<tr id="result"><td style="font-weight: 600">Total: ' + sum + ' лв.' + '</td></tr>';
           </script>
           <script>
           var today = new Date();
@@ -184,5 +191,31 @@ var yyyy = today.getFullYear();
 today = dd+ '/' + mm + '/' + yyyy;
 document.getElementById('clock').innerHTML += today;
           </script>
+           <!-- The core Firebase JS SDK is always required and must be listed first -->
+ 
+
+  <!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+
+  <script>
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+      apiKey: "AIzaSyAdgyyH2bDT_vpf2QpdBeu9IYfPck02_eY",
+      authDomain: "perov-crm.firebaseapp.com",
+      databaseURL: "https://perov-crm.firebaseio.com",
+      projectId: "perov-crm",
+      storageBucket: "perov-crm.appspot.com",
+      messagingSenderId: "196981583808",
+      appId: "1:196981583808:web:95cb13fe777f75d6016225"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+  <script src="app.js"></script>
+  
+    
+
     </body>
 </html>
+

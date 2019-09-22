@@ -25,5 +25,25 @@ main > .container {
 
   .date-clock{
     display: block;
-    
+    float: left;
+  }
+
+  .total-sum{
+    float: right;
+    width: 177px;
+    padding: 2px 0px 2px 15px;
+    margin: 2px 0px 0px 0px;
+    background: #ddd;
+    border-radius: 3px;
+    font-family: 'Exo 2', 'Open Sans', Arial, sans-serif;
+    font-weight: 600;
+  }
+
+  .clock{
+    float: left;
+ 
+  }
+
+  .text-muted{
+    float: left;
   }
