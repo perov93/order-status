@@ -29,6 +29,7 @@
   
 
     price.setAttribute("class", "count-me")
+    status.setAttribute("class", "status")
   
   
     tr.appendChild(kin);
