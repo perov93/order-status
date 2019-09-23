@@ -1,5 +1,7 @@
  
   console.log('%c STOP!', 'color: red; font-size: 32px; font-weight: 700;');
+
+  console.log('%c I SEE U!', 'color: red; font-size: 62px; font-weight: 700; -webkit-text-stroke-width: 2px; -webkit-text-stroke-color: black;');
   
 
   const orderList = document.querySelector('tbody');
