@@ -47,3 +47,13 @@ main > .container {
   .text-muted{
     float: left;
   }
+
+.fa-check {
+  float: left;
+    margin: 5px;
+}
+
+.fa-clock-o {
+  float: left;
+    margin: 5px;
+}
