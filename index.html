@@ -219,7 +219,12 @@ document.getElementById('clock').innerHTML += today;
    
   <script src="app.js"></script>
   
-    
+    <script> 
+    $(document).ready(function() {
+   $('.status:contains("Завършено")').css('color', 'green');
+  $('.status:contains("Очаква одобрение")').css('color', 'orange'); 
+});
+    </script>
 
     </body>
 </html>
