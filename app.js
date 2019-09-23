@@ -75,10 +75,10 @@
   (function () {
     setTimeout(
       function() {
-      $(document).ready(function() {
+     
    $('.status:contains("Очаква одобрение")').css('color', 'orange');
   $('.status:contains("Завършено")').css('color', 'green'); 
-});
+
           
         });
       }, 3000);
