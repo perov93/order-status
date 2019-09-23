@@ -73,7 +73,10 @@
   })()
 
 
-
+setTimeout(function(){ 
+ $('.status:contains("Завършено")').css('color', 'green');
+  $('.status:contains("Очаква одобрение")').css('color', 'orange');
+}, 3000);
   
   
   // Disable F12 and Right Click
