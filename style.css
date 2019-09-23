@@ -39,6 +39,10 @@ main > .container {
     font-weight: 600;
   }
 
+.total-sum :hover{
+    transform: scale(1.5);   
+}
+
   .clock{
     float: left;
  
