@@ -216,6 +216,12 @@ document.getElementById('clock').innerHTML += today;
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
   </script>
+    <script> 
+    $(document).ready(function() {
+   $('.status:contains("Завършено.")').css('color', 'red');
+  $('.status:contains("Received")').css('color', 'green'); 
+});
+    </script>
   <script src="app.js"></script>
   
     
