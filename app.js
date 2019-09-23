@@ -75,7 +75,7 @@
 
 setTimeout(function(){ 
  $('.status:contains("Завършено")').css('color', 'green').append("<i class='fa fa-check' aria-hidden='true'></i>");
-  $('.status:contains("Очаква одобрение")').css('color', 'orange').append("<i class='fa fa-clock' aria-hidden='true'></i>");
+  $('.status:contains("Очаква одобрение")').css('color', 'orange').append("<i class='fa fa-clock-o' aria-hidden='true'></i>");
 }, 3000);
   
   
