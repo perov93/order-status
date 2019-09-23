@@ -40,7 +40,7 @@ main > .container {
     cursor: pointer;
   }
 
-.total-sum :hover{
+  .total-sum:hover{
     transform: scale(1.5);   
 }
 
