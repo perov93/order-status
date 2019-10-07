@@ -99,5 +99,12 @@ alert("Orders with status finished will disapear!")
   
   //   document.addEventListener('contextmenu', event => event.preventDefault());
   
-  
-  
+ //Calc function  
+ //function calc(){
+	//let n1 = $('#num1').val();
+	//let n2 = $('#num2').val();
+	//let sum = n1 * n2;
+
+	//let result = $('#result');
+	//result.append(sum)
+//}
