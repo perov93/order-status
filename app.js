@@ -70,7 +70,7 @@
           
         });
         console.log(sum.toFixed(2));
-         document.getElementById('result').innerHTML += "Общо: " + sum + " лв";
+         document.getElementById('result').innerHTML += "Общо: " + sum.toFixed(2) + " лв";
       }, 3000);
   })()
 
