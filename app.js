@@ -81,11 +81,11 @@ setTimeout(function(){
 $('.status:contains("Изпратен за печат")').css('color', 'blue').append("<i class='fa fa-paper-plane-o' aria-hidden='true'></i>");
 }, 3000);
 
-setTimeout(function(){ 
-alert("Orders with status finished will disapear!")
- $('tr:contains("Завършено")').css('display', 'none')
- 
-}, 6000);
+//setTimeout(function(){ 
+//alert("Orders with status finished will disapear!")
+//$('tr:contains("Завършено")').css('display', 'none')
+// 
+//}, 6000);
   
   
   // Disable F12 and Right Click
