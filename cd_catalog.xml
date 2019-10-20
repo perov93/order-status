@@ -5,8 +5,8 @@
 <DATE>12-08-19</DATE>
 <PROJECT>Луляци доп.</PROJECT>
 <PRICE>0.00</PRICE>
-<STATUS>Завършено. Платено 55.80</STATUS>
-<NOTES>---</NOTES>
+<STATUS>Завършено</STATUS>
+<NOTES>Платено 55.80</NOTES>
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
@@ -14,8 +14,8 @@
 <DATE>20-08-19</DATE>
 <PROJECT>Планина</PROJECT>
 <PRICE>0.00</PRICE>
-<STATUS>Завършено. Платено 136.62</STATUS>
-<NOTES>---</NOTES>
+<STATUS>Завършено</STATUS>
+<NOTES>Платено 136.62</NOTES>
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
@@ -23,8 +23,8 @@
 <DATE>26-08-19</DATE>
 <PROJECT>Плаж</PROJECT>
 <PRICE>0.00</PRICE>
-<STATUS>Готов. Но е объркан размера. Ще бъде печатан наново</STATUS>
-<NOTES>---</NOTES>
+<STATUS>Завършено</STATUS>
+<NOTES>Но е объркан размера. Ще бъде печатан наново</NOTES>
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
@@ -32,16 +32,16 @@
 <DATE>27-08-19</DATE>
 <PROJECT>Кон</PROJECT>
 <PRICE>0.00</PRICE>
-<STATUS>Завършено. Платено 151.20</STATUS>
-<NOTES>---</NOTES>
+<STATUS>Завършено. </STATUS>
+<NOTES>Платено 151.20</NOTES>
 </CD>
 <CD>
 <CLIENT>Топ Мебели</CLIENT>
 <ID>0309_beach_re_190x60</ID>
 <DATE>03-09-19</DATE>
 <PROJECT>плаж 190_60</PROJECT>
-<PRICE>0</PRICE>
-<STATUS>Завършено. Платено.Готово</STATUS>
+<PRICE>0.00</PRICE>
+<STATUS>Завършено</STATUS>
 <NOTES>---</NOTES>
 </CD>
 <CD>
@@ -49,17 +49,17 @@
 <ID>0309_beach</ID>
 <DATE>03-09-19</DATE>
 <PROJECT>лодка</PROJECT>
-<PRICE>0</PRICE>
-<STATUS>Завършено. Платено.Готово. За плащане само фолиото. Цена с труд 102.60</STATUS>
-<NOTES>Цена с труд 102.60.</NOTES>
+<PRICE>0.00</PRICE>
+<STATUS>Завършено</STATUS>
+<NOTES> Платено.Готово. За плащане само фолиото. Цена с труд 102.60</NOTES>
 </CD>
-  <CD>
+<CD>
 <CLIENT>Топ Мебели</CLIENT>
 <ID>1009_cherries</ID>
 <DATE>10-09-19</DATE>
 <PROJECT>череши</PROJECT>
-<PRICE>0</PRICE>
-<STATUS>Завършено. Готово! Платено 331.02 + 29.98 = 360.00 лв.</STATUS>
-<NOTES>изпратен за печат</NOTES>
+<PRICE>0.00</PRICE>
+<STATUS>Завършено</STATUS>
+<NOTES>Готово! Платено 331.02 + 29.98 = 360.00 лв.</NOTES>
 </CD>
 </CATALOG>

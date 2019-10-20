@@ -79,7 +79,11 @@ setTimeout(function(){
  $('.status:contains("Завършено")').css('color', 'green').append("<i class='fa fa-check' aria-hidden='true'></i>");
   $('.status:contains("Очаква одобрение")').css('color', 'orange').append("<i class='fa fa-clock-o' aria-hidden='true'></i>");
 $('.status:contains("Изпратен за печат")').css('color', 'blue').append("<i class='fa fa-paper-plane-o' aria-hidden='true'></i>");
+$('.status:contains("Очаква плащане")').css('color', 'green').append("<i class='fa fa-money' aria-hidden='true'></i>");
 }, 3000);
+
+
+
 
 //setTimeout(function(){ 
 //alert("Orders with status finished will disapear!")
