@@ -80,7 +80,30 @@
       Напр. 2608_boat
     </div>
     
-    <p id='showCD'></p>
+   
+
+
+    <!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id='showCD'></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
     <div class="table-responsive">
     <table class="table table-striped customers-list" id="demo"></table>
     
@@ -110,7 +133,7 @@
     x = xmlDoc.getElementsByTagName("CD");
     table="<tr><th>ID</th><th>DATE</th><th>CLIENT</th><th>PROJECT</th><th>PRICE</th><th>STATUS</th></tr>";
     for (i = 0; i <x.length; i++) { 
-      table += "<tr onclick='displayCD(" + i + ")'><td>";
+      table += "<tr onclick='displayCD(" + i + ")' data-toggle='modal' data-target='#exampleModal'><td>";
       table += x[i].getElementsByTagName("ID")[0].childNodes[0].nodeValue;
       table += "</td><td>";
       table +=  x[i].getElementsByTagName("DATE")[0].childNodes[0].nodeValue;

@@ -20,6 +20,8 @@
   
     tr.setAttribute('data-id', doc.id);
     tr.setAttribute("id", "dataTableFire")
+    tr.setAttribute("data-toggle", "modal")
+    tr.setAttribute("data-target", "#exampleModal")
     kin.textContent = doc.data().kin;
     client.textContent = doc.data().client;
     date.textContent = doc.data().date;
@@ -44,8 +46,8 @@
   
   
     orderList.appendChild(tr);
-  
- 
+    
+   
   
   }
   
