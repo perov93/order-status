@@ -4,6 +4,7 @@
 
 main > .container {
     padding: 75px 15px 0;
+    
   }
   
   .footer {
@@ -21,7 +22,10 @@ main > .container {
 
   .table {
       margin-top: 10px;
+      cursor: pointer;
   }
+
+ 
 
   .date-clock{
     display: block;

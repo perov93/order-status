@@ -30,7 +30,7 @@
     status.textContent = doc.data().status;
 
   
-  
+    
 
     price.setAttribute("class", "count-me")
     status.setAttribute("class", "status")
@@ -43,14 +43,30 @@
     tr.appendChild(price);
     tr.appendChild(status);
 
-  
-  
     orderList.appendChild(tr);
     
    
-  
   }
   
+  $(document).ready(function () {	
+    //=================================================================
+    //click on table body
+//$("#tableMain tbody tr").click(function () {
+$('tbody').on('click', 'tr', function() {
+//get row contents into an array
+        var tableData = $(this).children("td").map(function() {
+            return $(this).text();
+        }).get();
+        document.getElementById("exampleModalLabel").innerHTML = tableData[0]
+        document.getElementById("showCD").innerHTML = 'KIN: ' + tableData[0] +  '<br>' +  'Date: ' + tableData[1] + '<br>' + 'Client: ' + tableData[2] + '<br>' +  'Description: ' + tableData[3] + '<br>' + 'Price: ' + tableData[4] + 'лв.';
+        
+});
+
+$("#thebutton").click(function () {
+$('#tableMain > tbody').append('<tr class="datarow"><td>11111</td><td>22222</td><td>33333</td><td>44444</td><td>55555</td></tr>')
+})
+});	
+
   
   
   //Getting Data
