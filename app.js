@@ -58,7 +58,7 @@ $('tbody').on('click', 'tr', function() {
             return $(this).text();
         }).get();
         document.getElementById("exampleModalLabel").innerHTML = tableData[0]
-        document.getElementById("showCD").innerHTML = 'KIN: ' + tableData[0] +  '<br>' +  'Date: ' + tableData[1] + '<br>' + 'Client: ' + tableData[2] + '<br>' +  'Description: ' + tableData[3] + '<br>' + 'Price: ' + tableData[4] + 'лв.';
+        document.getElementById("showCD").innerHTML = 'KIN: ' + tableData[0] +  '<br>' +  'Date: ' + tableData[1] + '<br>' + 'Client: ' + tableData[2] + '<br>' +  'Description: ' + tableData[3] + '<br>' + 'Price: ' + tableData[4] + 'лв.' + '<br>' + 'Status: ' + tableData[5];
         
 });
 
