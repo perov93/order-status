@@ -58,7 +58,6 @@ $('tbody').on('click', 'tr', function() {
             return $(this).text();
         }).get();
         document.getElementById("exampleModalLabel").innerHTML = tableData[0]
-<<<<<<< HEAD
         document.getElementById("showCD").innerHTML = 'KIN: ' + tableData[0] +  '<br>' +  'Date: ' + tableData[1] + '<br>' + 'Client: ' + tableData[2] + '<br>' +  'Description: ' + tableData[3] + '<br>' + 'Price: ' + tableData[4] + 'лв.' + '<p id="statusModal">' + 'Status: ' + tableData[5];
 
         $('#statusModal:contains("Завършено")').css('color', 'green').append("<div class='checkIcon'><svg class='checkmark' id='check' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 52'><circle class='checkmark__circle' cx='26' cy='26' r='25' fill='none'/><path class='checkmark__check' fill='none' d='M14.1 27.2l7.1 7.2 16.7-16.8'/></svg></div>");
@@ -68,10 +67,6 @@ $('tbody').on('click', 'tr', function() {
 
 
 
-=======
-        document.getElementById("showCD").innerHTML = 'KIN: ' + tableData[0] +  '<br>' +  'Date: ' + tableData[1] + '<br>' + 'Client: ' + tableData[2] + '<br>' +  'Description: ' + tableData[3] + '<br>' + 'Price: ' + tableData[4] + 'лв.' + '<br>' + 'Status: ' + tableData[5];
-        
->>>>>>> 7a1ff9b9112b6f90bd527cb16997f5b8b737f659
 });
 
 $("#thebutton").click(function () {
