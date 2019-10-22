@@ -58,8 +58,15 @@ $('tbody').on('click', 'tr', function() {
             return $(this).text();
         }).get();
         document.getElementById("exampleModalLabel").innerHTML = tableData[0]
-        document.getElementById("showCD").innerHTML = 'KIN: ' + tableData[0] +  '<br>' +  'Date: ' + tableData[1] + '<br>' + 'Client: ' + tableData[2] + '<br>' +  'Description: ' + tableData[3] + '<br>' + 'Price: ' + tableData[4] + 'лв.';
-        
+        document.getElementById("showCD").innerHTML = 'KIN: ' + tableData[0] +  '<br>' +  'Date: ' + tableData[1] + '<br>' + 'Client: ' + tableData[2] + '<br>' +  'Description: ' + tableData[3] + '<br>' + 'Price: ' + tableData[4] + 'лв.' + '<p id="statusModal">' + 'Status: ' + tableData[5];
+
+        $('#statusModal:contains("Завършено")').css('color', 'green').append("<div class='checkIcon'><svg class='checkmark' id='check' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 52'><circle class='checkmark__circle' cx='26' cy='26' r='25' fill='none'/><path class='checkmark__check' fill='none' d='M14.1 27.2l7.1 7.2 16.7-16.8'/></svg></div>");
+        $('#statusModal:contains("Очаква одобрение")').css('color', 'orange').append("<i class='fa fa-clock-o' aria-hidden='true'></i>");
+        $('#statusModal:contains("Изпратен за печат")').css('color', 'blue').append("<i class='fa fa-paper-plane-o' aria-hidden='true'></i>");
+        $('#statusModal:contains("Очаква плащане")').css('color', 'green').append("<i class='fa fa-money' aria-hidden='true'></i>");
+
+
+
 });
 
 $("#thebutton").click(function () {
@@ -92,6 +99,8 @@ $('#tableMain > tbody').append('<tr class="datarow"><td>11111</td><td>22222</td>
       }, 3000);
   })()
 
+
+//Status Icons 
 
 setTimeout(function(){ 
  $('.status:contains("Завършено")').css('color', 'green').append("<i class='fa fa-check' aria-hidden='true'></i>");
@@ -130,3 +139,4 @@ $('.status:contains("Очаква плащане")').css('color', 'green').appen
 	//let result = $('#result');
 	//result.append(sum)
 //}
+
