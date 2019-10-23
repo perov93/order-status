@@ -97,11 +97,11 @@
         <p id='showCD'>
         
         </p>
-        
+        <h5 class="modal-title" id="statusModalLabel">Modal title</h5>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <a class="btn btn-primary" href="https://www.paypal.me/PVasilev" role="button">Make Payment</a>
+        <a class="btn btn-primary" id="paymentBtn" href="https://www.paypal.me/PVasilev" role="button">Make Payment</a>
         
       </div>
     </div>
@@ -150,6 +150,7 @@
       table += "</td><td class='status'>";
       table +=  x[i].getElementsByTagName("STATUS")[0].childNodes[0].nodeValue;
       table += "</td></tr>";
+      
     }
     document.getElementById("demo").innerHTML = table;
     
