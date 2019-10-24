@@ -135,14 +135,12 @@ main > .container {
 }
 
 .btn-primary{
-  -webkit-animation-name: shake;
-      -webkit-animation-duration: 1s;
-      -webkit-animation-iteration-count: infinite;
-      -webkit-animation-timing-function: linear;
-      -webkit-animation-delay: 0s;
+  animation: shake 1s cubic-bezier(.36,.07,.19,.97) forwards infinite;
+  transform: translate3d(0, 0, 0);
+  animation-delay: 3s;
 }
 
-@-webkit-keyframes shake {
+@keyframes shake {
   10%, 90% {
     transform: translate3d(-1px, 0, 0);
   }
