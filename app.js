@@ -54,7 +54,7 @@
        return $(this).text();
      }).get();
      
-     document.getElementById("exampleModalLabel").innerHTML = tableData[0] + '|' + tableData[5]; 
+     document.getElementById("exampleModalLabel").innerHTML = tableData[0] + ' | ' + tableData[5]; 
      document.getElementById("showCD").innerHTML = 'KIN: ' + tableData[0] + '<br>' + 'Date: ' + tableData[1] + '<br>' + 'Client: ' + tableData[2] + '<br>' + 'Description: ' + tableData[3] + '<br>' + 'Price: ' + tableData[4] + 'лв.' + '<p id="statusModal">';
      document.getElementById("statusModalLabel").innerHTML = tableData[5]
 
