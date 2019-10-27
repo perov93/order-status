@@ -123,7 +123,8 @@ function displayImages(images) {
     imageContainer.className = 'ImageResult'
     imageContainer.innerHTML = `<img src="${image.urls.regular}">
     <a href='${image.links.html}' target="_blank" class="view_link">View on Unsplash</a>
-    <a href="${image.user.name}" target="_blank" class="user_link">Photo by: ${image.user.name}</a>`;
+    <a href="${image.user.name}" target="_blank" class="user_link">Photo by: ${image.user.name}</a>
+    <a href="${image.likes}" target="_blank" class="photo_likes"><i class="fa fa-heart" aria-hidden="true">  ${image.likes}</i></a>`;
     imageSection.appendChild(imageContainer);
     console.log(`${image.user.name}`);
     
