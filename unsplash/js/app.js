@@ -1,3 +1,4 @@
+console.log("Author: Pavel Perov | perov93 @ GitHub");
 const API_CLIENTID = 'c329911bbe017f5a22ef047bf3df4c75750c220b91f960655a3592bb01217980'
 const form = document.querySelector('form');
 const input = document.querySelector('input');
