@@ -112,12 +112,12 @@ body {
 
 
 .wt_embed_output{
-    width: 350px;
-    height: 50px;
-    margin: 15px;
+    width: 70%;
+    height: 40px;
+    margin-top: 15px;
     background: #409fff;
     border: 1px solid #409fff;
-    border-radius: 1.25em;
+    border-radius: 12px;
     text-align: center;
     font-weight: 700;
     color: #ffffff;
@@ -129,7 +129,5 @@ body {
   padding: 10px;
   background-color: rgba(0,0,0,.5);
   
-  
- 
 }
 
