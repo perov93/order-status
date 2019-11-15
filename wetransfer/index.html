@@ -6,7 +6,7 @@
     <meta name="description" content="">
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Jekyll v3.8.5">
-    <title>Cover Template · Bootstrap</title>
+    <title>FastTransfer powered by wetransfer</title>
 
 
 
@@ -14,7 +14,8 @@
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
+        <link rel="stylesheet" href="style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <style>
         .bd-placeholder-img {
             font-size: 1.125rem;
@@ -39,7 +40,7 @@
     <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="masthead mb-auto">
             <div class="inner">
-                <h3 class="masthead-brand">Cover</h3>
+                <h3 class="masthead-brand">FastTransfer</h3>
                 <nav class="nav nav-masthead justify-content-center">
                     <a class="nav-link active" href="#">Home</a>
                     <a class="nav-link" href="#">Features</a>
@@ -49,9 +50,10 @@
         </header>
 
         <main role="main" class="inner cover">
-            <h1 class="cover-heading">Cover your page.</h1>
-            <p class="lead">Cover is a one-page template for building simple and beautiful home pages. Download, edit
-                the text, and add your own fullscreen background photo to make it your own.</p>
+            <h1 class="cover-heading">Transfer your files</h1>
+            <p class="lead">Send things from one place to another.
+                Transfer up to 2GB
+                Transfers expire after 7 days. Upload your files and copy your generated link.</p>
             <p class="lead">
                 <div data-widget-host="habitat" id="wt_embed">
                     <script type="text/props">
@@ -67,20 +69,20 @@
                     The next input element will hold the transfer link. For testing purposes, you
                     could change the type attribute to "text", instead of "hidden".
                   -->
-                  <input type="hidden" name="wt_embed_output" class="wt_embed_output" />
+                  <input onclick="copyLink()" type="text" name="wt_embed_output" class="wt_embed_output" id="linkTransfer" />
                   
             </p>
         </main>
 
         <footer class="mastfoot mt-auto">
             <div class="inner">
-                <p>Cover template for <a href="https://getbootstrap.com/">Bootstrap</a>, by <a
-                        href="https://twitter.com/mdo">@mdo</a>.</p>
+                <p>Transfer your files with<a href="https://getbootstrap.com/"> Perov</a>, powered by <a
+                        href="https://twitter.com/mdo">@wetransfer API</a>.</p>
             </div>
         </footer>
     </div>
 
 
 </body>
-
+<script src="app.js"></script>
 </html>

@@ -1,0 +1,21 @@
+body{
+    background: no-repeat center center fixed; 
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}
+
+.wt_embed_output{
+    width: 350px;
+    height: 50px;
+    margin: 15px;
+    background: #409fff;
+    border: 1px solid #409fff;
+    border-radius: 1.25em;
+    text-align: center;
+    font-weight: 700;
+    color: #ffffff;
+    cursor: pointer;
+    
+}
