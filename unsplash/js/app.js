@@ -18,17 +18,17 @@ function formSubmitted(event) {
   search(searchTerm)
     .then(displayImages)
 
-    var xmlhttp = new XMLHttpRequest();
-xmlhttp.onreadystatechange = function() {
-  if (this.readyState == 4 && this.status == 200) {
-    var myObj = JSON.parse(this.responseText);
-    document.getElementById("totalPages").innerHTML = 'Total Pages: ' + myObj.total_pages;
-    document.getElementById("totalImages").innerHTML = 'Total Images: ' + myObj.total;
-  }
-};
+//     var xmlhttp = new XMLHttpRequest();
+// xmlhttp.onreadystatechange = function() {
+//   if (this.readyState == 4 && this.status == 200) {
+//     var myObj = JSON.parse(this.responseText);
+//     document.getElementById("totalPages").innerHTML = 'Total Pages: ' + myObj.total_pages;
+//     document.getElementById("totalImages").innerHTML = 'Total Images: ' + myObj.total;
+//   }
+// };
 
-xmlhttp.open("GET", `${API_URL}&query=${searchTerm}`, true);
-xmlhttp.send();
+// xmlhttp.open("GET", `${API_URL}&query=${searchTerm}`, true);
+// xmlhttp.send();
 }
 
 function searchStart() {
@@ -38,11 +38,12 @@ function searchStart() {
 function search(searchTerm) {
   let searchUrl = `${API_URL}&query=${searchTerm}`;
 
-// GET Query for getting Data from JSON
-//   $.getJSON(searchUrl, function(data) {
-//     console.log(data.results[0].user);
-    
-//  });
+//GET Query for getting Data from JSON
+  $.getJSON(searchUrl, function(data) {
+    console.log(data.total_pages);
+    document.getElementById("totalPages").innerHTML = 'Total Pages: ' + data.total_pages;
+    document.getElementById("totalImages").innerHTML = 'Total Images: ' + data.total;
+ });
 
 
   console.log(searchUrl)
@@ -125,7 +126,7 @@ function displayImages(images) {
     imageContainer.innerHTML = `<img src="${image.urls.regular}">
     <a href='${image.links.html}' target="_blank" class="view_link">View on Unsplash</a>
     <a href="${image.user.name}" target="_blank" class="user_link">Photo by: ${image.user.name}</a>
-    <a href="${image.likes}" target="_blank" class="photo_likes"><i class="fa fa-heart" aria-hidden="true">  ${image.likes}</i></a>`;
+    <a target="_blank" class="photo_likes"><i class="fa fa-heart" aria-hidden="true"></i>  ${image.likes}</a>`;
     imageSection.appendChild(imageContainer);
     console.log(`${image.user.name}`);
     
