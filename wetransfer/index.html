@@ -11,7 +11,7 @@
 
 
     <!-- Bootstrap core CSS -->
-
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <link rel="stylesheet" href="style.css">
@@ -42,15 +42,15 @@
                 <h3 class="masthead-brand">FastTransfer<img src="transfer.png" width="35px"></h3>
                 
                 <nav class="nav nav-masthead justify-content-center">
-                    <a class="nav-link active" href="#">Home</a>
+                    <a onclick="homeView()"class="nav-link active" id="home" href="#">Home</a>
                     <a class="nav-link" href="#">Features</a>
-                    <a class="nav-link" href="#">Contact</a>
+                    <a onclick="contactView()" class="nav-link" id="contact" href="#">Contact</a>
                 </nav>
             </div>
         </header>
 
         <main role="main" class="inner cover">
-            <div class="mainDiv">
+            <div id="mainDiv" class="w3-animate-left">
             <h1 class="cover-heading">Transfer your files</h1>
             <p class="lead">Send things from one place to another.
                 Transfer up to 2GB
@@ -73,6 +73,10 @@
                   <input onclick="copyLink()" type="text" name="wt_embed_output" class="wt_embed_output" id="linkTransfer" />
                   
             </p>
+        </div>
+        <div id="contactLayout" class="w3-animate-right" style="display: none">
+            <h1 class="cover-heading">@perov93</h1>
+            <p class="lead">U can find me at github</p>
         </div>
         </main>
 

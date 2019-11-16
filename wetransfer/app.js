@@ -16,3 +16,22 @@ function copyLink() {
     document.execCommand("copy");
     alert("Copied the text: " + copyText.value);
   }
+
+  function contactView() {
+
+        document.getElementById("mainDiv").style.display = "none";
+        document.getElementById("contactLayout").style.display = "block";
+        document.getElementById("contact").setAttribute("class", "nav-link active")
+        document.getElementById("home").setAttribute("class", "nav-link")
+    }
+
+    function homeView() {
+
+      document.getElementById("mainDiv").style.display = "block";
+      document.getElementById("contactLayout").style.display = "none";
+      document.getElementById("home").setAttribute("class", "nav-link active")
+      document.getElementById("contact").setAttribute("class", "nav-link")
+  }
+    
+
+ // document.getElementById('result').innerHTML = $('#linkTransfer').val();

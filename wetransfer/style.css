@@ -125,7 +125,13 @@ body {
     
 }
 
-.mainDiv{
+.w3-animate-left{
+  padding: 10px;
+  background-color: rgba(0,0,0,.5);
+  
+}
+
+.w3-animate-right{
   padding: 10px;
   background-color: rgba(0,0,0,.5);
   
