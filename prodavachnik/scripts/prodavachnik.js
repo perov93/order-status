@@ -184,7 +184,7 @@ function startApp() {
                 $('#ads').text('No books in the library.');
             } else {
                 let adsTable = $('<table>')
-                    .append($('<tr>')
+                    .append($('<tr class="oddRow">')
                         .append('<th>Pet</th><th>Title</th><th>Description</th><th>Publisher</th><th>Date Published</th><th>Price</th><th>Actions</th>'));
 
                 for(let ad of ads){
