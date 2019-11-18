@@ -161,3 +161,15 @@ footer {
     text-align: center;
 
 }
+
+.oddRow{
+    background-color: #fff;
+    border: none;
+    box-shadow: 0 0px 0px rgba(0,0,0,0);
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    border-radius: 8px;
+    transition: box-shadow 0.2s ease-in-out;
+
+}
