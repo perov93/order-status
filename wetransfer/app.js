@@ -4,6 +4,7 @@ const numItemsToGenerate = 1;
     fetch(`https://source.unsplash.com/1600x900/?beach`).then((response) => {   
       
       document.body.style.backgroundImage = "url('https://source.unsplash.com/1600x900/?beach')";
+        console.log(url('https://source.unsplash.com/1600x900/?beach'))
     }) 
   })()
 
