@@ -44,7 +44,7 @@
 
    orderList.appendChild(tr);
 
-
+  document.getElementById("exampleModalLabel").innerHTML = doc.id;
  }
 
  $(document).ready(function () {
