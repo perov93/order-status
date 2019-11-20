@@ -78,7 +78,6 @@
  db.collection('orders').get().then((snapshot) => {
    snapshot.docs.forEach(doc => {
      renderOrder(doc);
-   const id = doc.id;
    });
  });
 
