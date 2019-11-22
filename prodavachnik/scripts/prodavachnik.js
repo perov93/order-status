@@ -61,7 +61,7 @@ function startApp() {
     
     function showHomeView() {
         showView('viewHome');
-        showView('listAds');
+        
     }
 
     function showLoginView() {
