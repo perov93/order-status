@@ -112,11 +112,11 @@
 
 
 
- setTimeout(function(){ 
- alert("Orders with status finished will disapear!")
- $('tr:contains("Завършено")').css('display', 'none')
-  
- }, 6000);
+ //setTimeout(function(){ 
+ //alert("Orders with status finished will disapear!")
+ //$('tr:contains("Завършено")').css('display', 'none')
+ // 
+ //}, 6000);
 
 
  // Disable F12 and Right Click
