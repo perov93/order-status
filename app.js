@@ -44,7 +44,7 @@
 
    orderList.appendChild(tr);
 
-
+ 
  }
 
  $(document).ready(function () {
@@ -78,7 +78,6 @@
  db.collection('orders').get().then((snapshot) => {
    snapshot.docs.forEach(doc => {
      renderOrder(doc);
-
    });
  });
 
