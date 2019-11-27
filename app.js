@@ -109,7 +109,13 @@
 
 
 
+function closeTask() {
+  $('tr:contains("Завършено")').css('display', 'none')
+}
 
+function showTask() {
+  $('tr:contains("Завършено")').css('display', '')
+}
 
 
 

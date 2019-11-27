@@ -82,11 +82,12 @@
       Използвайте ID номер изпратен към вас, за по - лесно търсене. ID номера се образува от първите четири цифри от датата на поръчка(dd/mm). Следващите символи се образуват от темата на принта
       Напр. 2608_boat
     </div>
-    
+    <button type="button" onclick="closeTask()" class="btn btn-outline-warning" id="closedTask">Hide Closed Tasks</button>
+    <button type="button" onclick="showTask()" class="btn btn-outline-success">Show Hidden Tasks</button>
    
 
 
-    <!-- Modal -->
+    <!-- Modal for every row -->
 <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -109,6 +110,30 @@
     </div>
   </div>
 </div>
+
+    <!-- Modal for every row -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p id='showCD'>
+            
+            </p>
+            <h5 class="modal-title" id="statusModalLabel">Modal title</h5>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <a class="btn btn-primary" id="paymentBtn" href="https://www.paypal.me/PVasilev" role="button">Make Payment</a>  
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="table-responsive table-hover">
     <table class="table table-striped customers-list" id="demo"></table>
