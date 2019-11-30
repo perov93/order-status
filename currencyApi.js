@@ -10,7 +10,7 @@ let foo = prompt('Currency Converter | From Euro to ... | Type your money in EUR
 
   let curr = 1;
   const one = 1;
-  console.log(commits);
+  //console.log(commits);
   console.log(`---------------------------------------------`);
   console.log(`Base: ${commits.base}, by Date; ${commits.date}`);
   console.log(`---------------------------------------------`);
@@ -18,7 +18,7 @@ let foo = prompt('Currency Converter | From Euro to ... | Type your money in EUR
   for (let key in arrRates) {
         
    
-    console.log(`Code: ${key}, Price: ${arrRates[key]} | Converted price: ${(arrRates[key] * foo).toFixed(2)} ${key}`);
+    console.log(`Code: ${key}, Price: ${arrRates[key]} | Converted price: ${foo} * ${arrRates[key]} = ${(arrRates[key] * foo).toFixed(2)} ${key}`);
      
   }
   
