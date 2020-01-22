@@ -29,54 +29,76 @@ const getLeadData = async () => {
   })
   let data = await res.json()
   data = data.data[0]
-  // console.log(data);
+  //console.log(data);
   
   // // filter the fields needed for Daktela
-  let {
-    Phone,
+  let responce = {
+    Phone: data.Phone,
+    Collection_Country: data.Collection_Country,
+    Delivery_Country: data.Delivery_Country,
 
-  }=data;
-  return Phone
+  };
+  return responce;
 }
 
 
+let getCountryCode = async (country_name) => {
+  let COUNTRY_CODE_URL = `https://restcountries.eu/rest/v2/name/${country_name}`;
+  let res = await fetch(COUNTRY_CODE_URL , {
+    method: "GET",
+    headers: {
+      Accept: "application/json"
+    }
+  });
+  let data = await res.json();
+  return await data[0].alpha2Code;
+
+};
+
 const getValidPhoneNumber = async () => {
-    let phone = await getLeadData();
-    console.log(phone);
-    let country_code = 'gb';
-    const url = `https://api.phone-validator.net/api/v2/verify?PhoneNumber=${phone}&CountryCode=${country_code}&APIKey=${PHONE_VALIDATOR_API_KEY}`;
+    let leadData = await getLeadData();
+    let country_code = await getCountryCode(leadData.Collection_Country);
+    console.log(leadData.Collection_Country);
+    
+    const url = `https://api.phone-validator.net/api/v2/verify?PhoneNumber=${leadData.Phone}&CountryCode=${country_code}&APIKey=${PHONE_VALIDATOR_API_KEY}`;
     const response = await fetch(url);
     let commits = await response.json();
-    
-    console.log(commits.formatinternational);
-  return commits.formatinternational
+    if(commits.status == "VALID_CONFIRMED"){
+      console.log("Valid");
+      return commits.formatinternational
+    } 
+    else {
+      console.log("Invalid");
+      country_code = await getCountryCode(leadData.Collection_Country);
+      response = await fetch(url);
+      commits = await response.json();
+      return commits.formatinternational;
+    }   
 }
 
 const updateRecordWithValidPhone = async () => {
-      let Valid_Phone = await getValidPhoneNumber();
+  let Valid_Phone = await getValidPhoneNumber();
 
-      const token = await gen_crm_token()
+  const token = await gen_crm_token()
 
-      const res = await fetch(`https://www.zohoapis.com/crm/v2/Leads/${LEAD_ID}`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/json'
-        },
-        body: JSON.stringify({
-          data: [
-            {
-              Valid_Phone
-            }
-          ]
-        })
-      });
-      const data = await res.json();
-      console.log(data);
-      
-      return data;
+  const res = await fetch(`https://www.zohoapis.com/crm/v2/Leads/${LEAD_ID}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json'
+      },
+      body: JSON.stringify({
+        data: [
+          {
+            Valid_Phone
+          }
+        ]
+      })
+    });
+  const data = await res.json();
+  console.log(data);
+  
+  return data;
 }
-
-
 
 updateRecordWithValidPhone();
