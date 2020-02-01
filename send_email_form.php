@@ -18,7 +18,7 @@
                                 "Phone: $visitor_phone.\n".
                                     "Email: $visitor_email.\n";
 							
-	$to = 'pavelperov93@gmail.com';
+	$to = 'd1719986@urhen.com';
 
 	$headers = "From: $email_from \r\n";
 	
