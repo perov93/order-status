@@ -85,12 +85,12 @@ button:hover {
 </style>
 <body>
 
-<form id="regForm" action="/send_email_form.php">
+<form id="regForm" method="POST" action="send_form_email.php" accept-charset="UTF-8">
   <h1>Get a Free Quote:</h1>
   <!-- One "tab" for each step in the form: -->
   <div class="tab">Moving Details:
-    <p><input placeholder="Colection ..." oninput="this.className = ''" name="colection" id="search-term-c"></p>
-    <p><input placeholder="Delivery ..." oninput="this.className = ''" name="delivery" id="search-term-d"></p>
+    <div id='searchBoxColl'></div><p><input placeholder="Colection ..." oninput="this.className = ''" name="colection" id="search-term-c"></p>
+    <div id='searchBoxDel'></div><p><input placeholder="Delivery ..." oninput="this.className = ''" name="delivery" id="search-term-d"></p>
   </div>
   <!-- <div class="tab">Moving To:
     <p><input placeholder="Delivery Country..." oninput="this.className = ''" name="fname"></p>
@@ -196,7 +196,7 @@ function fixStepIndicator(n) {
 
 }
 </script>
-<script>
+<!-- <script>
     function activatePlacesSearch(){
         var inputC = document.getElementById("search-term-c");
         var inputD = document.getElementById("search-term-d");
@@ -204,6 +204,26 @@ function fixStepIndicator(n) {
         var autocomplete = new google.maps.places.Autocomplete(inputD);
     }
 </script>
-<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBlbm-g9Jivo2MCLZ5f5zcDKHcn9dc10Og&libraries=places&callback=activatePlacesSearch"></script>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBlbm-g9Jivo2MCLZ5f5zcDKHcn9dc10Og&libraries=places&callback=activatePlacesSearch"></script> -->
+
+<script type='text/javascript'>
+  function loadMapScenario() {
+      Microsoft.Maps.loadModule('Microsoft.Maps.AutoSuggest', {
+          callback: onLoad,
+          errorCallback: onError
+      });
+      function onLoad(suggestionResult) {
+          var manager = new Microsoft.Maps.AutosuggestManager;
+          manager.attachAutosuggest('#search-term-c',  '#searchBoxColl',  suggestionResult);
+          var manager = new Microsoft.Maps.AutosuggestManager;
+          manager.attachAutosuggest('#search-term-d',  '#searchBoxDel',  suggestionResult);
+      }
+      function onError(message) {
+          document.getElementById('searchBox').innerHTML = message;
+      }
+      
+  }
+</script>
+<script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key=AjJrFp8ARbwlT7ZmEs91h1cP1_QRiKEXhJ_Bn1lyeozVs2u27Z4OcS6nvvma8HZH&callback=loadMapScenario' async defer></script>
 </body>
 </html>
