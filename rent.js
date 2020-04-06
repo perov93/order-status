@@ -10,8 +10,8 @@
    let tr = document.createElement('tr');
    let client = document.createElement('td');
    let date = document.createElement('td');
-   let price = document.createElement('td');
-   let project = document.createElement('td');
+   let amount = document.createElement('td');
+   let month = document.createElement('td');
    let kin = document.createElement('td');
    let status = document.createElement('td');
 
@@ -23,18 +23,18 @@
    //kin.textContent = doc.data().kin;
    client.textContent = doc.data().client;
    date.textContent = doc.data().date;
-   price.textContent = doc.data().price;
-   project.textContent = doc.data().project;
+   amount.textContent = doc.data().amount;
+   month.textContent = doc.data().month;
    status.textContent = doc.data().status;
 
-   price.setAttribute("class", "count-me")
+   amount.setAttribute("class", "count-me")
    status.setAttribute("class", "status")
 
    tr.appendChild(kin);
    tr.appendChild(date);
    tr.appendChild(client);
-   tr.appendChild(project);
-   tr.appendChild(price);
+   tr.appendChild(month);
+   tr.appendChild(amount);
    tr.appendChild(status);
 
    orderList.appendChild(tr);
@@ -71,26 +71,13 @@
 
 
  //Getting Data
- db.collection('orders').get().then((snapshot) => {
+ db.collection('rent-mladost').get().then((snapshot) => {
    snapshot.docs.forEach(doc => {
      renderOrder(doc);
    });
  });
 
 
- (function () {
-   setTimeout(
-     function () {
-       $('.count-me').each(function () {
-         //alert($(this).html());
-
-         sum += parseFloat($(this).html());
-
-       });
-       console.log(sum.toFixed(2));
-       document.getElementById('result').innerHTML += "Общо: " + sum.toFixed(2) + " лв";
-     }, 3000);
- })()
 
 
  //Status Icons 

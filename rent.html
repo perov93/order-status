@@ -76,14 +76,11 @@
 <main role="main" class="flex-shrink-0">
   <div class="container">
     <div class="alert alert-primary" role="alert">
-      Кликни върху даден ред, за подробна информация.
+     Информация за наем на апртамент ж.к Младост 110
     </div>
     <div class="alert alert-warning" role="alert">
-      Използвайте ID номер изпратен към вас, за по - лесно търсене. ID номера се образува от първите четири цифри от датата на поръчка(dd/mm). Следващите символи се образуват от темата на принта
-      Напр. 2608_boat
+      
     </div>
-    <button type="button" onclick="closeTask()" class="btn btn-outline-warning" id="closedTask">Hide Closed Tasks</button>
-    <button type="button" onclick="showTask()" class="btn btn-outline-success">Show Hidden Tasks</button>
 
    
 
@@ -149,7 +146,6 @@
       
     <span class="text-muted">Проверка на статус на поръчка</span>
     <br>
-    <span class="total-sum" id="result"></span>
     <span class="date-clock" id="date"></span>
     <br>
     <span class="clock" id="clock"></span>
@@ -163,23 +159,23 @@
     xmlhttp.send();
     xmlDoc = xmlhttp.responseXML; 
     x = xmlDoc.getElementsByTagName("CD");
-    table="<tr><th>ID</th><th>DATE</th><th>CLIENT</th><th>PROJECT</th><th>PRICE</th><th>STATUS</th></tr>";
-    for (i = 0; i <x.length; i++) { 
-      table += "<tr onclick='displayCD(" + i + ")' data-toggle='modal' data-target='#exampleModal'><td>";
-      table += x[i].getElementsByTagName("ID")[0].childNodes[0].nodeValue;
-      table += "</td><td>";
-      table +=  x[i].getElementsByTagName("DATE")[0].childNodes[0].nodeValue;
-      table += "</td><td>";
-      table +=  x[i].getElementsByTagName("CLIENT")[0].childNodes[0].nodeValue;
-      table += "</td><td>";
-      table +=  x[i].getElementsByTagName("PROJECT")[0].childNodes[0].nodeValue;
-      table += "</td><td class='count-me'>";
-      table +=  x[i].getElementsByTagName("PRICE")[0].childNodes[0].nodeValue;
-      table += "</td><td class='status'>";
-      table +=  x[i].getElementsByTagName("STATUS")[0].childNodes[0].nodeValue;
-      table += "</td></tr>";
+    table="<tr><th>ID</th><th>Дата на плащане</th><th>Наемател</th><th>Месец</th><th>Цена</th><th>Статус</th></tr>";
+    // for (i = 0; i <x.length; i++) { 
+    //   table += "<tr onclick='displayCD(" + i + ")' data-toggle='modal' data-target='#exampleModal'><td>";
+    //   table += x[i].getElementsByTagName("ID")[0].childNodes[0].nodeValue;
+    //   table += "</td><td>";
+    //   table +=  x[i].getElementsByTagName("DATE")[0].childNodes[0].nodeValue;
+    //   table += "</td><td>";
+    //   table +=  x[i].getElementsByTagName("CLIENT")[0].childNodes[0].nodeValue;
+    //   table += "</td><td>";
+    //   table +=  x[i].getElementsByTagName("PROJECT")[0].childNodes[0].nodeValue;
+    //   table += "</td><td class='count-me'>";
+    //   table +=  x[i].getElementsByTagName("PRICE")[0].childNodes[0].nodeValue;
+    //   table += "</td><td class='status'>";
+    //   table +=  x[i].getElementsByTagName("STATUS")[0].childNodes[0].nodeValue;
+    //   table += "</td></tr>";
       
-    }
+    // }
     document.getElementById("demo").innerHTML = table;
     
     function displayCD(i) {
@@ -196,26 +192,7 @@
     </script>
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
       <script>window.jQuery || document.write('<script src="/docs/4.3/assets/js/vendor/jquery-slim.min.js"><\/script>')</script><script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
-      <script>
-          function myFunction() {
-            var input, filter, table, tr, td, i, txtValue;
-            input = document.getElementById("myInput");
-            filter = input.value.toUpperCase();
-            table = document.getElementById("demo");
-            tr = table.getElementsByTagName("tr");
-            for (i = 0; i < tr.length; i++) {
-              td = tr[i].getElementsByTagName("td")[0];
-              if (td) {
-                txtValue = td.textContent || td.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                  tr[i].style.display = "";
-                } else {
-                  tr[i].style.display = "none";
-                }
-              }       
-            }
-          }
-          </script>
+     
          <script>
             function startTime() {
               var today = new Date();
@@ -273,56 +250,7 @@ document.getElementById('clock').innerHTML += today;
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
   </script>
-   
-  <script src="app.js"></script>
-  
-    <script> 
-    $(document).ready(function() {
-   $('.status:contains("Завършено")').css('color', 'green');
-  $('.status:contains("Очаква одобрение")').css('color', 'orange'); 
-});
-    </script>
-    
-    <script>
-        (function(document) {
-            'use strict';
-
-            var TableFilter = (function(myArray) {
-                var search_input;
-
-                function _onInputSearch(e) {
-                    search_input = e.target;
-                    var tables = document.getElementsByClassName(search_input.getAttribute('data-table'));
-                    myArray.forEach.call(tables, function(table) {
-                        myArray.forEach.call(table.tBodies, function(tbody) {
-                            myArray.forEach.call(tbody.rows, function(row) {
-                                var text_content = row.textContent.toLowerCase();
-                                var search_val = search_input.value.toLowerCase();
-                                row.style.display = text_content.indexOf(search_val) > -1 ? '' : 'none';
-                            });
-                        });
-                    });
-                }
-
-                return {
-                    init: function() {
-                        var inputs = document.getElementsByClassName('search-input');
-                        myArray.forEach.call(inputs, function(input) {
-                            input.oninput = _onInputSearch;
-                        });
-                    }
-                };
-            })(Array.prototype);
-
-            document.addEventListener('readystatechange', function() {
-                if (document.readyState === 'complete') {
-                    TableFilter.init();
-                }
-            });
-
-        })(document);
-    </script>
-
+  <script src="rent.js"></script>
     </body>
 </html>
 
