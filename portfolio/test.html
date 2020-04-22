@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<script>
+		
+function draw(){
+	var canvasBody = document.getElementById("canvas"),
+			canvas = canvasBody.getContext("2d"),
+
+			w = canvasBody.width = document.documentElement.clientWidth,
+			h = canvasBody.height = document.documentElement.clientHeight,
+
+			tick = 0,
+
+		
+			opts = {
+				backgroundColor: "#fff",
+			
+			
+				particleColor: "#d5edea",
+        		lineColor: "#d5edea",
+				particleAmount: Math.round(w * h / 10000),
+				defaultSpeed: 0.3,
+				addedSpeed: 1,
+
+				defaultRadius: 2,
+				addedRadius: 2,
+
+				communicationRadius: 150
+			},
+      
+			particles = [],
+
+			Particle = function(Xpos, Ypos){
+				this.x = Xpos ? Xpos : Math.random()*w;
+				this.y = Ypos ? Ypos : Math.random()*h;
+				this.speed = opts.defaultSpeed + Math.random()*opts.addedSpeed;
+				this.directionAngle = Math.floor(Math.random()*360);
+				this.color = opts.particleColor;
+				this.radius = opts.defaultRadius + Math.random()*opts.addedRadius;
+				this.d = {
+					x: Math.cos(this.directionAngle)*this.speed,
+					y: Math.sin(this.directionAngle)*this.speed
+				};
+				this.update = function(){
+					this.border();
+					this.x += this.d.x;
+					this.y += this.d.y;
+				};
+				this.border = function(){
+					if(this.x >= w || this.x <= 0){
+						this.d.x *= -1;
+					}
+					if(this.y >= h || this.y <= 0){
+						this.d.y *= -1;
+					}
+					this.x > w ? this.x = w : this.x;
+					this.y > h ? this.y = h : this.y;
+					this.x < 0 ? this.x = 0 : this.x;
+					this.y < 0 ? this.y = 0 : this.y;
+
+				};
+				this.draw = function(){
+					canvas.beginPath();
+					canvas.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+					canvas.closePath();
+					canvas.fillStyle = grd;
+					canvas.fill();
+				};
+			},
+			checkDistance = function(x1, y1, x2, y2){
+				return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+			},
+		
+		
+		
+			communicatePoints = function(point1, father){
+				for(var i = 0; i < father.length; i++){
+					var distance = checkDistance(point1.x, point1.y, father[i].x, father[i].y);
+					var opacity = 1 - distance/opts.communicationRadius;
+					if (opacity > 0){
+						canvas.lineWidth = opacity;
+						canvas.strokeStyle = grd;
+						canvas.beginPath();
+						canvas.moveTo(point1.x, point1.y);
+						canvas.lineTo(father[i].x, father[i].y);
+						canvas.closePath();
+						canvas.stroke();
+					}
+				}
+			};
+  
+  var grd = canvas.createLinearGradient(0,0,w,h);
+  grd.addColorStop(0,"#f00");
+  grd.addColorStop(0.14,"#ff00d6");
+  grd.addColorStop(0.29,"#1900ff");
+  grd.addColorStop(0.43,"#00f5ff");
+  grd.addColorStop(0.57,"#06ff00");
+  grd.addColorStop(0.71,"#fff500");
+  grd.addColorStop(0.86,"#ff00d6");
+  grd.addColorStop(1,"#f00");
+
+	function setup(){
+		for(var i = 0; i < opts.particleAmount; i++){
+			particles.push( new Particle() );
+		}
+		window.requestAnimationFrame(loop);
+	}
+
+	function loop(){
+		window.requestAnimationFrame(loop);
+		tick++;
+
+	
+		canvas.fillStyle = opts.backgroundColor;
+		canvas.fillRect(0,0,w,h);
+
+	
+		for(var i = 0; i < particles.length; i++){
+			particles[i].update();
+			particles[i].draw();
+		}
+	
+		for(var a = 0; a < particles.length; a++){
+			communicatePoints(particles[a], particles);
+		}
+	}
+
+
+	setup();
+
+
+	window.addEventListener("resize", function(){
+		w = canvasBody.width = window.innerWidth;
+		h = canvasBody.height = window.innerHeight;
+	});
+
+
+	canvasBody.addEventListener("click", function(e){
+		particles.push( new Particle(e.pageX, e.pageY) );
+		console.log(particles.length);
+	});
+
+	canvasBody.addEventListener("contextmenu", function(e){
+		e.preventDefault();
+		particles.splice(particles.length - 1, 1);
+	});
+};
+
+window.addEventListener("resize", function(){
+	w = window.innerWidth;
+	h = window.innerHeight;
+});
+	</script>
+	<style>
+		#container {
+  position: relative;
+}
+#container canvas, #overlay {
+  position: absolute;
+}
+
+body {
+	   		overflow: auto;
+	   		font-family: "Century Gothic";
+	   		
+	   	}
+
+	   	h1{
+	   		font-size: 4em;
+	   		font-weight: 700;
+	   	}
+
+	   	blockquote {
+		    border-bottom: 1px solid #ececec;
+		    padding-bottom: 0.5em;
+		    margin-bottom: 0.5em;
+		}
+
+		.fromTo{
+			font-style: italic;
+			display: block;
+
+		}
+
+		.content {
+		    max-width: 60%;
+		    margin: auto;
+
+		    padding: 10px;
+		}
+
+	   	.perons{
+	   		display: block;
+	   	}
+
+	   	.company{
+			font-weight: 600;
+	   	}
+
+	   	.footer {
+		  	
+		  	right: 0;
+		  	bottom: 0;
+		  	left: 0;
+		  	padding: 1rem;
+
+		  	text-align: center;
+		}
+
+canvas {
+	position: absolute;
+  width: 100%;
+    
+}
+	</style>
+</head>
+<body onload="draw()">
+<div id="container">
+  <canvas id="canvas"></canvas>
+  <div id="overlay">
+<div class="content">
+		<h1>Hello, my name is Pavel®</h1>
+<h2>I create products and companies</h2>
+<p>I'm well versed in many skills around technology & product development. I like to build things – usually with technology, and a side of grit. I've worn many hats in my career between executive positions, back-end dev, front-end dev, and product design. I love knowledge, and I strongly believe technology can, and should enrich every single life this universe has to offer.</p>
+
+
+
+<h2>Stuff you'll find me on</h2>
+<ul>
+	<li>GitHub</li>
+	<li>E-mail</li>
+	<li>LinkedIn</li>
+</ul>
+
+<h2>Here's what people say about me</h2>
+<blockquote>
+	<p>I'm well versed in many skills around technology & product development. I like to build things – usually with technology, and a side of grit. I've worn many hats in my career between executive positions, back-end dev, front-end dev, and product design. I love knowledge, and I strongly believe technology can, and should enrich every single life this universe has to offer.</p>
+	<p></p>
+	<footer>
+	<span class="perons">Pavel</span>
+	<span class="company">DSGN Studio</span>	
+	</footer>
+</blockquote>
+
+<h2>What experience do I have so far?</h2>
+<blockquote>
+	<span class="perons">Graphic Designer, Screen Printer, Management</span>
+	<span class="company">Advertising Agency "EGO"</span>
+	<span class="fromTo">- from October 2016 - till now</span>
+</blockquote>
+<blockquote>
+	<span class="perons">IT Infrastructure Operations</span>
+	<span class="company">NESTLE BULGARIA</span>
+	<span class="fromTo">- from March 2015 - till August 2016</span>
+	
+</blockquote>
+
+<h2>What skills I have acquired so far?</h2>
+
+<h2>What I have studied so far?</h2>
+</div>
+
+
+	
+<div class="footer">
+	Pavel Vasilev
+</div>
+
+  </div>
+</div>
+</body>
+</html>

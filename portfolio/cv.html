@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Pavel Vasilev - Resume</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<style>
+body {
+	margin: auto;
+	max-width: 100%;
+	overflow: auto;
+	font-family: "Century Gothic";
+}
+
+h1 {
+	font-size: 4em;
+	font-weight: 700;
+}
+
+blockquote {
+	border-bottom: 1px solid #ececec;
+	padding-bottom: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+ul li {
+	font-weight: 600;
+}
+
+.fromTo {
+	font-style: italic;
+	display: block;
+}
+
+.content {
+	max-width: 860px;
+	margin: auto;
+	background: white;
+	padding: 10px;
+}
+
+.perons {
+	display: block;
+}
+
+.company {
+	font-weight: 600;
+}
+
+.footer {
+	right: 0;
+	bottom: 0;
+	left: 0;
+	padding: 1rem;
+	text-align: center;
+}
+
+#canvas {
+	position: fixed;
+	height: 100%;
+	width: 100%;
+	top: 0;
+	left: 0;
+}
+
+.overlay {
+	height: 100%;
+	width: 0;
+	position: fixed;
+	z-index: 1;
+	top: 0;
+	left: 0;
+	background-color: rgb(0, 0, 0);
+	background-color: rgba(0, 0, 0, 0.9);
+	overflow-x: hidden;
+	transition: 0.5s;
+}
+
+.overlay-content {
+	position: relative;
+	top: 25%;
+	width: 100%;
+	text-align: center;
+	margin-top: 30px;
+}
+
+.overlay a {
+	padding: 8px;
+	text-decoration: none;
+	font-size: 36px;
+	color: #818181;
+	display: block;
+	transition: 0.3s;
+}
+
+.overlay a:hover, .overlay a:focus {
+	color: #f1f1f1;
+}
+
+.overlay .closebtn {
+	position: absolute;
+	top: 20px;
+	right: 45px;
+	font-size: 60px;
+}
+
+@media screen and (max-height:450px) {
+	.overlay a {
+		font-size: 20px
+	}
+
+	.overlay .closebtn {
+		font-size: 40px;
+		top: 15px;
+		right: 35px;
+	}
+
+}
+
+
+
+.wrapper li img{
+	width: 50px;
+	filter: gray; /* IE6-9 */
+  -webkit-filter: grayscale(100%);
+}
+
+.wrapper li img:hover{
+	 filter: none;
+  -webkit-filter: grayscale(0%);
+}
+
+.wrapper {
+        text-align: center;
+    }
+    .wrapper ul {
+        display: inline-block;
+        margin: 0;
+        padding: 0;
+        /* For IE, the outcast */
+        zoom:1;
+        *display: inline;
+    }
+    .wrapper li {
+        float: left;
+        list-style-type: none;
+        max-width: 860px;
+        padding: 2px 5px;
+        
+    }
+
+    .portfolio{
+    	border: 1px solid black;
+    	max-width: 100%;
+    	height: 10px;
+    }
+
+ /*Gallery*/
+    .row {
+    display: -ms-flexbox; /* IE10 */
+    display: flex;
+    -ms-flex-wrap: wrap; /* IE10 */
+    flex-wrap: wrap;
+    padding: 0 4px;
+}
+
+/* Create four equal columns that sits next to each other */
+.column {
+    -ms-flex: 25%; /* IE10 */
+    flex: 25%;
+    max-width: 25%;
+    padding: 0 4px;
+}
+
+.column img {
+    margin-top: 8px;
+    vertical-align: middle;
+    filter: gray; /* IE6-9 */
+  -webkit-filter: grayscale(100%);
+}
+
+.column img:hover{
+	 filter: none;
+  -webkit-filter: grayscale(0%);
+}
+
+/* Responsive layout - makes a two column-layout instead of four columns */
+@media screen and (max-width: 800px) {
+    .column {
+        -ms-flex: 50%;
+        flex: 50%;
+        max-width: 50%;
+    }
+}
+
+/* Responsive layout - makes the two columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 600px) {
+    .column {
+        -ms-flex: 100%;
+        flex: 100%;
+        max-width: 100%;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+
+
+
+
+
+
+</style>
+	</head>
+	<body>
+		<div id="myNav" class="overlay">
+			<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+			<div class="overlay-content">
+				<a href="#">About</a>
+				<a href="#">Services</a>
+				<a href="#">Clients</a>
+				<a href="#">Contact</a>
+			</div>
+		</div>
+		
+		<div class="content">
+			<span style="font-size:30px;cursor:pointer;float: right;" onclick="openNav()">&#9776;</span>
+			<h1>Hello, my name is Pavel</h1>
+			<h2>I create products and companies</h2>
+			<p>I'm well versed in many skills around technology & product development. I like to build things – usually with technology, and a side of grit. I've worn many hats in my career between executive positions, back-end dev, front-end dev, and product design. I love knowledge, and I strongly believe technology can, and should enrich every single life this universe has to offer.</p>
+			<h2>Stuff you'll find me on</h2>
+			<ul>
+				<li><a href="https://github.com/perov93" >GitHub</a></li>
+				<li><a href="mailto:pavelperov93@gmail.com" "email me">E-mail</a></li>
+				<li><a href="https://www.linkedin.com/in/pvasilev93/" title="">LinkedIn</a></li>
+			</ul>
+			<h2>Here's what people say about me</h2>
+			<blockquote>
+				<p>I'm well versed in many skills around technology & product development. I like to build things – usually with technology, and a side of grit. I've worn many hats in my career between executive positions, back-end dev, front-end dev, and product design. I love knowledge, and I strongly believe technology can, and should enrich every single life this universe has to offer.</p>
+				<p></p>
+				<footer>
+					<span class="perons">Pavel</span>
+					<span class="company">DSGN Studio</span>
+				</footer>
+			</blockquote>
+			<h2>What I have studied so far?</h2>
+			<blockquote>
+				<span class="perons">Software Engineering - JavaScript Developer</span>
+				<span class="company">Software University "SoftUni"</span><span class="fromTo">from January 2017 - till now</span>
+			</blockquote>
+			<blockquote>
+				<span class="perons">Informatics</span>
+				<span class="company">University of Economics - Varna</span><span class="fromTo">from September 2012 - till June 2016</span>
+				
+			</blockquote>
+			<h2>What experience do I have so far?</h2>
+			<blockquote>
+				<span class="perons">IT System Administrator, JS Developer</span>
+				<span class="company">European Moving Technologies</span><span class="fromTo">from September 2019 - till April 2020</span>
+			</blockquote>
+			<blockquote>
+				<span class="perons">Graphic Designer, Screen Printer, Management</span>
+				<span class="company">Advertising Agency "EGO"</span><span class="fromTo">from October 2016 - till September 2019</span>
+			</blockquote>
+			<blockquote>
+				<span class="perons">IT Infrastructure Operations</span>
+				<span class="company">NESTLE BULGARIA</span><span class="fromTo">from March 2015 - till August 2016</span>
+				
+			</blockquote>
+			<h2>Coding Skills</h2>
+			<div class="wrapper">
+				<ul>
+					<li><img src="js.png" alt=""></li>
+					<li><img src="node.png" alt=""></li>
+					<li><img src="html.png" alt=""></li>
+					<li><img src="css.png" alt=""></li>
+
+				</ul>
+			</div>
+			<h2>Graphic Design Tools</h2>
+			<div class="wrapper">
+				<ul>
+					<li><img src="photo.png" alt=""></li>
+					<li><img src="ill.png" alt=""></li>
+					<li><img src="corel4.png" alt=""></li>
+				</ul>
+			</div>
+
+			<h2><span id="graphicTitle" onclick="changeCode()">Latest Graphic Design Projects</span><span id="codeTitle" onclick="changeGraphic()"> | Coding Projects</span></h2>
+			
+			
+			
+
+		</div>		
+		
+			<div class="row w3-animate-left" id="graphic"> 
+  <div class="column">
+    <img src="der_touristik.gif" style="width:100%">
+    <img src="dyrvenoto.jpg" style="width:100%">
+    <img src="" style="width:100%">
+    <img src="" style="width:100%">
+  </div>
+  <div class="column">
+    <img src="max.jpg" style="width:100%">
+    <img src="kazakov.png" style="width:100%">
+    <img src="switch.jpg" style="width:100%">
+  </div>  
+  <div class="column">
+    <img src="https://i.pinimg.com/564x/3b/73/ed/3b73ed606f666dec0f5538b71f5533f3.jpg" style="width:100%">
+    <img src="menu.jpg" style="width:100%">
+    <img src="" style="width:100%">
+    <img src="" style="width:100%">
+  </div>
+  <div class="column">
+    <img src="kleo.jpg" style="width:100%">
+    <img src="jenq.jpg" style="width:100%">
+    <img src="" style="width:100%">
+  	<img src="" style="width:100%">
+    <img src="" style="width:100%">
+    <img src="" style="width:100%">
+  </div>
+</div>
+<div class="row w3-animate-right" id="coding" style="display: none;"> 
+  <div class="column">
+    <img src="der_touristik.gif" style="width:100%">
+    <img src="dyrvenoto.jpg" style="width:100%">
+    <img src="" style="width:100%">
+    <img src="" style="width:100%">
+  </div>
+  <div class="column">
+    <img src="max.jpg" style="width:100%">
+    <img src="kazakov.png" style="width:100%">
+    <img src="switch.jpg" style="width:100%">
+  </div>  
+  <div class="column">
+    <img src="mj.jpg" style="width:100%">
+    <img src="menu.jpg" style="width:100%">
+    <img src="" style="width:100%">
+    <img src="" style="width:100%">
+  </div>
+  <div class="column">
+    <img src="kleo.jpg" style="width:100%">
+    <img src="jenq.jpg" style="width:100%">
+    <img src="" style="width:100%">
+  	<img src="" style="width:100%">
+    <img src="" style="width:100%">
+    <img src="" style="width:100%">
+  </div>
+</div>
+
+		<div class="footer">
+			pavelperov93@gmail.com | Pavel Vasilev | +359 896 577 570
+		</div>
+	</body>
+	<script>
+	function changeGraphic(){
+		document.getElementById('graphic').style.display = 'none';
+		document.getElementById('coding').style.display = 'flex';
+		$('#codeTitle').css({'font-weight': '600' });
+		$('#graphicTitle').css({'font-weight': '100' });
+	}
+	function changeCode(){
+		document.getElementById('graphic').style.display = 'flex';
+		document.getElementById('coding').style.display = 'none';
+		$('#codeTitle').css({'font-weight': '100' });
+		$('#graphicTitle').css({'font-weight': '600' });
+	}
+	</script>
+			<script>
+		function openNav() {
+		document.getElementById("myNav").style.width = "100%";
+		}
+		function closeNav() {
+		document.getElementById("myNav").style.width = "0%";
+		}
+		</script>
+</html>
