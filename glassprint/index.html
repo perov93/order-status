@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <link rel='stylesheet' id='jquery-ui-standard-css-css'
+        href='https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css?ver=4.9.8'
+        type='text/css' media='all' />
+    <!--n2css-->
+    <script type='text/javascript' src='js/jquery.js?ver=1.12.4'></script>
+    <script type='text/javascript' src='js/jquery-migrate.min.js?ver=1.4.1'></script>
+    <script type='text/javascript' src='js/jquery.fancybox.min.js'></script>
+    <script type='text/javascript' src='js/fancybox-script.js'></script>
+
+    <script type='text/javascript' src='js/jquery.doubletap.js?ver=4.9.8'></script>
+    <script src="  https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-3 left-column">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <a>Калкулатор</a>
+                        </h3>
+                    </div>
+                    <div id="" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            <span>Изчисли цена линеен метър</span>
+                            <br>
+                            Дължина: <input id="amount1" type="text" placeholder="Въведи дължина 1.8 m2" />
+                            <br>
+                            <span id="result" style="font-size: 20px; color: red; font-weight: bold;"></span>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <a>Избери си Принт</a>
+                        </h3>
+                    </div>
+                    <div id="" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            <div class="panel-collapse collapse in">
+                                <div class="panel-body">
+                                    <div id="accordion" class="ui-accordion ui-widget ui-helper-reset" role="tablist">
+									<h3 class="ui-accordion-header ui-state-default ui-corner-all ui-accordion-icons"
+                                            role="tab" id="ui-id-3" aria-controls="ui-id-4" aria-selected="false"
+                                            aria-expanded="false" tabindex="-1"><span
+                                                class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-e"></span>Нови
+                                        </h3>
+                                        <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom"
+                                            id="ui-id-4" aria-labelledby="ui-id-3" role="tabpanel" aria-hidden="true"
+                                            style="display: none; height: 0px; overflow: auto;">
+                                            <div class="glassman-kitchen-img-selection"><img id="img-80"
+                                                    class="glassman-kitchen-img-thumb"
+                                                    src="images/prints//new/thumbs/kitchen-new-glassprints_1.png"
+                                                    data-imgid="80" alt=""></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-81"
+                                                    class="glassman-kitchen-img-thumb"
+                                                    src="images/prints//new/thumbs/kitchen-new-glassprints_2.png"
+                                                    data-imgid="81" alt="or"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-82"
+                                                    class="glassman-kitchen-img-thumb"
+                                                    src="images/prints//new/thumbs/kitchen-new-glassprints_3.png"
+                                                    data-imgid="82" alt="or"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-83"
+                                                    class="glassman-kitchen-img-thumb"
+                                                    src="images/prints//new/thumbs/kitchen-new-glassprints_4.png"
+                                                    data-imgid="83" alt="or"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-84"
+                                                    class="glassman-kitchen-img-thumb"
+                                                    src="images/prints//new/thumbs/kitchen-new-glassprints_5.png"
+                                                    data-imgid="84" alt=""></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-85"
+                                                    class="glassman-kitchen-img-thumb"
+                                                    src="images/prints//new/thumbs/kitchen-new-glassprints_6.png"
+                                                    data-imgid="85" alt="bl"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-86"
+                                                    class="glassman-kitchen-img-thumb"
+                                                    src="images/prints//new/thumbs/kitchen-new-glassprints_7.png"
+                                                    data-imgid="86" alt="bl"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-87"
+                                                    class="glassman-kitchen-img-thumb"
+                                                    src="images/prints//new/thumbs/kitchen-new-glassprints_8.png"
+                                                    data-imgid="87" alt="bl"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-88"
+                                                        class="glassman-kitchen-img-thumb"
+                                                        src="images/prints//new/thumbs/kitchen-new-glassprints_9.png"
+                                                        data-imgid="88" alt="beach"></div>
+											<div class="glassman-kitchen-img-selection"><img id="img-89"
+                                                     class="glassman-kitchen-img-thumb"
+                                                        src="images/prints//new/thumbs/kitchen-new-glassprints_10.png"
+                                                        data-imgid="89" alt="beach"></div>
+														<div class="glassman-kitchen-img-selection"><img id="img-90"
+                                                     class="glassman-kitchen-img-thumb"
+                                                        src="images/prints//new/thumbs/kitchen-new-glassprints_11.png"
+                                                        data-imgid="90" alt="beach"></div>
+														<div class="glassman-kitchen-img-selection"><img id="img-90"
+                                                     class="glassman-kitchen-img-thumb"
+                                                        src="images/prints//new/thumbs/kitchen-new-glassprints_12.png"
+                                                        data-imgid="90" alt="beach"></div>
+                                        </div>
+									
+									
+                                        <h3 class="ui-accordion-header ui-state-default ui-accordion-header-active ui-state-active ui-corner-top ui-accordion-icons"
+                                            role="tab" id="ui-id-5" aria-controls="ui-id-6" aria-selected="false"
+                                            aria-expanded="false" tabindex="-1"><span
+                                                class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-e"></span>Храни
+                                        </h3>
+                                        <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom"
+                                            id="ui-id-6" aria-labelledby="ui-id-5" role="tabpanel" aria-hidden="true"
+                                            style="display: none; height: 0px; overflow: auto;">
+                                            <div class="glassman-kitchen-img-selection"><img id="img-35"
+                                                    class="glassman-kitchen-img-thumb" src="" alt="wh red gr"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-36"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="35"
+                                                    alt="wh gr yellow br"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-37"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="36"
+                                                    alt="bl gr"></div>
+                                        </div>
+                                        <h3 class="ui-accordion-header ui-state-default ui-accordion-icons" role="tab"
+                                            id="ui-id-1" aria-controls="ui-id-2" aria-selected="true"
+                                            aria-expanded="true" tabindex="0"><span
+                                                class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-s"></span>Цветя
+                                        </h3>
+                                        <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active"
+                                            id="ui-id-2" aria-labelledby="ui-id-1" role="tabpanel"
+                                            style="display: block; height: 0px; overflow: auto;" aria-hidden="false">
+                                            <div class="glassman-kitchen-img-selection"><img id="img-1"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="1" alt="pink">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-2"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="2" alt="pink">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-3"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="3" alt="wh">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-4"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="4"
+                                                    alt="pink gr"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-5"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="5" alt="">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-6"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="6"
+                                                    alt="pink gr"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-7"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="7" alt="red">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-8"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="8" alt="red">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-9"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="9"
+                                                    alt="pink gr"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-10"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="10" alt="red">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-11"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="11" alt="">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-12"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="12" alt="wh">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-13"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="13" alt="wh">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-14"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="14" alt="">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-15"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="15"
+                                                    alt="pink gr"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-16"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="16" alt="gr">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-17"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="17"
+                                                    alt="pink"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-18"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="18" alt="wh">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-19"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="19" alt="wh">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-20"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="20" alt="">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-21"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="21"
+                                                    alt="pink"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-22"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="22" alt="red">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-23"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="23" alt="wh">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-24"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="24"
+                                                    alt="pink"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-25"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="25" alt="">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-26"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="26" alt="">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-27"
+                                                    class="glassman-kitchen-img-thumb" src="" alt=""></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-28"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="28"
+                                                    alt="wh gr"></div>
+                                        </div>
+                                        <h3 class="ui-accordion-header ui-state-default ui-corner-all ui-accordion-icons"
+                                            role="tab" id="ui-id-3" aria-controls="ui-id-4" aria-selected="false"
+                                            aria-expanded="false" tabindex="-1"><span
+                                                class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-e"></span>Градове
+                                        </h3>
+                                        <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom"
+                                            id="ui-id-4" aria-labelledby="ui-id-3" role="tabpanel" aria-hidden="true"
+                                            style="display: none; height: 0px; overflow: auto;">
+                                            <div class="glassman-kitchen-img-selection"><img id="img-29"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="29" alt="">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-30"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="30" alt="or">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-31"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="31" alt="or">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-32"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="32" alt="or">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-33"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="33" alt="">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-34"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="34" alt="bl">
+                                            </div>
+                                        </div>
+
+                                        
+
+
+                                        <h3 class="ui-accordion-header ui-state-default ui-corner-all ui-accordion-icons"
+                                            role="tab" id="ui-id-7" aria-controls="ui-id-8" aria-selected="false"
+                                            aria-expanded="false" tabindex="-1"><span
+                                                class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-e"></span>Морски
+                                            мотиви</h3>
+                                        <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom"
+                                            id="ui-id-8" aria-labelledby="ui-id-7" role="tabpanel" aria-hidden="true"
+                                            style="display: none; height: 0px; overflow: auto;">
+                                            <div class="glassman-kitchen-img-selection"><img id="img-38"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="37"
+                                                    alt="wh ecru"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-39"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="38"
+                                                    alt="wh ecru blue"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-40"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="39"
+                                                    alt="ecru blue gr"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-41"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="40"
+                                                    alt="ecru blue gr"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-42"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="41"
+                                                    alt="ecru blue red gr"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-43"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="42"
+                                                    alt="ecru blue"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-44"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="43"
+                                                    alt="ecru blue"></div>
+                                        </div>
+                                        <h3 class="ui-accordion-header ui-state-default ui-corner-all ui-accordion-icons"
+                                            role="tab" id="ui-id-9" aria-controls="ui-id-10" aria-selected="false"
+                                            aria-expanded="false" tabindex="-1"><span
+                                                class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-e"></span>Напитки
+                                        </h3>
+                                        <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom"
+                                            id="ui-id-10" aria-labelledby="ui-id-9" role="tabpanel" aria-hidden="true"
+                                            style="display: none; height: 0px; overflow: auto;">
+                                            <div class="glassman-kitchen-img-selection"><img id="img-45"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="44"
+                                                    alt="br bl or"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-46"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="45"
+                                                    alt="br bl or"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-47"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="46"
+                                                    alt="gr wh"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-48"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="47"
+                                                    alt="gr wh"></div>
+                                        </div>
+
+                                        <h3 class="ui-accordion-header ui-state-default ui-corner-all ui-accordion-icons"
+                                            role="tab" id="ui-id-11" aria-controls="ui-id-12" aria-selected="false"
+                                            aria-expanded="false" tabindex="-1"><span
+                                                class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-e"></span>Пейзажи
+                                        </h3>
+                                        <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom"
+                                            id="ui-id-12" aria-labelledby="ui-id-11" role="tabpanel" aria-hidden="true"
+                                            style="display: none; height: 0px; overflow: auto;">
+                                            <div class="glassman-kitchen-img-selection"><img id="img-49"
+                                                    class="glassman-kitchen-img-thumb"
+                                                    src="images/prints//pejzazhi/thumbs/kitchen-landscapes-glassprints_1.png"
+                                                    data-imgid="48" alt="gr blue wh br"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-50"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="49"
+                                                    alt="gr blue wh br red or"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-51"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="50"
+                                                    alt="gr blue wh"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-52"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="51"
+                                                    alt="gr blue wh"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-53"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="52"
+                                                    alt="gr blue wh br red or"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-54"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="53"
+                                                    alt="gr blue wh br"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-55"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="54"
+                                                    alt="gr blue wh"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-56"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="55"
+                                                    alt="gr blue wh"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-57"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="56"
+                                                    alt="gr blue wh br"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-58"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="57"
+                                                    alt="gr blue wh br"></div>
+                                        </div>
+                                        <h3 class="ui-accordion-header ui-state-default ui-corner-all ui-accordion-icons"
+                                            role="tab" id="ui-id-13" aria-controls="ui-id-14" aria-selected="false"
+                                            aria-expanded="false" tabindex="-1"><span
+                                                class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-e"></span>Текстури
+                                        </h3>
+                                        <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom"
+                                            id="ui-id-14" aria-labelledby="ui-id-13" role="tabpanel" aria-hidden="true"
+                                            style="display: none; height: 0px; overflow: auto;">
+                                            <div class="glassman-kitchen-img-selection"><img id="img-59"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="58"
+                                                    alt="blue"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-60"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="59" alt="wh">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-61"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="60" alt="gr">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-62"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="61" alt="red">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-63"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="62" alt="">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-64"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="63" alt="br">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-65"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="64" alt="wh">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-66"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="65"
+                                                    alt="wh br"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-67"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="66" alt="">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-68"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="67"
+                                                    alt="wh or ecru"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-69"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="68"
+                                                    alt="red wh"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-70"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="69"
+                                                    alt="gray"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-71"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="70" alt="">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-72"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="71"
+                                                    alt="wh gr"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-73"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="72" alt="br">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-74"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="73"
+                                                    alt="red wh"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-75"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="74" alt="wh">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-76"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="75" alt="red">
+                                            </div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-77"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="76"
+                                                    alt="blue red"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-78"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="77"
+                                                    alt="blue red wh"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-79"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="78"
+                                                    alt="or bl"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-80"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="79"
+                                                    alt="br ecru"></div>
+                                            <div class="glassman-kitchen-img-selection"><img id="img-81"
+                                                    class="glassman-kitchen-img-thumb" src="" data-imgid="80"
+                                                    alt="ecru br"></div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <nav class="navbar navbar-default" role="navigation">
+                    <div class="pallette-holder">
+                        <div class="pallette-text">Цвят</div>
+                        <div class="glassman-kitchen-circle glassman-kitchen-circle-red" data-color="red"></div>
+                        <div class="glassman-kitchen-circle glassman-kitchen-circle-orange" data-color="orange"></div>
+                        <div class="glassman-kitchen-circle glassman-kitchen-circle-yellow" data-color="yellow"></div>
+                        <div class="glassman-kitchen-circle glassman-kitchen-circle-blue" data-color="blue"></div>
+                        <div class="glassman-kitchen-circle glassman-kitchen-circle-darkblue" data-color="darkblue">
+                        </div>
+                        <div class="glassman-kitchen-circle glassman-kitchen-circle-green" data-color="green"></div>
+                        <div class="glassman-kitchen-circle glassman-kitchen-circle-pink" data-color="pink"></div>
+                        <div class="glassman-kitchen-circle glassman-kitchen-circle-beige" data-color="beige"></div>
+                        <div class="glassman-kitchen-circle glassman-kitchen-circle-gray" data-color="gray"></div>
+                        <div class="glassman-kitchen-circle glassman-kitchen-circle-brown" data-color="brown"></div>
+                        <div class="glassman-kitchen-circle glassman-kitchen-circle-white" data-color="white"></div>
+                        <div class="glassman-kitchen-circle glassman-kitchen-circle-black" data-color="black"></div>
+                        <div class="glassman-kitchen-circle glassman-kitchen-circle-wood-light" data-color="woodlight">
+                        </div>
+                        <div class="glassman-kitchen-circle glassman-kitchen-circle-wood-dark" data-color="wooddark">
+                        </div>
+                    </div>
+
+                </nav>
+
+           
+
+                    <div class="glassman-kitchen-kitchen">
+                        <div class="glassman-kitchen-kitchen-wrapper">
+                            <img src="images/kuhni/kitchen-red.png" class="glassman-kitchen-kitchen-image">
+                        </div>
+                        <div class="glassman-kitchen-kitchen-background"></div>
+                    </div>
+
+              
+            </div>
+
+
+            <div class="col-sm-3 right-column">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <a>ИНФО</a>
+                        </h3>
+                    </div>
+                    <div id="" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            <span>Изработка 7 работни дни. Моля предварително изберете вашият принт от някой от нашите партньорски сайтове.</span>
+                           
+
+                        </div>
+
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">
+                                <a>Pixabay</a>
+                            </h3>
+                        </div>
+                        <div id="" class="panel-collapse collapse in">
+                            <div class="panel-body">
+                                <a href="https://pixabay.com/">
+                                            <img src="https://pixabay.com/static/img/public/medium_rectangle_b.png" alt="Pixabay">
+                                        </a>
+    
+                            </div>
+    
+                        </div>
+                    </div>
+            </div>
+        </div>
+
+        <script type='text/javascript' src='js/scripts.js?ver=5.1.1'></script>
+        <script type='text/javascript' src='js/core.min.js?ver=1.11.4'></script>
+        <script type='text/javascript' src='js/widget.min.js?ver=1.11.4'></script>
+        <script type='text/javascript' src='js/accordion.min.js?ver=1.11.4'></script>
+        <script type='text/javascript' src='js/effect.min.js?ver=1.11.4'></script>
+        <script type='text/javascript' src='js/modernizr-custom.min.js?ver=1.7.3'></script>
+        <script type='text/javascript' src='js/jquery.waypoints.min.js?ver=1.7.3'></script>
+        <script src="js/upload.js"></script>
+        <![CDATA[ */
+var glassman_js_data = {"image_path_kuhni":"/images/kuhni/","image_path_backs":"https:/images/prints\/"};
+/* ]]>
+        <script type='text/javascript' src='glassmankitchen.js'></script>
+        <script>
+            $("#amount1").keyup(calc);
+
+            function calc() {
+
+                $('#result').html(parseFloat($('#amount1').val(), 10) * parseFloat(190)).append(' лв');
+            }
+        </script>
+</body>
+
+</html>
