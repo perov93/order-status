@@ -12,7 +12,7 @@
 
     <!-- CSS only -->
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <!-- JS, Popper.js, and jQuery -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
@@ -177,40 +177,15 @@ body {
   transform: rotateY(180deg);
 }
 
+.row{
+  cursor: pointer;
+}
     </style>
     <!-- Custom styles for this template -->
-  <!--Facebook Page Plugin -->
-<div id="fb-root"></div>
-<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk/xfbml.customerchat.js"></script>
+ 
   </head>
   <body class="text-center">
-  	 <!-- Custom Facebook chat plugin -->
-        <!-- Load Facebook SDK for JavaScript -->
-<div id="fb-root"></div>
-<script>
-  window.fbAsyncInit = function() {
-    FB.init({
-      xfbml            : true,
-      version          : 'v3.3'
-    });
-  };
-
-  (function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = 'https://connect.facebook.net/en_US/sdk/xfbml.customerchat.js';
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
-
-<!-- Your customer chat code -->
- <div class="fb-customerchat"
-        attribution=setup_tool
-        page_id="1146626172052624"
-  logged_in_greeting="Здравейте, с какво можем да Ви бъдем полезни?"
-  logged_out_greeting="Здравейте, с какво можем да Ви бъдем полезни?">
-      </div>
-    <!-- EndCustom Facebook chat plugin -->
+ 
     <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
   <header class="masthead mb-auto">
     <div class="inner">
@@ -226,7 +201,7 @@ body {
   <main role="main" class="inner cover">
     <h1 class="cover-heading">КУПИ ОТ НАШ МАГАЗИН.</h1>
     <p class="lead">Купи пакет суха храна Royal Canin от наш магазин и вземи подарък!</p>
-            <!-- Visit https://nicolaskadis.info/posts/pure-css-flip-cards-using-bootstrap-4-and-css-grid-no-js for an explanation -->
+            <p class="lead"><strong>Натисни и виж какво печелиш!</strong> <i class="fa fa-paw" aria-hidden="true" style="color: orange"></i></p>
 <div class="container">
   <div class="row">
     
@@ -238,6 +213,7 @@ body {
          <div class="card front text-center" style="border: 0px;">
           <div class="card-block">
            <img src="1.png" width="150px;">
+           <p>Разфасовки до 1кг (куче)</p>
           </div>
         </div>
         <!-- End Card 4 Front -->
@@ -245,8 +221,8 @@ body {
         <!-- Card 4 Back -->
         <div class="card back text-center" style="border: 0px;">
           <div class="card-block">
-           <img src="3.png" width="150px;">
-           <p>Куйтиика</p>
+           <img src="7.png" width="150px;">
+           <p>Подарък пауч Mini adult или Mini puppy</p>
           </div>
         </div>
         <!-- End Card 4 Back -->
@@ -261,7 +237,8 @@ body {
 
          <div class="card front text-center" style="border: 0px;">
           <div class="card-block">
-           <img src="1.png" width="150px;">
+           <img src="8.png" width="150px;">
+           <p>Разфасовки от 1,5кг до 4кг (куче)</p>
           </div>
         </div>
         <!-- End Card 4 Front -->
@@ -269,8 +246,8 @@ body {
         <!-- Card 4 Back -->
         <div class="card back text-center" style="border: 0px;">
           <div class="card-block">
-           <img src="3.png" width="150px;">
-           <p>Куйтиика</p>
+           <img src="6.png" width="150px;">
+           <p>Подарък чантичка с шише за кръста</p>
           </div>
         </div>
         <!-- End Card 4 Back -->
@@ -285,7 +262,8 @@ body {
 
          <div class="card front text-center" style="border: 0px;">
           <div class="card-block">
-           <img src="1.png" width="150px;">
+           <img src="9.png" width="150px;">
+           <p>Покупка на чувал (куче)</p>
           </div>
         </div>
         <!-- End Card 4 Front -->
@@ -294,13 +272,69 @@ body {
         <div class="card back text-center" style="border: 0px;">
           <div class="card-block">
            <img src="3.png" width="150px;">
-           <p>Куйтиика</p>
+           <p>Подарък пластмасов контейнер за храна</p>
+          </div>
+        </div>
+        <!-- End Card 4 Back -->
+      </div>
+    </div>
+    <!-- End Card 4 --> 
+
+   
+  </div>
+   <div class="row">
+    
+<!-- Card 4 -->
+    <div class="col-md-7 card-container">
+      <div class="card-flip">
+        <!-- Card 4 Front -->
+
+         <div class="card front text-center" style="border: 0px;">
+          <div class="card-block">
+           <img src="12.png" width="150px;">
+           <p>Разфасовки до 400г (котка)</p>
+          </div>
+        </div>
+        <!-- End Card 4 Front -->
+
+        <!-- Card 4 Back -->
+        <div class="card back text-center" style="border: 0px;">
+          <div class="card-block">
+           <img src="5.png" width="150px;">
+           <p>Подарък пауч Kitten или пауч Instinctive</p>
           </div>
         </div>
         <!-- End Card 4 Back -->
       </div>
     </div>
     <!-- End Card 4 -->
+
+    <!-- Card 4 -->
+    <div class="col-md-4 card-container">
+      <div class="card-flip">
+        <!-- Card 4 Front -->
+
+         <div class="card front text-center" style="border: 0px;">
+          <div class="card-block">
+           <img src="11.png" width="150px;">
+           <p>Разфасовки над 400г (котка)</p>
+          </div>
+        </div>
+        <!-- End Card 4 Front -->
+
+        <!-- Card 4 Back -->
+        <div class="card back text-center" style="border: 0px;">
+          <div class="card-block">
+           <img src="4.png" width="150px;">
+           <p>Подарък метална кутия за съхранение на храна</p>
+          </div>
+        </div>
+        <!-- End Card 4 Back -->
+      </div>
+    </div>
+    <!-- End Card 4 -->
+
+ 
 
    
   </div>
