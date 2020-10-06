@@ -1,0 +1,331 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Jekyll v4.1.1">
+    <title>Промоция Купи и Вземи подарък</title>
+
+
+    <!-- CSS only -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+
+<!-- JS, Popper.js, and jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+
+
+    <style>
+    	/*
+ * Globals
+ */
+
+/* Links */
+a,
+a:focus,
+a:hover {
+  color: #333;
+}
+
+/* Custom default button */
+.btn-secondary,
+.btn-secondary:hover,
+.btn-secondary:focus {
+  color: #333;
+  text-shadow: none; /* Prevent inheritance from `body` */
+  background-color: #fff;
+  border: .05rem solid #fff;
+}
+
+
+/*
+ * Base structure
+ */
+
+html,
+body {
+  height: 100%;
+  background-color: #fff;
+  color: #333;
+  /*text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .5);*/
+  /*box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);*/
+}
+
+
+
+.cover-container {
+  max-width: 42em;
+}
+
+/*
+ * Header
+ */
+.masthead {
+  margin-bottom: 2rem;
+}
+
+.masthead-brand {
+  margin-bottom: 0;
+}
+
+.nav-masthead .nav-link {
+  padding: .25rem 0;
+  font-weight: 700;
+  color: #333;
+  background-color: transparent;
+  border-bottom: .25rem solid transparent;
+}
+
+.nav-masthead .nav-link:hover,
+.nav-masthead .nav-link:focus {
+  border-bottom-color: rgba(255, 255, 255, .25);
+}
+
+.nav-masthead .nav-link + .nav-link {
+  margin-left: 1rem;
+}
+
+.nav-masthead .active {
+  color: #333;
+  border-bottom-color: #333;
+}
+
+@media (min-width: 48em) {
+  .masthead-brand {
+    float: left;
+  }
+  .nav-masthead {
+    float: right;
+  }
+}
+
+
+/*
+ * Cover
+ */
+.cover {
+  padding: 0 1.5rem;
+}
+.cover .btn-lg {
+  padding: .75rem 1.25rem;
+  font-weight: 700;
+}
+
+
+/*
+ * Footer
+ */
+.mastfoot {
+  color: #333;
+}
+
+
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+      /* Visit https://nicolaskadis.info/posts/pure-css-flip-cards-using-bootstrap-4-and-css-grid-no-js for an explanation */
+
+/* for demo purposes */
+.card {
+  margin: 10px 10px;
+}
+
+/* Flip Cards CSS */
+.card-container {
+  display: grid;
+  perspective: 700px;
+}
+
+.card-flip {
+  display: grid;
+  grid-template: 1fr / 1fr;
+  grid-template-areas: "frontAndBack";
+  transform-style: preserve-3d;
+  transition: all 0.7s ease;
+}
+
+.card-flip div {
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+.front {
+  grid-area: frontAndBack;
+}
+
+.back {
+  grid-area: frontAndBack;
+  transform: rotateY(-180deg);
+}
+
+.card-container:hover .card-flip {
+  transform: rotateY(180deg);
+}
+
+    </style>
+    <!-- Custom styles for this template -->
+  <!--Facebook Page Plugin -->
+<div id="fb-root"></div>
+<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk/xfbml.customerchat.js"></script>
+  </head>
+  <body class="text-center">
+  	 <!-- Custom Facebook chat plugin -->
+        <!-- Load Facebook SDK for JavaScript -->
+<div id="fb-root"></div>
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      xfbml            : true,
+      version          : 'v3.3'
+    });
+  };
+
+  (function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = 'https://connect.facebook.net/en_US/sdk/xfbml.customerchat.js';
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+<!-- Your customer chat code -->
+ <div class="fb-customerchat"
+        attribution=setup_tool
+        page_id="1146626172052624"
+  logged_in_greeting="Здравейте, с какво можем да Ви бъдем полезни?"
+  logged_out_greeting="Здравейте, с какво можем да Ви бъдем полезни?">
+      </div>
+    <!-- EndCustom Facebook chat plugin -->
+    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+  <header class="masthead mb-auto">
+    <div class="inner">
+      <h3 class="masthead-brand"><img src="https://zookleo.com/image/catalog/logo.png" width="150px"></h3>
+      <nav class="nav nav-masthead justify-content-center">
+        <a class="nav-link active" href="https://www.google.com/search?sxsrf=ALeKk01WDWqA0uNzei_PpIYaTOqiPEorYg:1601994424726&q=%D0%B7%D0%BE%D0%BE%D0%BC%D0%B0%D0%B3%D0%B0%D0%B7%D0%B8%D0%BD%D0%B8+%D0%BA%D0%BB%D0%B5%D0%BE&npsic=0&rflfq=1&rldoc=1&rlha=0&rllag=43211066,27922118,1322&tbm=lcl&sxsrf=ALeKk01WDWqA0uNzei_PpIYaTOqiPEorYg:1601994424726&sa=X&ved=2ahUKEwj7kPiklqDsAhW1DmMBHf74D7EQjGp6BAgLEDY&biw=1366&bih=625#rlfi=hd:;si:;mv:[[43.226554,27.930023799999997],[43.198148499999995,27.8700774]];tbs:lrf:!1m4!1u3!2m2!3m1!1e1!1m4!1u16!2m2!16m1!1e1!1m4!1u16!2m2!16m1!1e2!2m1!1e16!2m1!1e3!3sIAE,lf:1,lf_ui:4">Магазини</a>
+        <a class="nav-link" href="https://www.facebook.com/KleoPetShop">FB Page</a>
+        <a class="nav-link" href="tel:+359893636828">Контакти</a>
+      </nav>
+    </div>
+  </header>
+
+  <main role="main" class="inner cover">
+    <h1 class="cover-heading">КУПИ ОТ НАШ МАГАЗИН.</h1>
+    <p class="lead">Купи пакет суха храна Royal Canin от наш магазин и вземи подарък!</p>
+            <!-- Visit https://nicolaskadis.info/posts/pure-css-flip-cards-using-bootstrap-4-and-css-grid-no-js for an explanation -->
+<div class="container">
+  <div class="row">
+    
+<!-- Card 4 -->
+    <div class="col-md-4 card-container">
+      <div class="card-flip">
+        <!-- Card 4 Front -->
+
+         <div class="card front text-center" style="border: 0px;">
+          <div class="card-block">
+           <img src="1.png" width="150px;">
+          </div>
+        </div>
+        <!-- End Card 4 Front -->
+
+        <!-- Card 4 Back -->
+        <div class="card back text-center" style="border: 0px;">
+          <div class="card-block">
+           <img src="3.png" width="150px;">
+           <p>Куйтиика</p>
+          </div>
+        </div>
+        <!-- End Card 4 Back -->
+      </div>
+    </div>
+    <!-- End Card 4 -->
+
+    <!-- Card 4 -->
+    <div class="col-md-4 card-container">
+      <div class="card-flip">
+        <!-- Card 4 Front -->
+
+         <div class="card front text-center" style="border: 0px;">
+          <div class="card-block">
+           <img src="1.png" width="150px;">
+          </div>
+        </div>
+        <!-- End Card 4 Front -->
+
+        <!-- Card 4 Back -->
+        <div class="card back text-center" style="border: 0px;">
+          <div class="card-block">
+           <img src="3.png" width="150px;">
+           <p>Куйтиика</p>
+          </div>
+        </div>
+        <!-- End Card 4 Back -->
+      </div>
+    </div>
+    <!-- End Card 4 -->
+
+    <!-- Card 4 -->
+    <div class="col-md-4 card-container">
+      <div class="card-flip">
+        <!-- Card 4 Front -->
+
+         <div class="card front text-center" style="border: 0px;">
+          <div class="card-block">
+           <img src="1.png" width="150px;">
+          </div>
+        </div>
+        <!-- End Card 4 Front -->
+
+        <!-- Card 4 Back -->
+        <div class="card back text-center" style="border: 0px;">
+          <div class="card-block">
+           <img src="3.png" width="150px;">
+           <p>Куйтиика</p>
+          </div>
+        </div>
+        <!-- End Card 4 Back -->
+      </div>
+    </div>
+    <!-- End Card 4 -->
+
+   
+  </div>
+</div>
+  </main>
+
+  <footer class="mastfoot mt-auto">
+    <div class="inner">
+    <p>Промоцията важи само при покупка от физически магазин на КЛЕО и до изчерпване на количествата.</p>
+      <p>Създадено специално <a href="#"><strong>за Промоция на Зоомагазин Клео</strong></a><a href="#"></a>.</p>
+    </div>
+  </footer>
+</div>
+</body>
+	<script> 
+	    function showGifts() {
+
+      document.getElementById("products").style.display = "none";
+      document.getElementById("gifts").style.display = "flex";
+  }
+ 
+ 	    function showProducts() {
+
+      document.getElementById("products").style.display = "flex";
+      document.getElementById("gifts").style.display = "none";
+  }
+	</script>
+</html>
