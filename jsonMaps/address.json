@@ -1,0 +1,20 @@
+ const citymap = {
+		selectMovers: {
+          center: { lat: 52.367905, lng: 4.884759 },
+          population: 2603502,
+		  title: 'Select Movers - Amsterdam',
+		  description: ''
+        },
+		milano: {
+          center: { lat: 45.5101271, lng: 9.0923886 },
+          population: 603502,
+		  title: 'Bolliger Milano, Eggy Vigorelli, eggy@vigorelli.it, +39 335 6502875',
+		  description: ''
+        },
+		belgium: {
+          center: { lat: 50.850450, lng: 4.349740 },
+          population: 603502,
+		  title: 'Select Movers - Belgium | 085 225 00 58 | erik@select-movers.nl',
+		  description: ''
+        },	
+      };
