@@ -1,0 +1,5 @@
+let obj =  [
+    {"name": "wardrobe",   "volume": "0.091125"},
+    {"name": "big wardrobe",   "volume": "foo2"},
+    {"name": "four wardrobe", "volume": "foo3"}
+]
