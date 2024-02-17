@@ -476,7 +476,7 @@ const like = (() => {
                 });
         }
 
-        info.innerText = info.getAttribute('data-suka') + ' suka';
+        info.innerText = info.getAttribute('data-suka') + ' харесвания';
         button.disabled = false;
     };
 
@@ -669,7 +669,7 @@ const comment = (() => {
             </div>
             <button style="font-size: 0.8rem;" onclick="like.like(this)" data-uuid="${data.uuid}" class="btn btn-sm btn-outline-dark rounded-2 py-0 px-0">
                 <div class="d-flex justify-content-start align-items-center">
-                    <p class="my-0 mx-1" data-suka="${data.like.love}">${data.like.love} suka</p>
+                    <p class="my-0 mx-1" data-suka="${data.like.love}">${data.like.love} харесвания</p>
                     <i class="py-1 me-1 p-0 ${likes.has(data.uuid) ? 'fa-solid fa-heart text-danger' : 'fa-regular fa-heart'}"></i>
                 </div>
             </button>
@@ -699,6 +699,7 @@ const comment = (() => {
     };
 
     const renderCard = (data) => {
+        console.log(data);
         const DIV = document.createElement('div');
         DIV.classList.add('mb-3');
         DIV.innerHTML = `
@@ -736,11 +737,11 @@ const comment = (() => {
                     pagination.setResultData(res.data.length);
 
                     if (res.data.length == 0) {
-                        UCAPAN.innerHTML = `<div class="h6 text-center">Tidak ada data</div>`;
+                        UCAPAN.innerHTML = `<div class="h6 text-center">Няма данни</div>`;
                     }
                 }
             })
-            .catch((err) => alert(`Terdapat kesalahan: ${err}`));
+            .catch((err) => alert(`Грешка: ${err}`));
     };
 
     const renderLoading = (num) => {
@@ -817,7 +818,7 @@ const comment = (() => {
                 }
             })
             .catch((err) => {
-                alert(`Terdapat kesalahan: ${err}`);
+                alert(`Грешка: ${err}`);
             });
 
         if (isSuccess) {
@@ -840,18 +841,18 @@ const comment = (() => {
         let komentar = formPesan.value;
 
         if (token.length == 0) {
-            alert('Terdapat kesalahan, token kosong !');
+            alert('Възникна грешка, токенът е празен !');
             window.location.reload();
             return;
         }
 
         if (document.getElementById(id).getAttribute('data-parent') === 'true' && hadir == 0) {
-            alert('silahkan pilih kehadiran');
+            alert('моля изберете присъствие');
             return;
         }
 
         if (komentar.length == 0) {
-            alert('pesan tidak boleh kosong');
+            alert('съобщението не може да бъде празно');
             return;
         }
 
@@ -876,7 +877,7 @@ const comment = (() => {
                 }
             })
             .catch((err) => {
-                alert(`Terdapat kesalahan: ${err}`);
+                alert(`Грешка: ${err}`);
             });
 
         if (isSuccess) {
@@ -893,7 +894,7 @@ const comment = (() => {
     };
 
     const hapus = async (button) => {
-        if (!confirm('Kamu yakin ingin menghapus?')) {
+        if (!confirm('Сигурен ли си, че искаш да изтриеш?')) {
             return;
         }
 
@@ -901,7 +902,7 @@ const comment = (() => {
         let id = button.getAttribute('data-uuid');
 
         if (token.length == 0) {
-            alert('Terdapat kesalahan, token kosong !');
+            alert('Възникна грешка, токенът е празен !');
             window.location.reload();
             return;
         }
@@ -910,7 +911,7 @@ const comment = (() => {
 
         button.disabled = true;
         let tmp = button.innerText;
-        button.innerText = 'Loading..';
+        button.innerText = 'Зарежда..';
 
         await request('DELETE', '/api/comment/' + owns.get(id))
             .token(token)
@@ -921,7 +922,7 @@ const comment = (() => {
                 }
             })
             .catch((err) => {
-                alert(`Terdapat kesalahan: ${err}`);
+                alert(`Грешка: ${err}`);
             });
 
         button.innerText = tmp;
@@ -939,7 +940,7 @@ const comment = (() => {
         let token = localStorage.getItem('token') ?? '';
 
         if (token.length == 0) {
-            alert('Terdapat kesalahan, token kosong !');
+            alert('Възникна грешка, токенът е празен !');
             window.location.reload();
             return;
         }
@@ -972,7 +973,7 @@ const comment = (() => {
                 }
             })
             .catch((err) => {
-                alert(`Terdapat kesalahan: ${err}`);
+                alert(`Грешка: ${err}`);
             });
 
         button.disabled = false;
