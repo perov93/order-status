@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Movega BI - Contact Conversion &amp; CRM Performance</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+:root{
+  --bg:#08111f;--panel:#0f1b2d;--panel2:#132238;--border:#22344c;--text:#eef4fb;--muted:#91a1b7;
+  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--purple:#a855f7;--cyan:#06b6d4;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.app{display:flex;min-height:100vh}
+.sidebar{width:230px;background:#0b1626;border-right:1px solid var(--border);padding:22px 16px;position:fixed;inset:0 auto 0 0;overflow:auto;display:flex;flex-direction:column}
+.brand{display:flex;flex-direction:column;align-items:center;margin-bottom:26px}
+.logo{width:100%;max-width:150px;height:auto;object-fit:contain;display:block}
+.nav a{display:flex;align-items:center;gap:10px;color:#c7d2e2;text-decoration:none;padding:9px 11px;border-radius:9px;margin:3px 0;font-size:13px}
+.nav a svg{width:16px;height:16px;stroke-width:1.8;flex:0 0 auto}.nav a.active svg{color:#60a5fa}
+.nav a:hover,.nav a.active{background:#15253c;color:#fff}.nav-title{font-size:10px;color:#65758b;letter-spacing:.13em;margin:18px 10px 6px}
+.sidebar-footer{margin-top:auto;padding:16px 10px 2px;border-top:1px solid var(--border);color:#65758b;font-size:10px;letter-spacing:.04em}
+.main{margin-left:230px;width:calc(100% - 230px);padding:20px}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:14px}
+.top h2{margin:0 0 5px;font-size:23px}.top p{margin:0;color:var(--muted);font-size:13px}
+.badge-live{font-size:11px;padding:5px 9px;border-radius:999px;background:#10311f;color:#86efac;border:1px solid #205a36}
+.badge-files{font-size:11px;padding:5px 9px;border-radius:999px;background:#0f2748;color:#7dabf5;border:1px solid #1e4a86;font-weight:650}
+.upload-panel,.filter-panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
+.upload-grid{display:grid;grid-template-columns:1fr 1fr auto auto;gap:10px;align-items:end}
+label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px}
+input[type=file],input[type=date],input[type=text],select,button{width:100%;background:#0b1728;color:var(--text);border:1px solid #2a3d57;border-radius:9px;padding:9px 11px;font-size:12.5px}
+button{width:auto;cursor:pointer;background:#1d4ed8;border-color:#2563eb;font-weight:700;padding:10px 15px}
+button:hover{filter:brightness(1.08)}
+button.ghost{background:#0f172a;border-color:#334155}
+.status{font-size:12px;color:var(--muted);margin-top:9px}.error{color:#fca5a5}.ok{color:#86efac}
+.progress-wrap{display:none;margin-top:9px}
+.progress-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.progress-track{width:100%;height:7px;background:#16233a;border-radius:999px;overflow:hidden;border:1px solid var(--border)}
+.progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#3b82f6);border-radius:999px;transition:width .3s ease}
+.filters{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:8px}
+.filters .wide{grid-column:span 2}
+.kpis{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:16px}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;min-width:0;flex:1 1 200px}
+.kpi-clickable{cursor:pointer;transition:border-color .15s,background .15s}
+.kpi-clickable:hover{border-color:#3b82f6;background:#0f2238}
+.kpi .label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.kpi .value{font-size:21px;font-weight:800;margin:6px 0;line-height:1.25}
+.kpi .value .line2{display:block;font-size:14px;font-weight:700;color:#7fe0c4;margin-top:1px}
+.kpi .sub{font-size:10.5px;color:var(--muted)}
+.section{scroll-margin-top:12px;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+.grid21{display:grid;grid-template-columns:1.3fr .7fr;gap:16px;margin-bottom:16px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;min-width:0;margin-bottom:16px}
+.card:last-child{margin-bottom:0}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.card-head h3{font-size:13.5px;margin:0}.card-head span{font-size:11px;color:var(--muted)}
+.card-head select{width:auto;padding:6px 9px;font-size:11.5px}
+.chart{height:270px}.chart.small{height:230px}.chart.tall{height:340px}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th,td{padding:8px 7px;border-bottom:1px solid #1d2e44;text-align:right;white-space:nowrap}
+th{color:#92a3ba;font-weight:650;position:sticky;top:0;background:var(--panel)}
+th:first-child,td:first-child{text-align:left}
+.table-wrap{overflow:auto;max-height:400px}
+.section-title{font-size:17px;margin:4px 0 10px;display:flex;align-items:center;gap:10px}
+.section-sub{font-size:12px;color:var(--muted);margin:-6px 0 12px}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;background:#163323;color:#86efac}
+.pill.warn{background:#3a2a10;color:#fbbf24}
+.pill.muted{background:#1c2a3d;color:#9fb0c5}
+.good{color:#4ade80}.bad{color:#f87171}.neutral{color:#aab8ca}
+/* Funnel */
+.funnel{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.funnel-group-label{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:10px 0 2px;font-weight:650}
+.funnel-group-label:first-child{margin-top:0}
+.funnel-row{display:grid;grid-template-columns:150px 1fr 210px;align-items:center;gap:12px}
+.funnel-label{font-size:12.5px;color:#c7d2e2;font-weight:650}
+.funnel-bar-track{background:#0b1728;border-radius:8px;height:28px;overflow:hidden;border:1px solid var(--border)}
+.funnel-bar-fill{height:100%;background:linear-gradient(90deg,#3b82f6,#06b6d4);border-radius:8px;display:flex;align-items:center;padding-left:10px;color:#fff;font-size:11.5px;font-weight:700;white-space:nowrap;min-width:2px}
+.funnel-meta{font-size:11px;color:var(--muted);text-align:right}
+.funnel-money{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
+.funnel-money .box{background:#0b1728;border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.funnel-money .box strong{display:block;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.funnel-money .box span{font-size:16px;font-weight:800}
+/* matrix */
+.matrix-wrap{overflow:auto;max-height:420px}
+.matrix{border-collapse:collapse;font-size:11px}
+.matrix th,.matrix td{padding:7px 9px;border:1px solid #1d2e44;text-align:right;white-space:nowrap}
+.matrix th:first-child,.matrix td:first-child{text-align:left;position:sticky;left:0;background:var(--panel);z-index:1}
+.matrix th{background:#132238;position:sticky;top:0;z-index:2}
+.matrix th:first-child{z-index:3}
+.legend-note{font-size:11px;color:var(--muted);margin-top:8px}
+.badge-source{font-size:10px;color:#7dabf5;background:#0f2748;border:1px solid #1e4a86;padding:3px 8px;border-radius:999px}
+.checkline{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.checkline input{width:auto}
+tr.clickable-row{cursor:pointer}
+tr.clickable-row:hover{background:#12233a}
+td.clickable-row{cursor:pointer}
+td.clickable-row:hover{background:#17304d}
+.leads-modal-overlay{display:none;position:fixed;inset:0;background:rgba(4,10,20,0.72);z-index:1000;align-items:center;justify-content:center;padding:24px}
+.leads-modal-overlay.open{display:flex}
+.leads-modal{background:var(--panel);border:1px solid var(--border);border-radius:14px;width:min(1100px,96vw);max-height:86vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.leads-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.leads-modal-head h3{margin:0 0 4px;font-size:15px}
+.leads-modal-head span{font-size:12px;color:var(--muted)}
+.leads-modal-close{background:#0b1728;border:1px solid #2a3d57;color:var(--text);border-radius:8px;width:32px;height:32px;font-size:16px;line-height:1;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:0}
+.leads-modal-close:hover{border-color:#3b82f6}
+#backToTopBtn{position:fixed;bottom:26px;right:26px;z-index:40;width:44px;height:44px;border-radius:50%;background:#1d4ed8;border:1px solid #2563eb;color:#fff;font-size:18px;line-height:1;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+#backToTopBtn.show{display:flex}
+#backToTopBtn:hover{filter:brightness(1.1)}
+.leads-modal-body{overflow:auto;padding:14px 20px 20px}
+@media(max-width:1250px){.grid2,.grid21,.grid3{grid-template-columns:1fr}.filters{grid-template-columns:repeat(3,1fr)}.upload-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.sidebar{display:none}.main{margin-left:0;width:100%;padding:12px}.filters{grid-template-columns:1fr 1fr}.funnel-row{grid-template-columns:110px 1fr}.funnel-meta{grid-column:2;text-align:left}.upload-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><img class="logo" src="white_movega_logo.png" alt="Movega logo"></div>
+  <div class="nav-title">ANALYSIS</div>
+  <nav class="nav">
+    <a class="active" href="#overview"><i data-lucide="layout-dashboard"></i>Executive Overview</a>
+    <a href="#yearcompare"><i data-lucide="calendar-range"></i>Year Comparison</a>
+    <a href="#leadsource"><i data-lucide="megaphone"></i>Lead Sources</a>
+    <a href="#marketing"><i data-lucide="banknote"></i>Marketing Spend &amp; ROI</a>
+    <a href="#salespeople"><i data-lucide="users-round"></i>Sales Team</a>
+    <a href="#repeat"><i data-lucide="repeat"></i>Repeat Customers</a>
+    <a href="#cohort"><i data-lucide="chart-no-axes-combined"></i>Monthly Cohorts</a>
+    <a href="#geography"><i data-lucide="globe"></i>Geography</a>
+  </nav>
+  <div class="sidebar-footer">Author: Movega BI</div>
+</aside>
+
+<main class="main">
+  <div class="top">
+    <div><h2>Contact Conversion &amp; CRM Performance</h2><p>Contacts are the cohort source. Deals use Sale Completed for sales activity and booking-cycle analysis.</p></div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <span class="badge-files" title="Download these from Zoho and upload below">FILES: Contacts.xlsx (required) · QT_DEAL_FINANCIALS.xlsx (recommended) · QT_EXPENSES.xlsx (optional)</span>
+      <span class="badge-live">LOCAL · YOUR DATA STAYS IN BROWSER</span>
+    </div>
+  </div>
+
+  <div class="upload-panel">
+    <div class="upload-grid" style="grid-template-columns:1.15fr 1.15fr 1fr auto auto">
+      <div><label>Zoho CRM — Contacts.xlsx</label><input id="contactsFile" type="file" accept=".xlsx,.xls"></div>
+      <div><label>Zoho CRM — QT_DEAL_FINANCIALS.xlsx</label><input id="dealsFile" type="file" accept=".xlsx,.xls"></div>
+      <div><label>Zoho Books — QT_EXPENSES.xlsx (optional)</label><input id="expensesFile" type="file" accept=".xlsx,.xls"></div>
+      <button id="generateBtn" type="button">Generate Report</button>
+      <button id="clearBtn" type="button" class="ghost">Clear</button>
+    </div>
+    <div style="margin-top:10px"><button id="autoLocateBtn" type="button" class="ghost">📁 Auto-Locate Files in Folder</button><input id="autoLocateInput" type="file" webkitdirectory directory multiple style="display:none"></div>
+    <div id="status" class="status">Upload Contacts.xlsx and QT_DEAL_FINANCIALS.xlsx to begin.</div>
+    <div id="genProgress" class="progress-wrap">
+      <div class="progress-label" id="genProgressLabel">Reading file…</div>
+      <div class="progress-track"><div class="progress-fill" id="genProgressFill"></div></div>
+    </div>
+    <div id="expenseStatus" class="status">Optional: choose QT_EXPENSES.xlsx above to see Marketing Spend &amp; ROI.</div>
+  </div>
+
+  <div class="filter-panel">
+    <div class="filters">
+      <div><label>Year</label><select id="fYear"><option value="ALL">All Years</option></select></div>
+      <div><label>Quarter</label><select id="fQuarter"><option value="ALL">All Quarters</option><option value="1">Q1</option><option value="2">Q2</option><option value="3">Q3</option><option value="4">Q4</option></select></div>
+      <div><label>Month</label><select id="fMonth"><option value="ALL">All Months</option></select></div>
+      <div><label>From</label><input id="fDateFrom" type="date"></div>
+      <div><label>To</label><input id="fDateTo" type="date"></div>
+      <div><label>Lead Source</label><select id="fLeadSource"><option value="ALL">All Sources</option></select></div>
+      <div><label>Salesperson (Deal Owner)</label><select id="fOwner"><option value="ALL">All Salespeople</option></select></div>
+      <div><label>Collection Country</label><select id="fCollectionCountry"><option value="ALL">All Countries</option></select></div>
+      <div><label>Delivery Country</label><select id="fDeliveryCountry"><option value="ALL">All Countries</option></select></div>
+      <div><label>Route</label><select id="fRoute"><option value="ALL">All Routes</option></select></div>
+      <div><label>Currency</label><select id="fCurrency"><option value="ALL">EUR + GBP (separate)</option><option value="EUR">EUR only</option><option value="GBP">GBP only</option></select></div>
+      <div><label>Sale Completed</label><select id="fBooked"><option value="ALL">All Contacts</option><option value="BOOKED">Sale completed</option><option value="NOT_BOOKED">Not sold</option></select></div>
+      <div><label>Delivered</label><select id="fDelivered"><option value="ALL">All Deals</option><option value="DELIVERED">Delivered only</option><option value="NOT_DELIVERED">Not delivered</option></select></div>
+      <div><label>Repeat Customer</label><select id="fRepeat"><option value="ALL">All Customers</option><option value="REPEAT">Repeat only</option><option value="NOT_REPEAT">First-time only</option></select></div>
+    </div>
+  </div>
+
+  <section id="overview" class="section">
+    <h3 class="section-title">Executive Overview</h3>
+    <div class="section-sub" id="filterSummary">Upload data to see results.</div>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Total Contacts</div><div id="kTotalLeads" class="value">—</div><div class="sub" id="sTotalLeads">Contacts created</div></div>
+      <div class="kpi"><div class="label">Workable Contacts</div><div id="kBookedLeads" class="value">—</div><div class="sub" id="sBookedLeads">Total contacts − non-workable dead reasons</div></div>
+      <div class="kpi"><div class="label">Sale Completed Rate</div><div id="kConversion" class="value">—</div><div class="sub" id="sConversion">Sale Completed Deals / Workable Contacts</div></div>
+      <div class="kpi"><div class="label">Unique Customers Sold</div><div id="kBookedCustomers" class="value">—</div><div class="sub" id="sBookedCustomers">Unique contacts with ≥1 Sale Completed deal</div></div>
+      <div class="kpi"><div class="label">Sale Completed Deals</div><div id="kBookedDeals" class="value">—</div><div class="sub" id="sBookedDeals">Deals Sale Completed (matches Zoho pivot)</div></div>
+      <div class="kpi"><div class="label">Delivered Deals</div><div id="kDeliveredDeals" class="value">—</div><div class="sub" id="sDeliveredDeals">Delivered + 50/50 or Full Payment</div></div>
+      <div class="kpi"><div class="label">Repeat Customers</div><div id="kRepeatCustomers" class="value">—</div><div class="sub" id="sRepeatCustomers">2+ unique booked deals</div></div>
+      <div class="kpi"><div class="label">Repeat Customer Rate</div><div id="kRepeatRate" class="value">—</div><div class="sub" id="sRepeatRate">Repeat / Booked Customers</div></div>
+      <div class="kpi"><div class="label">Avg Bookings / Booked Customer</div><div id="kAvgBookings" class="value">—</div><div class="sub" id="sAvgBookings">Sale Completed Deals / Booked Customers</div></div>
+      <div class="kpi"><div class="label">Booked Sales</div><div id="kSales" class="value">—</div><div class="sub" id="sSales">Sale Completed · native currency</div></div>
+      <div class="kpi"><div class="label">Net Profit</div><div id="kProfit" class="value">—</div><div class="sub" id="sProfit">Delivered jobs (Delivery Date)</div></div>
+      <div class="kpi"><div class="label">Average Booked Deal</div><div id="kAvgDeal" class="value">—</div><div class="sub" id="sAvgDeal">Sales / Sale Completed Deals</div></div>
+      <div class="kpi"><div class="label">Avg Profit / Delivered Job</div><div id="kAvgProfitDelivered" class="value">—</div><div class="sub" id="sAvgProfitDelivered">Delivered jobs</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h3>Conversion Funnel</h3><span>Two separate cohorts — Contact creation date vs Deal event date — not a single continuous funnel. "% of Sale Completed Deals" can exceed 100% (independently-dated sets).</span></div>
+      <div id="funnelWrap" class="funnel"></div>
+      <div id="funnelMoney" class="funnel-money"></div>
+    </div>
+  </section>
+
+  <section id="yearcompare" class="section">
+    <h3 class="section-title">Year Comparison</h3>
+    <div class="section-sub">Total Contacts / Workable Contacts / Sale Completed Rate % / Repeat are Contact-Created-time cohort (recent/current year partial — use YTD mode to compare fairly). Unique Customers Sold, Sale Completed Deals, Delivered Deals, Sales and Profit are period-activity figures (deal's own Sale Completed / Delivery date within that calendar year) — this avoids the current year looking artificially low just because its created-contact cohort hasn't had time to convert yet. Delivery Ratio can exceed 100% in a given year since Delivered and Sale Completed are independently-dated sets (deals booked the prior year can be delivered this year).</div>
+    <div class="card">
+      <div class="card-head">
+        <h3 id="yearCompareTitle">Full Year Comparison</h3>
+        <span class="checkline"><input id="ytdToggle" type="checkbox"><label for="ytdToggle" style="margin:0">YTD Comparable Period (Jan 1 &rarr; today's month/day, each year)</label></span>
+      </div>
+      <div id="ytdNote" class="legend-note"></div>
+      <div class="table-wrap"><table><thead><tr id="yearCompareHead"></tr></thead><tbody id="yearCompareBody"></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="leadsource" class="section">
+    <h3 class="section-title">Contact Source Performance</h3>
+    <div class="section-sub">Total Contacts / Workable Contacts / Conv % / Repeat % below are the Contact-Created cohort (contacts created in the selected period). Sale Completed Deals, Sales, Profit, Delivered Deals and the Avg Deal/Avg Profit columns are period-activity figures (deal's own Sale Completed date for sales, Delivery date for profit) — the same two contacts/deal populations used in the Executive Overview, shown side by side per lead source. Delivery Ratio compares two independently-dated sets (Delivered this period ÷ Sale Completed this period) so it can exceed 100% when deals booked in an earlier period get delivered this period. A row with 0 Total Contacts but nonzero deal figures means that source had no contacts created this period, only deals (from earlier-period contacts) dated this period.</div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-head"><h3>Lead Source Normalization</h3><span>Configurable alias mapping — merges duplicate source names</span></div>
+      <textarea id="leadSourceAliasJson" rows="3" style="width:100%;font-family:monospace;font-size:11px;background:#0b1728;color:var(--text);border:1px solid #2a3d57;border-radius:9px;padding:8px"></textarea>
+      <div style="margin-top:8px;display:flex;gap:8px"><button id="applyAliasBtn" type="button" class="ghost">Apply Normalization</button></div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-head"><h3>Lead Source At A Glance</h3><span>Conversion rate &amp; profit · sorted by Conversion %</span></div>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Lead Source</th><th>Total Contacts</th><th>Conv %</th><th>Sale Completed Deals</th><th>Sales EUR</th><th>Sales GBP</th><th>Profit EUR</th><th>Profit GBP</th></tr></thead>
+        <tbody id="leadSourceGlanceTable"></tbody>
+      </table>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head"><h3>Metric by Lead Source</h3><select id="leadSourceMetric">
+          <option value="leads">Contacts by Lead Source</option>
+          <option value="conversion">Conversion % by Lead Source</option>
+          <option value="bookedDeals">Sale Completed Deals by Lead Source</option>
+          <option value="salesEUR">Sales EUR by Lead Source</option>
+          <option value="salesGBP">Sales GBP by Lead Source</option>
+          <option value="profitEUR">Profit EUR by Lead Source</option>
+          <option value="profitGBP">Profit GBP by Lead Source</option>
+          <option value="profitPerLeadEUR">Profit Per Lead EUR</option>
+          <option value="profitPerLeadGBP">Profit Per Lead GBP</option>
+        </select></div>
+        <div class="chart"><canvas id="leadSourceMetricChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Contacts vs Sales</h3><span>Blue = Contacts · Purple = Sale Completed Deals</span></div>
+        <div class="chart"><canvas id="leadSourceVsBookingsChart"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <h3>Lead Source Details</h3>
+        <select id="leadSourceSort">
+          <option value="conversion">Sort: Highest Conversion</option>
+          <option value="leads">Sort: Most Leads</option>
+          <option value="bookedDeals">Sort: Most Bookings</option>
+          <option value="profitEUR">Sort: Highest Profit EUR</option>
+          <option value="profitGBP">Sort: Highest Profit GBP</option>
+          <option value="profitPerLeadEUR">Sort: Highest Profit/Contact EUR</option>
+          <option value="profitPerLeadGBP">Sort: Highest Profit/Contact GBP</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Lead Source</th><th>Total Contacts</th><th>Workable Contacts</th><th>Conv %</th><th>Booked Customers</th><th>Sale Completed Deals</th><th>Delivered</th><th>Delivery Ratio</th><th>Repeat Cust.</th><th>Repeat %</th>
+          <th>Sales EUR</th><th>Sales GBP</th><th>Profit EUR</th><th>Profit GBP</th><th>Sales/Contact EUR</th><th>Sales/Contact GBP</th><th>Profit/Contact EUR</th><th>Profit/Contact GBP</th><th>Avg Deal EUR</th><th>Avg Deal GBP</th><th>Avg Profit EUR</th><th>Avg Profit GBP</th>
+        </tr></thead>
+        <tbody id="leadSourceTable"></tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="marketing" class="section">
+    <h3 class="section-title">Marketing Spend &amp; ROI</h3>
+    <div class="section-sub">Cost of acquiring leads, from Zoho Books bills where Expense Item is Leads, Marketing or Google Ads. Upload QT_EXPENSES.xlsx above to populate this section. Sale Completed Deals/Sales use the deal's Sale Completed date; Net Profit/ROI use Net Profit from jobs actually Delivered in the selected period — both period-activity figures, not Contact-Created cohort.</div>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Total Marketing Spend</div><div id="mkSpend" class="value">—</div><div class="sub" id="sMkSpend">Leads + Marketing + Google Ads bills</div></div>
+      <div class="kpi"><div class="label">Net Profit After Spend</div><div id="mkProfitAfterSpend" class="value">—</div><div class="sub" id="sMkProfitAfterSpend">Delivered jobs' Net Profit − Spend</div></div>
+      <div class="kpi"><div class="label">Marketing ROI</div><div id="mkRoi" class="value">—</div><div class="sub" id="sMkRoi">(Delivered-job Profit − Spend) / Spend</div></div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-head"><h3>Vendor &rarr; Lead Source Mapping</h3><span>Maps Zoho Books Vendor Name to Lead Source · unmapped vendors bucket into "Unmapped / Overhead"</span></div>
+      <textarea id="vendorMapJson" rows="4" style="width:100%;font-family:monospace;font-size:11px;background:#0b1728;color:var(--text);border:1px solid #2a3d57;border-radius:9px;padding:8px"></textarea>
+      <div style="margin-top:8px;display:flex;gap:8px"><button id="applyVendorMapBtn" type="button" class="ghost">Apply Mapping</button></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head"><h3>Metric by Lead Source</h3><select id="mkMetric">
+          <option value="spend">Spend by Lead Source</option>
+          <option value="costPerLead">Cost Per Contact</option>
+          <option value="costPerBooking">Cost Per Booking</option>
+          <option value="roi">ROI %</option>
+          <option value="roas">ROAS (Sales / Spend)</option>
+        </select></div>
+        <div class="chart"><canvas id="mkMetricChart"></canvas><div id="mkMetricChartEmpty" class="empty" style="display:none;height:100%;align-items:center;justify-content:center">Upload QT_EXPENSES.xlsx and click "Load Spend Data" above to see this chart.</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Spend vs Sales vs Profit</h3><span>Currency follows the Currency filter (defaults to EUR when set to "All")</span></div>
+        <div class="chart"><canvas id="mkSpendVsProfitChart"></canvas><div id="mkSpendVsProfitChartEmpty" class="empty" style="display:none;height:100%;align-items:center;justify-content:center">Upload QT_EXPENSES.xlsx and click "Load Spend Data" above to see this chart.</div></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-head">
+        <h3>Marketing Spend &amp; ROI by Lead Source</h3>
+        <select id="mkSort">
+          <option value="spendEUR">Sort: Highest Spend EUR</option>
+          <option value="spendGBP">Sort: Highest Spend GBP</option>
+          <option value="roiEUR">Sort: Highest ROI % EUR</option>
+          <option value="roiGBP">Sort: Highest ROI % GBP</option>
+          <option value="totalLeads">Sort: Most Leads</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Lead Source</th><th>Spend EUR</th><th>Spend GBP</th><th>Bills</th><th>Total Contacts</th><th>Sale Completed Deals</th>
+          <th>Cost/Contact EUR</th><th>Cost/Contact GBP</th><th>Cost/Booking EUR</th><th>Cost/Booking GBP</th>
+          <th>Sales EUR</th><th>Sales GBP</th><th>Profit EUR</th><th>Profit GBP</th><th>ROI % EUR</th><th>ROI % GBP</th>
+        </tr></thead>
+        <tbody id="mkTable"></tbody>
+      </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Monthly Spend vs Profit Trend</h3><span>Bill month vs Contact Created month</span></div>
+      <div class="chart"><canvas id="mkTrendChart"></canvas><div id="mkTrendChartEmpty" class="empty" style="display:none;height:100%;align-items:center;justify-content:center">Upload QT_EXPENSES.xlsx and click "Load Spend Data" above to see this chart.</div></div>
+    </div>
+  </section>
+
+  <section id="salespeople" class="section">
+    <h3 class="section-title">Sales Team Performance</h3>
+    <div class="section-sub">Based on Deal Owner (not Lead Owner — most leads are owned by "Movega Removals" in the CRM and do not reflect the real salesperson). Sale Completed Deals/Sales use the deal's Sale Completed date; Delivered Deals/Profit use Net Profit from jobs Delivered in the selected period — period-activity figures, not Contact-Created cohort. Delivery Ratio can exceed 100% since Delivered and Sale Completed are independently-dated sets (a deal booked last month can be delivered this month).</div>
+    <div class="grid21">
+      <div class="card">
+        <div class="card-head"><h3>Metric by Salesperson</h3><select id="spMetric">
+          <option value="bookedDeals">Sale Completed Deals</option>
+          <option value="deliveredDeals">Delivered Deals</option>
+          <option value="salesEUR">Sales EUR</option>
+          <option value="salesGBP">Sales GBP</option>
+          <option value="profitEUR">Profit EUR</option>
+          <option value="profitGBP">Profit GBP</option>
+        </select></div>
+        <div class="chart"><canvas id="spMetricChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Sales Team Summary</h3><span>Selected filters</span></div>
+        <div class="table-wrap"><table><thead><tr>
+          <th>Salesperson</th><th>Booked Cust.</th><th>Sale Completed Deals</th><th>Delivered</th><th>Delivery Ratio</th><th>Sales EUR</th><th>Sales GBP</th><th>Profit EUR</th><th>Profit GBP</th><th>Avg Deal EUR</th><th>Avg Deal GBP</th><th>Avg Profit/Job EUR</th><th>Avg Profit/Job GBP</th>
+        </tr></thead><tbody id="spTable"></tbody></table></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Salesperson &times; Lead Source Matrix</h3><select id="matrixMetric">
+        <option value="bookedDeals">Sale Completed Deals</option>
+        <option value="deliveredDeals">Delivered Deals</option>
+        <option value="salesEUR">Sales EUR</option>
+        <option value="salesGBP">Sales GBP</option>
+        <option value="profitEUR">Profit EUR</option>
+        <option value="profitGBP">Profit GBP</option>
+      </select></div>
+      <div class="matrix-wrap"><table class="matrix" id="matrixTable"></table></div>
+    </div>
+  </section>
+
+  <section id="repeat" class="section">
+    <h3 class="section-title">Repeat Customer Analysis</h3>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Repeat Customers</div><div id="rRepeatCustomers" class="value">—</div><div class="sub">2+ unique booked deals</div></div>
+      <div class="kpi"><div class="label">Repeat Customer Rate</div><div id="rRepeatRate" class="value">—</div><div class="sub">of Booked Customers</div></div>
+      <div class="kpi"><div class="label">Revenue from Repeat</div><div id="rRevenue" class="value">—</div><div class="sub">Sale Completed deals · native currency</div></div>
+      <div class="kpi"><div class="label">Profit from Repeat</div><div id="rProfit" class="value">—</div><div class="sub">Sale Completed deals · native currency</div></div>
+      <div class="kpi"><div class="label">Avg Bookings / Repeat Cust.</div><div id="rAvgBookings" class="value">—</div><div class="sub">Booked deals / repeat contacts</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head"><h3>Booking Frequency Classification</h3><span>Unique booked customers</span></div>
+        <div class="chart small"><canvas id="repeatClassChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Classification Breakdown</h3></div>
+        <div class="table-wrap"><table><thead><tr><th>Bookings</th><th>Customers</th><th>% of Booked Customers</th></tr></thead><tbody id="repeatClassTable"></tbody></table></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Repeat Customer Detail</h3><span class="checkline"><input id="repeatOnlyToggle" type="checkbox" checked><label for="repeatOnlyToggle" style="margin:0">Show only customers with 2+ booked deals</label></span></div>
+      <div class="table-wrap"><table><thead><tr>
+        <th>Contact Name</th><th>Contact ID</th><th>Lead Source</th><th>First Lead Date</th><th>Sale Completed Deals</th><th>Delivered Deals</th><th>Sales EUR</th><th>Sales GBP</th><th>Profit EUR</th><th>Profit GBP</th>
+      </tr></thead><tbody id="repeatDetailTable"></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="cohort" class="section">
+    <h3 class="section-title">Monthly Cohort Analysis</h3>
+    <div class="section-sub">Contacts Created / Workable Contacts / Conv % / the 30-60-90-day conversion columns are grouped by Contact Created month (recent months flagged as not yet mature). Booked Cust., Sale Completed, Delivered, Sales and Profit are period-activity figures (deal's own Sale Completed / Delivery date within that calendar month) — same numbers as the "Sales Completed by Month" table below, just shown alongside the cohort columns for convenience.</div>
+    <div class="card">
+      <div class="card-head"><h3>Contacts Created vs Conversion % Trend</h3></div>
+      <div class="chart"><canvas id="cohortTrendChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Monthly Cohort Table</h3></div>
+      <div class="table-wrap"><table><thead><tr>
+        <th>Month</th><th>Contacts Created</th><th>Workable Contacts</th><th>Conv %</th><th>Booked Cust.</th><th>Sale Completed</th><th>Delivered</th><th>Sales EUR</th><th>Sales GBP</th><th>Profit EUR</th><th>Profit GBP</th><th>30-day %</th><th>60-day %</th><th>90-day %</th>
+      </tr></thead><tbody id="cohortTable"></tbody></table></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Sales Completed by Month</h3><span>Deals grouped by Sale Completed month, independent of Contact Created month — this is the sales activity view. Delivered/Profit use Delivery Date within the same calendar month, so Delivered can differ from (and even exceed) Sale Completed Deals.</span></div>
+      <div class="chart"><canvas id="salesByMonthChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Sales Completed by Month — Table</h3></div>
+      <div class="table-wrap"><table><thead><tr>
+        <th>Month (Sale Completed)</th><th>Sale Completed Deals</th><th>Booked Customers</th><th>Delivered</th><th>Sales EUR</th><th>Sales GBP</th><th>Profit EUR</th><th>Profit GBP</th>
+      </tr></thead><tbody id="salesByMonthTable"></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="geography" class="section">
+    <h3 class="section-title">Geographical Analysis</h3>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head"><h3>Contacts by Collection Country</h3></div>
+        <div class="chart small"><canvas id="collectionCountryChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Contacts by Delivery Country</h3></div>
+        <div class="chart small"><canvas id="deliveryCountryChart"></canvas></div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head"><h3>Conversion % by Collection Country</h3></div>
+        <div class="table-wrap"><table><thead><tr><th>Country</th><th>Contacts</th><th>Sold Customers</th><th>Conv %</th></tr></thead><tbody id="collectionCountryTable"></tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Conversion % by Delivery Country</h3></div>
+        <div class="table-wrap"><table><thead><tr><th>Country</th><th>Contacts</th><th>Sold Customers</th><th>Conv %</th></tr></thead><tbody id="deliveryCountryTable"></tbody></table></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Bookings, Sales &amp; Profit by Route</h3><span>Top 15 · sorted by Sale Completed Deals</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Route</th><th>Sale Completed Deals</th><th>Delivered</th><th>Sales EUR</th><th>Sales GBP</th><th>Profit EUR</th><th>Profit GBP</th></tr></thead><tbody id="routeTable"></tbody></table></div>
+    </div>
+  </section>
+
+</main>
+<div id="leadsModalOverlay" class="leads-modal-overlay">
+  <div class="leads-modal">
+    <div class="leads-modal-head">
+      <div><h3 id="leadsModalTitle">Leads</h3><span id="leadsModalCount"></span></div>
+      <button type="button" class="leads-modal-close" id="leadsModalClose" aria-label="Close">✕</button>
+    </div>
+    <div class="leads-modal-body">
+      <div class="table-wrap" style="max-height:65vh">
+        <table>
+          <thead><tr id="leadsModalHeadRow"><th>Contact Created</th><th>Contact Name</th><th>Reference</th><th>Deal Reference</th><th>Deal Owner</th><th>Status</th><th>Currency</th><th>Deal Value</th><th>Net Profit</th></tr></thead>
+          <tbody id="leadsModalBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<button id="backToTopBtn" type="button" title="Back to top" aria-label="Back to top">↑</button>
+
+<script>
+const $ = id => document.getElementById(id);
+const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let allRows = [];
+let allContactRows = [];
+let allDealRows = [];
+let allExpenseRows = [];
+let currentPeriodSaleDeals = [];
+let currentPeriodDeliveredDeals = [];
+let currentMarketingExpenseRows = [];
+let charts = {};
+const STORAGE_KEY = 'movega_leadconv_filters';
+
+let leadSourceAliases = {
+  'comparemymove': 'Compare My Move',
+  'compare my move': 'Compare My Move',
+  'quot8 website': 'Quot8',
+  'quot8': 'Quot8',
+  'unidentified': 'Unidentified',
+  '': 'Unidentified'
+};
+$('leadSourceAliasJson').value = JSON.stringify(leadSourceAliases, null, 2);
+
+const MARKETING_EXPENSE_ITEMS = ['Leads','Marketing','Google Ads'];
+let vendorToSourceMap = {
+  'ReloAdvisor BV': 'ReloAdvisor',
+  'Quot8': 'Quot8',
+  'NET Business': 'NET Business',
+  'Getamover GBP': 'Getamover',
+  'Getamover (EUR)': 'Getamover',
+  'Getamover ( DKK )': 'Getamover',
+  'Getamover ( SEK )': 'Getamover',
+  'TriGlobal B.V. ( GBP )': 'TriGlobal',
+  'TriGlobal B.V. ( EUR )': 'TriGlobal',
+  'Expat Guidance Pty Ltd': 'Expat Guidance',
+  'Compare My Move': 'Compare My Move',
+  'PinLocal': 'PinLocal',
+  'Google Ireland Limited': 'Google Ads',
+  'Интернет Реклама Варна 2016 ЕООД': 'Google Ads',
+  'Интернет Реклама Варна 2016 ЕООД ( EUR )': 'Google Ads',
+  'Meta Platforms Ireland Limited': 'Facebook Ads'
+};
+$('vendorMapJson').value = JSON.stringify(vendorToSourceMap, null, 2);
+
+/* ---------------- parsing helpers ---------------- */
+function str(v){ return (v===null||v===undefined) ? '' : String(v).trim(); }
+function num(v){
+  if(v===null||v===undefined||v==='') return 0;
+  if(typeof v==='number' && Number.isFinite(v)) return v;
+  const x = parseFloat(String(v).replace(/[,\s€£$]/g,''));
+  return Number.isFinite(x) ? x : 0;
+}
+function parseCrmDateTime(v){
+  if(!v) return null;
+  if(v instanceof Date && !isNaN(v)) return v;
+  if(typeof v==='number'){
+    const x=XLSX.SSF.parse_date_code(v);
+    if(x) return new Date(x.y,x.m-1,x.d,x.H||0,x.M||0,Math.floor(x.S||0));
+  }
+  const s=String(v).trim();
+  const m=s.match(/^(\d{1,2})\s+([A-Za-z]{3}),?\s+(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?$/i);
+  if(m){
+    const months={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+    const mon=months[m[2][0].toUpperCase()+m[2].slice(1).toLowerCase()];
+    if(mon!==undefined){
+      let hour=Number(m[4]||0), minute=Number(m[5]||0), second=Number(m[6]||0);
+      const ap=String(m[7]||'').toUpperCase();
+      if(ap){ hour%=12; if(ap==='PM') hour+=12; }
+      return new Date(Number(m[3]),mon,Number(m[1]),hour,minute,second);
+    }
+  }
+  const d=new Date(s);
+  return isNaN(d)?null:d;
+}
+function parseDateCell(v){
+  if(!v) return null;
+  if(v instanceof Date && !isNaN(v)) return v;
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
+}
+function normalizeLeadSource(v){
+  const raw = str(v);
+  const key = raw.toLowerCase();
+  return leadSourceAliases[key] || (raw === '' ? 'Unidentified' : raw);
+}
+
+/* ---------------- workbook loading ---------------- */
+function readWorkbook(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      try{
+        const wb = XLSX.read(e.target.result,{type:'array',cellDates:true});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        resolve(XLSX.utils.sheet_to_json(ws,{defval:null,raw:true}));
+      }catch(err){ reject(err); }
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function showProgress(pct,label){
+  const wrap=$('genProgress'); if(!wrap) return;
+  wrap.style.display='block';
+  $('genProgressFill').style.width=pct+'%';
+  $('genProgressLabel').textContent=label;
+}
+function hideProgress(){ const wrap=$('genProgress'); if(wrap) wrap.style.display='none'; }
+// yields to the browser so the progress bar repaints before the next (synchronous) step runs
+function nextFrame(){ return new Promise(r=>setTimeout(r,0)); }
+
+const NON_WORKABLE_REASONS = new Set([
+  'wrong number / invalid email','language barrier','incomplete information','dates out of range',
+  'distance too short','unreachable','location out of range','load too small'
+]);
+function field(r,names){ for(const n of names){ if(Object.prototype.hasOwnProperty.call(r,n) && r[n]!==null && r[n]!==undefined && r[n]!=='') return r[n]; } return null; }
+function contactKeyFrom(c){ return c.contactReference || c.contactId || `${c.contactName}|${c.contactCreated?c.contactCreated.toISOString():''}`; }
+function normalizeContactRow(r){
+  const contactCreated = parseCrmDateTime(field(r,['Created Time','Contact Created Time']));
+  const contactStatus = str(field(r,['Status','Contact Status']));
+  const deadReason = str(field(r,['Reason Dead Lead','Dead Lead Reason']));
+  const contactId = str(field(r,['Id','Contact ID']));
+  const contactReference = str(field(r,['Reference','CRM Reference']));
+  const rawLeadSource = str(field(r,['Lead Source']));
+  const isNonWorkable = contactStatus.toLowerCase()==='dead lead' && NON_WORKABLE_REASONS.has(deadReason.toLowerCase());
+  return {
+    contactId, contactReference,
+    contactName: str(field(r,['Full Name','Contact Name','Name'])),
+    contactCreated,
+    // Prefer Zoho's own precomputed Year/Quarter/Month columns over re-deriving from the parsed date string,
+    // which can drift a handful of records across month boundaries due to timezone rounding.
+    leadYear: num(field(r,['Contact Year'])) || (contactCreated ? contactCreated.getFullYear() : null),
+    leadQuarter: num(field(r,['Contact Quarter'])) || (contactCreated ? Math.floor(contactCreated.getMonth()/3)+1 : null),
+    leadMonth: num(field(r,['Contact Month Number'])) || (contactCreated ? contactCreated.getMonth()+1 : null),
+    rawLeadSource,
+    leadSource: normalizeLeadSource(rawLeadSource),
+    contactStatus, deadReason,
+    nonWorkable: isNonWorkable,
+    workable: !isNonWorkable,
+    leadCollectionCountry: str(field(r,['Collection Country','Collection Country Name','Current Country'])) || 'Unknown',
+    leadDeliveryCountry: str(field(r,['Delivery Country','Delivery Country Name','Destination Country'])) || 'Unknown',
+    leadRoute: str(field(r,['Route'])) || 'Unknown Route',
+    leadCurrency: str(field(r,['Currency'])).toUpperCase()
+  };
+}
+function normalizeDealRow(r){
+  const saleCompleted = parseCrmDateTime(field(r,['Sale Completed','Sale Completed Date']));
+  const dealCreated = parseCrmDateTime(field(r,['Created Time','Deal Created Time']));
+  const deliveryDate = parseDateCell(field(r,['Delivery Date','Delivery Date(s)','Deal Delivery Date']));
+  const status = str(field(r,['Deal Status','Status']));
+  const paymentStatus = str(field(r,['Payment Status'])).toUpperCase();
+  return {
+    contactId: str(field(r,['Contact ID','Contact Name ID','Contact CRM ID'])),
+    contactReference: str(field(r,['Contact Reference','CRM Reference'])),
+    dealId: str(field(r,['Deal ID','Id'])),
+    dealReference: str(field(r,['Deal Reference','d.Reference','Reference'])),
+    dealOwner: str(field(r,['Salesperson','Deal Owner','Deal Owner Name'])),
+    dealStatus: status,
+    dealSystemStatus: str(field(r,['System Status','Deal System Status'])),
+    paymentStatus,
+    rawLeadSource: str(field(r,['Lead Source'])),
+    saleCompleted,
+    originalDealCreated: dealCreated,
+    // Legacy renderers use dealCreated as the booking date. It is deliberately Sale Completed now.
+    dealCreated: saleCompleted,
+    dealCollectionDate: parseDateCell(field(r,['Collection Date','Collection Date(s)','Deal Collection Date'])),
+    dealDeliveryDate: deliveryDate,
+    dealCollectionCountry: str(field(r,['d.Collection Country','Collection Country','Deal Collection Country'])),
+    dealDeliveryCountry: str(field(r,['d.Delivery Country','Delivery Country','Deal Delivery Country'])),
+    dealRoute: str(field(r,['Route','Deal Route'])),
+    dealCurrency: str(field(r,['d.Currency','Currency','Deal Currency'])).toUpperCase(),
+    dealValue: num(field(r,['Executed Job Value','Deal Value','Client Price'])),
+    netProfit: num(field(r,['Net Profit'])),
+    bookedDeal: !!saleCompleted,
+    // Delivered = Deal Status=Delivered AND payment is 50/50 Paid or Full Payment (confirmed 2026-10-01 per business rule)
+    deliveredDeal: status.toLowerCase()==='delivered' && (paymentStatus==='50/50 PAID' || paymentStatus==='FULL PAYMENT')
+  };
+}
+function buildContactDealRows(contacts,deals){
+  const dealsById = new Map(), dealsByRef = new Map();
+  const push=(map,key,d)=>{ if(!key) return; if(!map.has(key)) map.set(key,[]); map.get(key).push(d); };
+  deals.forEach(d=>{ push(dealsById,d.contactId,d); push(dealsByRef,d.contactReference,d); });
+  const rows=[];
+  contacts.forEach(c=>{
+    let matched=[];
+    if(c.contactId && dealsById.has(c.contactId)) matched=dealsById.get(c.contactId);
+    if(!matched.length && c.contactReference && dealsByRef.has(c.contactReference)) matched=dealsByRef.get(c.contactReference);
+    const base={
+      // Keep legacy property names so all existing charts/tables continue to work, but they now represent Contacts.
+      leadId: contactKeyFrom(c), leadName:c.contactName, leadCreated:c.contactCreated,
+      leadYear:c.leadYear, leadQuarter:c.leadQuarter, leadMonth:c.leadMonth,
+      rawLeadSource:c.rawLeadSource, leadSource:c.leadSource,
+      contactId:c.contactId || contactKeyFrom(c), contactReference:c.contactReference, contactName:c.contactName,
+      contactStatus:c.contactStatus, deadReason:c.deadReason, nonWorkable:c.nonWorkable, workable:c.workable,
+      leadCollectionCountry:c.leadCollectionCountry, leadDeliveryCountry:c.leadDeliveryCountry,
+      leadRoute:c.leadRoute, leadCurrency:c.leadCurrency
+    };
+    if(!matched.length){ rows.push({...base,dealId:'',dealReference:'',dealOwner:'',dealStatus:'',dealSystemStatus:'',dealCreated:null,saleCompleted:null,dealCollectionDate:null,dealDeliveryDate:null,dealCollectionCountry:'',dealDeliveryCountry:'',dealRoute:'',dealCurrency:'',dealValue:0,netProfit:0,bookedDeal:false,deliveredDeal:false}); }
+    else matched.forEach(d=>rows.push({...base,...d, leadSource:c.leadSource || normalizeLeadSource(d.rawLeadSource), leadCollectionCountry:c.leadCollectionCountry!=='Unknown'?c.leadCollectionCountry:(d.dealCollectionCountry||'Unknown'), leadDeliveryCountry:c.leadDeliveryCountry!=='Unknown'?c.leadDeliveryCountry:(d.dealDeliveryCountry||'Unknown'), leadRoute:c.leadRoute!=='Unknown Route'?c.leadRoute:(d.dealRoute||'Unknown Route')}));
+  });
+  const soldContacts = new Set(rows.filter(r=>r.bookedDeal).map(r=>r.contactId).filter(Boolean));
+  const deliveredContacts = new Set(rows.filter(r=>r.deliveredDeal).map(r=>r.contactId).filter(Boolean));
+  rows.forEach(r=>{ r.contactSold=soldContacts.has(r.contactId); r.contactDelivered=deliveredContacts.has(r.contactId); });
+  return rows;
+}
+
+function saleCompletedPeriodPass(d,f){
+  const sd=d.saleCompleted;
+  if(!sd) return false;
+  if(f.year!=='ALL' && sd.getFullYear()!==Number(f.year)) return false;
+  if(f.quarter!=='ALL' && (Math.floor(sd.getMonth()/3)+1)!==Number(f.quarter)) return false;
+  if(f.month!=='ALL' && (sd.getMonth()+1)!==Number(f.month)) return false;
+  if(f.dateFrom){ const x=new Date(f.dateFrom); if(sd<x) return false; }
+  if(f.dateTo){ const x=new Date(f.dateTo); x.setHours(23,59,59,999); if(sd>x) return false; }
+  if(f.leadSource!=='ALL' && normalizeLeadSource(d.rawLeadSource)!==f.leadSource) return false;
+  if(f.owner!=='ALL' && d.dealOwner!==f.owner) return false;
+  if(f.collectionCountry!=='ALL' && d.dealCollectionCountry!==f.collectionCountry) return false;
+  if(f.deliveryCountry!=='ALL' && d.dealDeliveryCountry!==f.deliveryCountry) return false;
+  if(f.route!=='ALL' && d.dealRoute!==f.route) return false;
+  if(f.currency!=='ALL' && d.dealCurrency!==f.currency) return false;
+  if(f.delivered==='DELIVERED' && !d.deliveredDeal) return false;
+  if(f.delivered==='NOT_DELIVERED' && d.deliveredDeal) return false;
+  return true;
+}
+function getPeriodSaleDeals(){
+  const f=selected();
+  return dedupeDeals(allDealRows.filter(d=>saleCompletedPeriodPass(d,f)));
+}
+function deliveredPeriodPass(d,f){
+  const dd=d.dealDeliveryDate;
+  if(!dd || !d.deliveredDeal) return false;
+  if(f.year!=='ALL' && dd.getFullYear()!==Number(f.year)) return false;
+  if(f.quarter!=='ALL' && (Math.floor(dd.getMonth()/3)+1)!==Number(f.quarter)) return false;
+  if(f.month!=='ALL' && (dd.getMonth()+1)!==Number(f.month)) return false;
+  if(f.dateFrom){ const x=new Date(f.dateFrom); if(dd<x) return false; }
+  if(f.dateTo){ const x=new Date(f.dateTo); x.setHours(23,59,59,999); if(dd>x) return false; }
+  if(f.leadSource!=='ALL' && normalizeLeadSource(d.rawLeadSource)!==f.leadSource) return false;
+  if(f.owner!=='ALL' && d.dealOwner!==f.owner) return false;
+  if(f.collectionCountry!=='ALL' && d.dealCollectionCountry!==f.collectionCountry) return false;
+  if(f.deliveryCountry!=='ALL' && d.dealDeliveryCountry!==f.deliveryCountry) return false;
+  if(f.route!=='ALL' && d.dealRoute!==f.route) return false;
+  if(f.currency!=='ALL' && d.dealCurrency!==f.currency) return false;
+  return true;
+}
+function getPeriodDeliveredDeals(){
+  const f=selected();
+  return dedupeDeals(allDealRows.filter(d=>deliveredPeriodPass(d,f)));
+}
+function getPeriodSoldCustomers(){
+  return uniqueByKey(getPeriodSaleDeals().filter(d=>d.contactId),d=>d.contactId);
+}
+
+/* ---------------- generic aggregation helpers ---------------- */
+function unique(arr){ return [...new Set(arr.filter(x=>x!==null&&x!==undefined&&x!==''))]; }
+function uniqueByKey(rows, keyFn){
+  const seen = new Set(); const out = [];
+  rows.forEach(r=>{ const k = keyFn(r); if(k===''||k===null||k===undefined) return; if(seen.has(k)) return; seen.add(k); out.push(r); });
+  return out;
+}
+function dedupeDeals(rows){ return uniqueByKey(rows, r=>r.dealReference || r.dealId); }
+function sumByCurrency(rows, field, currency){
+  return rows.filter(r=>r.dealCurrency===currency).reduce((s,r)=>s+r[field],0);
+}
+function countByCurrency(rows, currency){ return rows.filter(r=>r.dealCurrency===currency).length; }
+
+function statsForRows(rows){
+  const contactKey = r=>r.contactId || r.leadId;
+  // Total Contacts = raw row count (Contact x Reference), matching Zoho pivot's Sum aggregation - NOT deduped by contact.
+  const totalLeads = rows.length;
+  const nonWorkableContacts = rows.filter(r=>r.nonWorkable).length;
+  const workableContacts = Math.max(0,totalLeads-nonWorkableContacts);
+  const bookedRows = rows.filter(r=>r.bookedDeal); // Sale Completed deals
+  const bookedLeads = workableContacts; // legacy field used by existing UI card/table; now Workable Contacts
+  const bookedCustomers = uniqueByKey(bookedRows, contactKey).length;
+  const dedupedBooked = dedupeDeals(bookedRows);
+  const bookedDeals = dedupedBooked.length;
+  const deliveredRows = rows.filter(r=>r.deliveredDeal);
+  const dedupedDelivered = dedupeDeals(deliveredRows);
+  const deliveredDeals = dedupedDelivered.length;
+  const conversion = workableContacts ? bookedDeals/workableContacts*100 : 0; // requested Sale Completed rate
+  const customerConversion = workableContacts ? bookedCustomers/workableContacts*100 : 0;
+  const deliveryRate = bookedDeals ? deliveredDeals/bookedDeals*100 : 0;
+
+  const byContact = new Map();
+  dedupedBooked.forEach(r=>{
+    const cid=contactKey(r); if(!cid) return;
+    if(!byContact.has(cid)) byContact.set(cid,new Set());
+    byContact.get(cid).add(r.dealReference||r.dealId);
+  });
+  let repeatCustomers=0; byContact.forEach(set=>{if(set.size>=2) repeatCustomers++;});
+  const repeatRate = bookedCustomers ? repeatCustomers/bookedCustomers*100 : 0;
+
+  const salesEUR = sumByCurrency(dedupedBooked,'dealValue','EUR');
+  const salesGBP = sumByCurrency(dedupedBooked,'dealValue','GBP');
+  const profitEUR = sumByCurrency(dedupedBooked,'netProfit','EUR');
+  const profitGBP = sumByCurrency(dedupedBooked,'netProfit','GBP');
+  const cEUR = countByCurrency(dedupedBooked,'EUR');
+  const cGBP = countByCurrency(dedupedBooked,'GBP');
+  const dEUR = countByCurrency(dedupedDelivered,'EUR');
+  const dGBP = countByCurrency(dedupedDelivered,'GBP');
+  const deliveredProfitEUR = sumByCurrency(dedupedDelivered,'netProfit','EUR');
+  const deliveredProfitGBP = sumByCurrency(dedupedDelivered,'netProfit','GBP');
+
+  return {
+    totalLeads, totalContacts:totalLeads, nonWorkableContacts, workableContacts,
+    bookedLeads, conversion, customerConversion, bookedCustomers, bookedDeals, deliveredDeals, deliveryRate,
+    repeatCustomers, repeatRate, salesEUR, salesGBP, profitEUR, profitGBP,
+    avgDealEUR:cEUR?salesEUR/cEUR:0, avgDealGBP:cGBP?salesGBP/cGBP:0,
+    avgProfitEUR:cEUR?profitEUR/cEUR:0, avgProfitGBP:cGBP?profitGBP/cGBP:0,
+    avgProfitPerDeliveredEUR:dEUR?deliveredProfitEUR/dEUR:0, avgProfitPerDeliveredGBP:dGBP?deliveredProfitGBP/dGBP:0,
+    salesPerLeadEUR:totalLeads?salesEUR/totalLeads:0, salesPerLeadGBP:totalLeads?salesGBP/totalLeads:0,
+    profitPerLeadEUR:totalLeads?profitEUR/totalLeads:0, profitPerLeadGBP:totalLeads?profitGBP/totalLeads:0,
+    avgBookingsPerCustomer:bookedCustomers?bookedDeals/bookedCustomers:0
+  };
+}
+
+function computeGroupStats(rows, keyFn){
+  const groups = new Map();
+  rows.forEach(row=>{
+    const key = keyFn(row);
+    if(key===null||key===undefined||key==='') return;
+    if(!groups.has(key)) groups.set(key,[]);
+    groups.get(key).push(row);
+  });
+  const out = [];
+  groups.forEach((groupRows,key)=>{ out.push({ key, rows: groupRows, ...statsForRows(groupRows) }); });
+  return out;
+}
+function groupDealsByKey(deals, keyFn){
+  const m = new Map();
+  deals.forEach(d=>{ const k=keyFn(d); if(k===null||k===undefined||k==='') return; if(!m.has(k)) m.set(k,[]); m.get(k).push(d); });
+  return m;
+}
+// Sales/bookedDeals from deals Sale Completed in the period; Profit/deliveredDeals from deals Delivered in the period.
+function statsForDealGroup(saleDeals, deliveredDealsArr){
+  const salesEUR=sumByCurrency(saleDeals,'dealValue','EUR'), salesGBP=sumByCurrency(saleDeals,'dealValue','GBP');
+  const cEUR=countByCurrency(saleDeals,'EUR'), cGBP=countByCurrency(saleDeals,'GBP');
+  const profitEUR=sumByCurrency(deliveredDealsArr,'netProfit','EUR'), profitGBP=sumByCurrency(deliveredDealsArr,'netProfit','GBP');
+  const dEUR=countByCurrency(deliveredDealsArr,'EUR'), dGBP=countByCurrency(deliveredDealsArr,'GBP');
+  const bookedDeals=saleDeals.length, deliveredDeals=deliveredDealsArr.length;
+  const bookedCustomers=uniqueByKey(saleDeals.filter(d=>d.contactId),d=>d.contactId).length;
+  return {
+    bookedDeals, deliveredDeals, bookedCustomers, deliveryRate: bookedDeals?deliveredDeals/bookedDeals*100:0,
+    salesEUR, salesGBP, profitEUR, profitGBP,
+    avgDealEUR:cEUR?salesEUR/cEUR:0, avgDealGBP:cGBP?salesGBP/cGBP:0,
+    avgProfitEUR:cEUR?profitEUR/cEUR:0, avgProfitGBP:cGBP?profitGBP/cGBP:0,
+    avgProfitPerDeliveredEUR:dEUR?profitEUR/dEUR:0, avgProfitPerDeliveredGBP:dGBP?profitGBP/dGBP:0
+  };
+}
+// Merges cohort contact stats (Total/Workable Contacts, Conv%, Repeat — by Contact Created Time) with
+// period deal stats (Sale Completed Deals/Sales/Delivered Deals/Profit — by the deal's own Sale Completed/Delivery date).
+// Uses the union of keys so a group with period deal activity but no contacts created this period (or vice versa) isn't dropped.
+function mergeCohortWithPeriodDeals(cohortGroups, dealKeyFn){
+  const saleByKey = groupDealsByKey(currentPeriodSaleDeals, dealKeyFn);
+  const deliveredByKey = groupDealsByKey(currentPeriodDeliveredDeals, dealKeyFn);
+  const cohortByKey = new Map(cohortGroups.map(g=>[g.key,g]));
+  const keys = unique([...cohortGroups.map(g=>g.key), ...saleByKey.keys(), ...deliveredByKey.keys()]);
+  return keys.map(key=>{
+    const cg = cohortByKey.get(key) || { key, rows:[], totalLeads:0, bookedLeads:0, workableContacts:0, conversion:0, repeatCustomers:0, repeatRate:0 };
+    const dealStats = statsForDealGroup(saleByKey.get(key)||[], deliveredByKey.get(key)||[]);
+    const salesPerLeadEUR = cg.totalLeads?dealStats.salesEUR/cg.totalLeads:0, salesPerLeadGBP = cg.totalLeads?dealStats.salesGBP/cg.totalLeads:0;
+    const profitPerLeadEUR = cg.totalLeads?dealStats.profitEUR/cg.totalLeads:0, profitPerLeadGBP = cg.totalLeads?dealStats.profitGBP/cg.totalLeads:0;
+    return { ...cg, ...dealStats, salesPerLeadEUR, salesPerLeadGBP, profitPerLeadEUR, profitPerLeadGBP, saleDealsRaw: saleByKey.get(key)||[], deliveredDealsRaw: deliveredByKey.get(key)||[] };
+  });
+}
+
+/* ---------------- marketing spend (QT_EXPENSES.xlsx) ---------------- */
+function normalizeExpenseRow(r){
+  const billDate = parseDateCell(r['Bill Date']) || parseCrmDateTime(r['Bill Date']);
+  const vendorName = str(r['Vendor Name']);
+  const fcyRaw = r['Expense FCY'];
+  const amount = (fcyRaw!==null && fcyRaw!==undefined && fcyRaw!=='') ? num(fcyRaw) : num(r['Expense BCY']);
+  return {
+    billDate,
+    year: num(r['Year']) || (billDate ? billDate.getFullYear() : null),
+    quarter: num(r['Quarter']) || (billDate ? Math.floor(billDate.getMonth()/3)+1 : null),
+    month: num(r['Month Number']) || (billDate ? billDate.getMonth()+1 : null),
+    vendorName,
+    expenseItem: str(r['Expense Item']),
+    currency: str(r['Currency']).toUpperCase(),
+    amount,
+    leadSource: vendorToSourceMap[vendorName] || 'Unmapped / Overhead'
+  };
+}
+function statsForSpendRows(rows){
+  const spendEUR = rows.filter(r=>r.currency==='EUR').reduce((s,r)=>s+r.amount,0);
+  const spendGBP = rows.filter(r=>r.currency==='GBP').reduce((s,r)=>s+r.amount,0);
+  return { spendEUR, spendGBP, bills: rows.length };
+}
+function computeSpendGroupStats(rows, keyFn){
+  const groups = new Map();
+  rows.forEach(row=>{
+    const key = keyFn(row);
+    if(key===null||key===undefined||key==='') return;
+    if(!groups.has(key)) groups.set(key,[]);
+    groups.get(key).push(row);
+  });
+  const out = [];
+  groups.forEach((groupRows,key)=>{ out.push({ key, rows: groupRows, ...statsForSpendRows(groupRows) }); });
+  return out;
+}
+function expenseFilterPass(row, f){
+  if(f.year!=='ALL' && row.year!==Number(f.year)) return false;
+  if(f.quarter!=='ALL' && row.quarter!==Number(f.quarter)) return false;
+  if(f.month!=='ALL' && row.month!==Number(f.month)) return false;
+  if(f.dateFrom){ const d=new Date(f.dateFrom); if(!row.billDate || row.billDate<d) return false; }
+  if(f.dateTo){ const d=new Date(f.dateTo); d.setHours(23,59,59,999); if(!row.billDate || row.billDate>d) return false; }
+  return true;
+}
+function getFilteredExpenseRows(){
+  const f = selected();
+  return allExpenseRows.filter(r=>expenseFilterPass(r,f));
+}
+
+function escapeAttr(v){ return String(v).replace(/"/g,'&quot;'); }
+const LEADS_MODAL_ROW_LIMIT = 2000;
+const LEADS_MODAL_HEAD_HTML = '<th>Contact Created</th><th>Contact Name</th><th>CRM Reference</th><th>Deal Reference</th><th>Deal Owner</th><th>Status</th><th>Currency</th><th>Deal Value</th><th>Net Profit</th>';
+const EXPENSES_MODAL_HEAD_HTML = '<th>Bill Date</th><th>Vendor</th><th>Expense Item</th><th>Mapped Lead Source</th><th>Currency</th><th>Amount</th>';
+function openLeadsModal(title, rows){
+  $('leadsModalHeadRow').innerHTML = LEADS_MODAL_HEAD_HTML;
+  const deduped = uniqueByKey(rows, r=>`${r.leadId}|${r.dealReference||r.dealId||''}`);
+  const sorted = deduped.sort((a,b)=>(b.leadCreated?b.leadCreated.getTime():0)-(a.leadCreated?a.leadCreated.getTime():0));
+  const shown = sorted.slice(0, LEADS_MODAL_ROW_LIMIT);
+  $('leadsModalTitle').textContent = title;
+  $('leadsModalCount').textContent = `${sorted.length.toLocaleString()} row${sorted.length===1?'':'s'}` + (sorted.length>shown.length?` · showing first ${shown.length.toLocaleString()}`:'');
+  const body = $('leadsModalBody'); body.innerHTML='';
+  if(!shown.length){ body.innerHTML = '<tr><td colspan="9" class="empty">No leads for this selection.</td></tr>'; }
+  shown.forEach(r=>{
+    const statusLabel = r.deliveredDeal ? 'Delivered' : r.bookedDeal ? 'Booked' : (r.dealReference ? 'Not booked' : 'No deal');
+    const pillClass = r.deliveredDeal ? 'pill' : r.bookedDeal ? 'pill warn' : 'pill muted';
+    const currency = r.dealCurrency==='GBP' ? 'GBP' : 'EUR';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.leadCreated?r.leadCreated.toLocaleDateString('en-GB'):'—'}</td><td>${r.contactName||'—'}</td><td>${r.contactReference||'—'}</td><td>${r.dealReference||'—'}</td><td>${r.dealOwner||'—'}</td><td><span class="${pillClass}">${statusLabel}</span></td><td>${r.dealCurrency||'—'}</td><td>${r.dealValue?money(r.dealValue,currency):'—'}</td><td>${r.netProfit?money(r.netProfit,currency):'—'}</td>`;
+    body.appendChild(tr);
+  });
+  $('leadsModalOverlay').classList.add('open');
+}
+function openExpensesModal(title, rows){
+  $('leadsModalHeadRow').innerHTML = EXPENSES_MODAL_HEAD_HTML;
+  const sorted = [...rows].sort((a,b)=>(b.billDate?b.billDate.getTime():0)-(a.billDate?a.billDate.getTime():0));
+  const shown = sorted.slice(0, LEADS_MODAL_ROW_LIMIT);
+  $('leadsModalTitle').textContent = title;
+  $('leadsModalCount').textContent = `${sorted.length.toLocaleString()} bill${sorted.length===1?'':'s'}` + (sorted.length>shown.length?` · showing first ${shown.length.toLocaleString()}`:'');
+  const body = $('leadsModalBody'); body.innerHTML='';
+  if(!shown.length){ body.innerHTML = '<tr><td colspan="6" class="empty">No expense bills matched to this lead source.</td></tr>'; }
+  shown.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.billDate?r.billDate.toLocaleDateString('en-GB'):'—'}</td><td>${r.vendorName||'—'}</td><td>${r.expenseItem||'—'}</td><td>${r.leadSource||'—'}</td><td>${r.currency||'—'}</td><td>${r.amount?money(r.amount, r.currency==='GBP'?'GBP':'EUR'):'—'}</td>`;
+    body.appendChild(tr);
+  });
+  $('leadsModalOverlay').classList.add('open');
+}
+function closeLeadsModal(){ $('leadsModalOverlay').classList.remove('open'); }
+const PERIOD_DEALS_MODAL_HEAD_HTML = '<th>Sale Completed</th><th>Delivery Date</th><th>Deal Reference</th><th>Deal Owner</th><th>Status</th><th>Currency</th><th>Deal Value</th><th>Net Profit</th>';
+function openPeriodDealsModal(title, rows, sortField){
+  $('leadsModalHeadRow').innerHTML = PERIOD_DEALS_MODAL_HEAD_HTML;
+  const sorted = [...rows].sort((a,b)=>{ const ad=a[sortField]?a[sortField].getTime():0, bd=b[sortField]?b[sortField].getTime():0; return bd-ad; });
+  const shown = sorted.slice(0, LEADS_MODAL_ROW_LIMIT);
+  $('leadsModalTitle').textContent = title;
+  $('leadsModalCount').textContent = `${sorted.length.toLocaleString()} deal${sorted.length===1?'':'s'}` + (sorted.length>shown.length?` · showing first ${shown.length.toLocaleString()}`:'');
+  const body = $('leadsModalBody'); body.innerHTML='';
+  if(!shown.length){ body.innerHTML = '<tr><td colspan="8" class="empty">No deals for this selection.</td></tr>'; }
+  shown.forEach(r=>{
+    const statusLabel = r.deliveredDeal ? 'Delivered' : r.bookedDeal ? 'Booked' : (r.dealStatus||'—');
+    const pillClass = r.deliveredDeal ? 'pill' : r.bookedDeal ? 'pill warn' : 'pill muted';
+    const currency = r.dealCurrency==='GBP' ? 'GBP' : 'EUR';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.saleCompleted?r.saleCompleted.toLocaleDateString('en-GB'):'—'}</td><td>${r.dealDeliveryDate?r.dealDeliveryDate.toLocaleDateString('en-GB'):'—'}</td><td>${r.dealReference||r.dealId||'—'}</td><td>${r.dealOwner||'—'}</td><td><span class="${pillClass}">${statusLabel}</span></td><td>${r.dealCurrency||'—'}</td><td>${r.dealValue?money(r.dealValue,currency):'—'}</td><td>${r.netProfit?money(r.netProfit,currency):'—'}</td>`;
+    body.appendChild(tr);
+  });
+  $('leadsModalOverlay').classList.add('open');
+}
+
+/* ---------------- filters ---------------- */
+function selected(){
+  return {
+    year: $('fYear').value, quarter: $('fQuarter').value, month: $('fMonth').value,
+    dateFrom: $('fDateFrom').value, dateTo: $('fDateTo').value,
+    leadSource: $('fLeadSource').value, owner: $('fOwner').value,
+    collectionCountry: $('fCollectionCountry').value, deliveryCountry: $('fDeliveryCountry').value,
+    route: $('fRoute').value, currency: $('fCurrency').value,
+    booked: $('fBooked').value, delivered: $('fDelivered').value, repeat: $('fRepeat').value
+  };
+}
+function baseFilterPass(row, f, skipRepeat){
+  if(f.year!=='ALL' && row.leadYear!==Number(f.year)) return false;
+  if(f.quarter!=='ALL' && row.leadQuarter!==Number(f.quarter)) return false;
+  if(f.month!=='ALL' && row.leadMonth!==Number(f.month)) return false;
+  if(f.dateFrom){ const d=new Date(f.dateFrom); if(!row.leadCreated || row.leadCreated<d) return false; }
+  if(f.dateTo){ const d=new Date(f.dateTo); d.setHours(23,59,59,999); if(!row.leadCreated || row.leadCreated>d) return false; }
+  if(f.leadSource!=='ALL' && row.leadSource!==f.leadSource) return false;
+  if(f.owner!=='ALL' && row.dealOwner!==f.owner) return false;
+  if(f.collectionCountry!=='ALL' && row.leadCollectionCountry!==f.collectionCountry) return false;
+  if(f.deliveryCountry!=='ALL' && row.leadDeliveryCountry!==f.deliveryCountry) return false;
+  if(f.route!=='ALL' && row.leadRoute!==f.route && row.dealRoute!==f.route) return false;
+  if(f.booked==='BOOKED' && !row.contactSold) return false;
+  if(f.booked==='NOT_BOOKED' && row.contactSold) return false;
+  if(f.delivered==='DELIVERED' && !row.deliveredDeal) return false;
+  if(f.delivered==='NOT_DELIVERED' && row.deliveredDeal) return false;
+  return true;
+}
+function repeatContactSet(rows){
+  const dedupedBooked = dedupeDeals(rows.filter(r=>r.bookedDeal));
+  const byContact = new Map();
+  dedupedBooked.forEach(r=>{ if(!r.contactId) return; if(!byContact.has(r.contactId)) byContact.set(r.contactId,new Set()); byContact.get(r.contactId).add(r.dealReference||r.dealId); });
+  const set = new Set();
+  byContact.forEach((refs,cid)=>{ if(refs.size>=2) set.add(cid); });
+  return set;
+}
+function getFilteredRows(){
+  const f = selected();
+  const preRepeat = allRows.filter(r=>baseFilterPass(r,f));
+  if(f.repeat==='ALL') return preRepeat;
+  const repeats = repeatContactSet(preRepeat);
+  if(f.repeat==='REPEAT') return preRepeat.filter(r=>r.contactId && repeats.has(r.contactId));
+  return preRepeat.filter(r=>!r.contactId || !repeats.has(r.contactId));
+}
+function currencyVisible(currency){
+  const f = selected().currency;
+  return f==='ALL' || f===currency;
+}
+
+/* ---------------- formatting ---------------- */
+function money(v, currency){
+  const sym = currency==='GBP' ? '£' : '€';
+  const sign = v<0 ? '-' : '';
+  return sign + sym + Math.abs(Math.round(v)).toLocaleString();
+}
+function pct(v){ return (Number.isFinite(v)?v:0).toFixed(1)+'%'; }
+function int(v){ return Math.round(v||0).toLocaleString(); }
+function dualLine(elId, eurVal, gbpVal, formatter){
+  const el = $(elId);
+  const showEur = currencyVisible('EUR'), showGbp = currencyVisible('GBP');
+  const lines = [];
+  if(showEur) lines.push(formatter(eurVal,'EUR'));
+  if(showGbp) lines.push(`<span class="line2">${formatter(gbpVal,'GBP')}</span>`);
+  el.innerHTML = lines.length ? lines.join('') : '—';
+}
+function colors(){ return {blue:'#3b82f6',green:'#22c55e',red:'#ef4444',amber:'#f59e0b',purple:'#a855f7',cyan:'#06b6d4'}; }
+Chart.defaults.color = '#9fb0c5'; Chart.defaults.borderColor = '#21344d';
+function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+
+function horizontalBar(id, labels, data, color, valueFormatter){
+  destroyChart(id);
+  const ctx = $(id).getContext('2d');
+  charts[id] = new Chart(ctx,{
+    type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor:color, borderRadius:4 }] },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=> valueFormatter ? valueFormatter(c.raw) : c.raw } } },
+      scales:{ x:{ grid:{color:'#21344d'} }, y:{ grid:{display:false} } }
+    }
+  });
+}
+function groupedBar(id, labels, datasets, indexAxis='x'){
+  destroyChart(id);
+  const ctx = $(id).getContext('2d');
+  charts[id] = new Chart(ctx,{
+    type:'bar',
+    data:{ labels, datasets },
+    options:{ indexAxis, responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{boxWidth:12}}}, scales:{ x:{grid:{color:'#21344d'}}, y:{grid:{color:'#21344d'}} } }
+  });
+}
+function lineDualAxis(id, labels, series){
+  destroyChart(id);
+  const ctx = $(id).getContext('2d');
+  charts[id] = new Chart(ctx,{
+    type:'line',
+    data:{ labels, datasets: series },
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{boxWidth:12}}},
+      scales:{ y:{ type:'linear', position:'left', grid:{color:'#21344d'} }, y1:{ type:'linear', position:'right', grid:{display:false} }, x:{grid:{display:false}} } }
+  });
+}
+
+/* ---------------- section renderers ---------------- */
+function periodLabel(){
+  const f = selected();
+  if(f.dateFrom || f.dateTo){
+    const fmt = v => v ? new Date(v).toLocaleDateString('en-GB') : '…';
+    return `${fmt(f.dateFrom)} – ${fmt(f.dateTo)}`;
+  }
+  if(f.month!=='ALL' && f.year!=='ALL') return `${monthNames[Number(f.month)-1]} ${f.year}`;
+  if(f.quarter!=='ALL' && f.year!=='ALL') return `Q${f.quarter} ${f.year}`;
+  if(f.year!=='ALL') return `${f.year}`;
+  return 'All Time';
+}
+function renderExecutiveOverview(rows){
+  const s = statsForRows(rows);
+  const periodSaleDeals=getPeriodSaleDeals();
+  const periodDeliveredDeals=getPeriodDeliveredDeals();
+  currentPeriodSaleDeals = periodSaleDeals;
+  currentPeriodDeliveredDeals = periodDeliveredDeals;
+  const periodSoldCustomers=uniqueByKey(periodSaleDeals.filter(d=>d.contactId),d=>d.contactId).length;
+  // Sale Completed Rate stays cohort-based (contacts created this period that ever sold) - mixing it with the
+  // period-dated Sale Completed Deals count below would compare two different populations (see Conversion Funnel note).
+  // Booked Sales / Average Booked Deal: value of deals Sale Completed this period (not cohort-attributed)
+  const periodSalesEUR = sumByCurrency(periodSaleDeals,'dealValue','EUR'), periodSalesGBP = sumByCurrency(periodSaleDeals,'dealValue','GBP');
+  const periodSalesCountEUR = countByCurrency(periodSaleDeals,'EUR'), periodSalesCountGBP = countByCurrency(periodSaleDeals,'GBP');
+  // Net Profit / Avg Profit per Delivered Job: profit of deals actually Delivered this period
+  const periodDeliveredProfitEUR = sumByCurrency(periodDeliveredDeals,'netProfit','EUR'), periodDeliveredProfitGBP = sumByCurrency(periodDeliveredDeals,'netProfit','GBP');
+  const periodDeliveredCountEUR = countByCurrency(periodDeliveredDeals,'EUR'), periodDeliveredCountGBP = countByCurrency(periodDeliveredDeals,'GBP');
+  $('kTotalLeads').textContent = int(s.totalLeads);
+  $('kBookedLeads').textContent = int(s.bookedLeads);
+  $('kConversion').textContent = pct(s.conversion);
+  $('kBookedCustomers').textContent = int(periodSoldCustomers);
+  $('kBookedDeals').textContent = int(periodSaleDeals.length);
+  $('kDeliveredDeals').textContent = int(periodDeliveredDeals.length);
+  $('kRepeatCustomers').textContent = int(s.repeatCustomers);
+  $('kRepeatRate').textContent = pct(s.repeatRate);
+  $('kAvgBookings').textContent = s.avgBookingsPerCustomer.toFixed(2);
+  dualLine('kSales', periodSalesEUR, periodSalesGBP, money);
+  dualLine('kProfit', periodDeliveredProfitEUR, periodDeliveredProfitGBP, money);
+  dualLine('kAvgDeal', periodSalesCountEUR?periodSalesEUR/periodSalesCountEUR:0, periodSalesCountGBP?periodSalesGBP/periodSalesCountGBP:0, money);
+  dualLine('kAvgProfitDelivered', periodDeliveredCountEUR?periodDeliveredProfitEUR/periodDeliveredCountEUR:0, periodDeliveredCountGBP?periodDeliveredProfitGBP/periodDeliveredCountGBP:0, money);
+
+  const period = periodLabel();
+  $('sTotalLeads').textContent = `Contacts created — ${period}`;
+  $('sBookedLeads').textContent = `Total contacts − non-workable dead reasons — ${period}`;
+  $('sConversion').textContent = `Sale Completed Deals (cohort, any date) / Workable Contacts — ${period}`;
+  $('sBookedCustomers').textContent = `Unique contacts with \u22651 Sale Completed deal — ${period}`;
+  $('sBookedDeals').textContent = `Deals Sale Completed — ${period}`;
+  $('sDeliveredDeals').textContent = `Delivered + 50/50 or Full Payment — ${period}`;
+  $('sRepeatCustomers').textContent = `2+ unique booked deals — ${period}`;
+  $('sRepeatRate').textContent = `Repeat / Booked Customers — ${period}`;
+  $('sAvgBookings').textContent = `Sale Completed Deals / Booked Customers — ${period}`;
+  $('sSales').textContent = `Sale Completed · native currency — ${period}`;
+  $('sProfit').textContent = `Delivered jobs (Delivery Date) — ${period}`;
+  $('sAvgDeal').textContent = `Sales / Sale Completed Deals — ${period}`;
+  $('sAvgProfitDelivered').textContent = `Delivered jobs — ${period}`;
+
+  renderFunnel(rows, s, periodSoldCustomers, periodSaleDeals.length, periodDeliveredDeals.length);
+
+  const f = selected();
+  const parts = [];
+  Object.entries({Year:f.year,Quarter:f.quarter,Month:f.month,'Lead Source':f.leadSource,Salesperson:f.owner,Currency:f.currency,Booked:f.booked,Delivered:f.delivered,Repeat:f.repeat})
+    .forEach(([label,val])=>{ if(val && val!=='ALL') parts.push(`${label}: ${val}`); });
+  $('filterSummary').textContent = parts.length ? `Filtered by — ${parts.join(' · ')}` : 'Showing all data (no filters applied).';
+}
+
+// Contacts created AND Sale Completed within the SAME calendar month (a true subset of the cohort, unlike the Deal Activity group below).
+function countBookedSameMonth(rows){
+  const byContact = new Map();
+  rows.forEach(r=>{
+    const key = r.contactId || r.leadId;
+    if(!byContact.has(key)) byContact.set(key, { leadCreated:r.leadCreated, leadYear:r.leadYear, leadMonth:r.leadMonth, bookedDates:[] });
+    if(r.bookedDeal && r.dealCreated) byContact.get(key).bookedDates.push(r.dealCreated);
+  });
+  let count = 0;
+  byContact.forEach(c=>{
+    if(!c.bookedDates.length || !c.leadCreated || !c.leadYear || !c.leadMonth) return;
+    const earliest = new Date(Math.min(...c.bookedDates.map(d=>d.getTime())));
+    if(earliest.getFullYear()===c.leadYear && (earliest.getMonth()+1)===c.leadMonth) count++;
+  });
+  return count;
+}
+function renderFunnel(rows, s, periodSoldCustomers, periodBookedDeals, periodDeliveredDeals){
+  const wrap = $('funnelWrap'); wrap.innerHTML='';
+  const period = periodLabel();
+  const renderStage = (st,i,arr)=>{
+    const max = Math.max(1, ...arr.map(x=>x.value));
+    const widthPct = Math.max(2, (st.value/max)*100);
+    const row = document.createElement('div'); row.className='funnel-row';
+    row.innerHTML = `<div class="funnel-label">${st.label}</div>
+      <div class="funnel-bar-track"><div class="funnel-bar-fill" style="width:${widthPct}%">${int(st.value)}</div></div>
+      <div class="funnel-meta">${st.meta||'—'}</div>`;
+    wrap.appendChild(row);
+  };
+  const groupA = document.createElement('div'); groupA.className='funnel-group-label';
+  groupA.textContent = `Contact Cohort \u2014 created ${period}`;
+  wrap.appendChild(groupA);
+  const bookedSameMonth = countBookedSameMonth(rows);
+  const cohortStages = [
+    {label:'Total Contacts', value:s.totalLeads, meta:'—'},
+    {label:'Workable Contacts', value:s.workableContacts, meta: s.totalLeads ? `${pct(s.workableContacts/s.totalLeads*100)} of Total Contacts` : '—'},
+    {label:'Created & Booked Same Month', value:bookedSameMonth, meta: s.workableContacts ? `${pct(bookedSameMonth/s.workableContacts*100)} of Workable Contacts` : '—'}
+  ];
+  cohortStages.forEach((st,i)=>renderStage(st,i,cohortStages));
+
+  const groupB = document.createElement('div'); groupB.className='funnel-group-label';
+  groupB.textContent = `Deal Activity \u2014 dated ${period} (Sale Completed / Delivery Date, not the same contacts as above)`;
+  wrap.appendChild(groupB);
+  const dealStages = [
+    {label:'Unique Customers Sold', value:periodSoldCustomers, meta:'—'},
+    {label:'Sale Completed Deals', value:periodBookedDeals, meta: periodSoldCustomers ? `${(periodBookedDeals/periodSoldCustomers).toFixed(2)} deals per customer` : '—'},
+    {label:'Delivered Deals', value:periodDeliveredDeals, meta: periodBookedDeals ? `${pct(periodDeliveredDeals/periodBookedDeals*100)} of Sale Completed Deals` : '—'}
+  ];
+  dealStages.forEach((st,i)=>renderStage(st,i,dealStages));
+
+  const moneyWrap = $('funnelMoney'); moneyWrap.innerHTML='';
+  const boxes = [
+    {label:'Sales EUR', value: money(s.salesEUR,'EUR'), show: currencyVisible('EUR')},
+    {label:'Sales GBP', value: money(s.salesGBP,'GBP'), show: currencyVisible('GBP')},
+    {label:'Profit EUR', value: money(s.profitEUR,'EUR'), show: currencyVisible('EUR')},
+    {label:'Profit GBP', value: money(s.profitGBP,'GBP'), show: currencyVisible('GBP')}
+  ];
+  boxes.filter(b=>b.show).forEach(b=>{
+    const box = document.createElement('div'); box.className='box';
+    box.innerHTML = `<strong>${b.label}</strong><span>${b.value}</span>`;
+    moneyWrap.appendChild(box);
+  });
+}
+
+function yearRangeForYTD(year, today){
+  const from = new Date(year,0,1);
+  const to = new Date(year, today.getMonth(), today.getDate(), 23,59,59,999);
+  return {from,to};
+}
+function isoDate(d){ return d.toISOString().slice(0,10); }
+// Sale Completed Deals/Sales dated in [from,to] and Delivered Deals/Profit dated in [from,to] - independent of
+// when the contact was created, so a year's sales reflect actual deal activity that calendar year, not just
+// the eventual lifetime total of that year's created-contact cohort (which looks artificially low for recent years).
+function dealsForDateRange(from, to){
+  const f = {...selected(), year:'ALL', quarter:'ALL', month:'ALL', dateFrom: isoDate(from), dateTo: isoDate(to)};
+  const saleDeals = dedupeDeals(allDealRows.filter(d=>saleCompletedPeriodPass(d,f)));
+  const deliveredDeals = dedupeDeals(allDealRows.filter(d=>deliveredPeriodPass(d,f)));
+  return {saleDeals, deliveredDeals};
+}
+function renderYearComparison(){
+  const f = selected();
+  const years = unique(allRows.map(r=>r.leadYear)).filter(Boolean).sort((a,b)=>a-b);
+  const ytd = $('ytdToggle').checked;
+  const today = new Date();
+  $('yearCompareTitle').textContent = ytd ? 'YTD Comparable Period' : 'Full Year Comparison';
+  $('ytdNote').textContent = ytd ? `Comparing Jan 1 → ${monthNames[today.getMonth()]} ${today.getDate()} for each year, so partial years are compared fairly.` : (years.length && years[years.length-1]===today.getFullYear() ? `Note: ${today.getFullYear()} is still in progress (partial year) — use YTD mode to compare fairly against prior full years.` : '');
+
+  const metrics = [
+    ['Total Contacts','totalLeads','int'],['Workable Contacts','workableContacts','int'],['Sale Completed Rate %','conversion','pct'],
+    ['Unique Customers Sold','bookedCustomers','int'],['Sale Completed Deals','bookedDeals','int'],['Delivered Deals','deliveredDeals','int'],
+    ['Delivery Ratio','deliveryRate','pct'],['Repeat Customers','repeatCustomers','int'],['Repeat Rate','repeatRate','pct'],
+    ['Sales EUR','salesEUR','money-EUR'],['Sales GBP','salesGBP','money-GBP'],
+    ['Profit EUR','profitEUR','money-EUR'],['Profit GBP','profitGBP','money-GBP']
+  ];
+
+  const perYearStats = {};
+  years.forEach(yr=>{
+    let yearRows, dealFrom, dealTo;
+    if(ytd){
+      const {from,to} = yearRangeForYTD(yr, today);
+      yearRows = allRows.filter(r=>baseFilterPass(r,{...f,year:'ALL',dateFrom:'',dateTo:''}) && r.leadCreated && r.leadCreated>=from && r.leadCreated<=to);
+      dealFrom = from; dealTo = to;
+    } else {
+      yearRows = allRows.filter(r=>baseFilterPass(r,{...f,year:String(yr)}));
+      dealFrom = new Date(yr,0,1); dealTo = new Date(yr,11,31,23,59,59,999);
+    }
+    const {saleDeals, deliveredDeals} = dealsForDateRange(dealFrom, dealTo);
+    perYearStats[yr] = { ...statsForRows(yearRows), ...statsForDealGroup(saleDeals, deliveredDeals) };
+  });
+
+  const head = $('yearCompareHead'); head.innerHTML = '<th>Metric</th>' + years.map(y=>`<th>${y}${ytd?' (YTD)':''}</th>`).join('') + (years.length>=2?'<th>YoY %</th><th>YoY Abs.</th>':'');
+  const body = $('yearCompareBody'); body.innerHTML='';
+  metrics.forEach(([label,key,type])=>{
+    const tr = document.createElement('tr');
+    let cells = `<td>${label}</td>`;
+    years.forEach(y=>{
+      const v = perYearStats[y][key];
+      cells += `<td>${formatMetric(v,type)}</td>`;
+    });
+    if(years.length>=2){
+      const last = perYearStats[years[years.length-1]][key];
+      const prev = perYearStats[years[years.length-2]][key];
+      if(type==='pct'){
+        const diff = last-prev;
+        cells += `<td class="${diff>=0?'good':'bad'}">${diff>=0?'+':''}${diff.toFixed(1)} pp</td><td>—</td>`;
+      } else {
+        const change = prev===0 ? (last===0?0:100) : ((last-prev)/Math.abs(prev))*100;
+        cells += `<td class="${change>=0?'good':'bad'}">${change>=0?'+':''}${change.toFixed(1)}%</td><td class="${(last-prev)>=0?'good':'bad'}">${formatMetric(last-prev,type)}</td>`;
+      }
+    }
+    tr.innerHTML = cells;
+    body.appendChild(tr);
+  });
+}
+function formatMetric(v,type){
+  if(type==='int') return int(v);
+  if(type==='pct') return pct(v);
+  if(type==='money-EUR') return currencyVisible('EUR') ? money(v,'EUR') : '—';
+  if(type==='money-GBP') return currencyVisible('GBP') ? money(v,'GBP') : '—';
+  return v;
+}
+
+function renderLeadSourceSection(rows){
+  const cohortGroups = computeGroupStats(rows, r=>r.leadSource);
+  let groups = mergeCohortWithPeriodDeals(cohortGroups, d=>normalizeLeadSource(d.rawLeadSource));
+  const sortKey = $('leadSourceSort').value;
+  groups.sort((a,b)=>b[sortKey]-a[sortKey]);
+
+  const labels = groups.map(g=>g.key);
+  const metricSel = $('leadSourceMetric').value;
+  const metricMap = {
+    leads:['totalLeads',colors().blue,int], conversion:['conversion',colors().amber,pct], bookedDeals:['bookedDeals',colors().purple,int],
+    salesEUR:['salesEUR',colors().blue,v=>money(v,'EUR')], salesGBP:['salesGBP',colors().cyan,v=>money(v,'GBP')],
+    profitEUR:['profitEUR',colors().green,v=>money(v,'EUR')], profitGBP:['profitGBP',colors().green,v=>money(v,'GBP')],
+    profitPerLeadEUR:['profitPerLeadEUR',colors().green,v=>money(v,'EUR')], profitPerLeadGBP:['profitPerLeadGBP',colors().green,v=>money(v,'GBP')]
+  };
+  const sortedForChart = [...groups].sort((a,b)=>b[metricMap[metricSel][0]]-a[metricMap[metricSel][0]]).slice(0,15);
+  horizontalBar('leadSourceMetricChart', sortedForChart.map(g=>g.key), sortedForChart.map(g=>g[metricMap[metricSel][0]]), metricMap[metricSel][1], metricMap[metricSel][2]);
+
+  const top = [...groups].sort((a,b)=>b.totalLeads-a.totalLeads).slice(0,12);
+  groupedBar('leadSourceVsBookingsChart', top.map(g=>g.key), [
+    {label:'Contacts', data:top.map(g=>g.totalLeads), backgroundColor:colors().blue, borderRadius:4},
+    {label:'Sale Completed Deals', data:top.map(g=>g.bookedDeals), backgroundColor:colors().purple, borderRadius:4}
+  ]);
+
+  const tbody = $('leadSourceTable'); tbody.innerHTML='';
+  groups.forEach(g=>{
+    const tr = document.createElement('tr');
+    tr.className = 'clickable-row';
+    tr.title = 'Click to view all contacts for this source';
+    tr.innerHTML = `<td>${g.key}</td><td>${int(g.totalLeads)}</td><td>${int(g.bookedLeads)}</td><td>${pct(g.conversion)}</td>
+      <td>${int(g.bookedCustomers)}</td><td>${int(g.bookedDeals)}</td><td>${int(g.deliveredDeals)}</td><td>${pct(g.deliveryRate)}</td>
+      <td>${int(g.repeatCustomers)}</td><td>${pct(g.repeatRate)}</td>
+      <td>${currencyVisible('EUR')?money(g.salesEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.salesGBP,'GBP'):'—'}</td>
+      <td>${currencyVisible('EUR')?money(g.profitEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.profitGBP,'GBP'):'—'}</td>
+      <td>${currencyVisible('EUR')?money(g.salesPerLeadEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.salesPerLeadGBP,'GBP'):'—'}</td>
+      <td>${currencyVisible('EUR')?money(g.profitPerLeadEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.profitPerLeadGBP,'GBP'):'—'}</td>
+      <td>${currencyVisible('EUR')?money(g.avgDealEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.avgDealGBP,'GBP'):'—'}</td>
+      <td>${currencyVisible('EUR')?money(g.avgProfitEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.avgProfitGBP,'GBP'):'—'}</td>`;
+    tr.addEventListener('click', ()=> openLeadsModal(`Lead Source: ${g.key}`, g.rows));
+    tbody.appendChild(tr);
+  });
+
+  const glanceGroups = [...groups].sort((a,b)=>b.conversion-a.conversion);
+  const glanceBody = $('leadSourceGlanceTable'); glanceBody.innerHTML='';
+  glanceGroups.forEach(g=>{
+    const tr = document.createElement('tr');
+    tr.className = 'clickable-row';
+    tr.title = 'Click to view all contacts for this source';
+    tr.innerHTML = `<td>${g.key}</td><td>${int(g.totalLeads)}</td><td>${pct(g.conversion)}</td><td>${int(g.bookedDeals)}</td>
+      <td>${currencyVisible('EUR')?money(g.salesEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.salesGBP,'GBP'):'—'}</td>
+      <td>${currencyVisible('EUR')?money(g.profitEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.profitGBP,'GBP'):'—'}</td>`;
+    tr.addEventListener('click', ()=> openLeadsModal(`Lead Source: ${g.key}`, g.rows));
+    glanceBody.appendChild(tr);
+  });
+}
+
+function toggleChartEmpty(chartId, show){
+  const canvas = $(chartId), note = $(chartId+'Empty');
+  if(canvas) canvas.style.display = show ? 'none' : 'block';
+  if(note) note.style.display = show ? 'flex' : 'none';
+}
+function renderMarketingSection(leadRows){
+  const hasExpenseData = allExpenseRows.length>0;
+  if(!hasExpenseData){
+    ['mkSpend','mkProfitAfterSpend','mkRoi'].forEach(id=>$(id).innerHTML='—');
+    $('mkTable').innerHTML = '<tr><td colspan="16" class="empty">Upload QT_EXPENSES.xlsx above to see Marketing Spend &amp; ROI.</td></tr>';
+    Object.keys(charts).filter(k=>k.startsWith('mk')).forEach(destroyChart);
+    ['mkMetricChart','mkSpendVsProfitChart','mkTrendChart'].forEach(id=>toggleChartEmpty(id,true));
+    return;
+  }
+  ['mkMetricChart','mkSpendVsProfitChart','mkTrendChart'].forEach(id=>toggleChartEmpty(id,false));
+  const expenseRows = getFilteredExpenseRows();
+  currentMarketingExpenseRows = expenseRows;
+  const overallSpend = statsForSpendRows(expenseRows);
+  const overallLead = { ...statsForRows(leadRows), ...statsForDealGroup(currentPeriodSaleDeals, currentPeriodDeliveredDeals) };
+  const profitAfterSpendEUR = overallLead.profitEUR - overallSpend.spendEUR;
+  const profitAfterSpendGBP = overallLead.profitGBP - overallSpend.spendGBP;
+  const roiEUR = overallSpend.spendEUR ? (overallLead.profitEUR-overallSpend.spendEUR)/overallSpend.spendEUR*100 : 0;
+  const roiGBP = overallSpend.spendGBP ? (overallLead.profitGBP-overallSpend.spendGBP)/overallSpend.spendGBP*100 : 0;
+
+  dualLine('mkSpend', overallSpend.spendEUR, overallSpend.spendGBP, money);
+  dualLine('mkProfitAfterSpend', profitAfterSpendEUR, profitAfterSpendGBP, money);
+  dualLine('mkRoi', roiEUR, roiGBP, v=>pct(v));
+
+  const mkPeriod = periodLabel();
+  $('sMkSpend').textContent = `Leads + Marketing + Google Ads bills — ${mkPeriod}`;
+  $('sMkProfitAfterSpend').textContent = `Delivered jobs' Net Profit − Spend — ${mkPeriod}`;
+  $('sMkRoi').textContent = `(Delivered-job Profit − Spend) / Spend — ${mkPeriod}`;
+
+  const leadGroups = mergeCohortWithPeriodDeals(computeGroupStats(leadRows, r=>r.leadSource), d=>normalizeLeadSource(d.rawLeadSource));
+  const spendGroups = computeSpendGroupStats(expenseRows, r=>r.leadSource);
+  const keys = unique([...leadGroups.map(g=>g.key), ...spendGroups.map(g=>g.key)]);
+  const spendByKey = new Map(spendGroups.map(g=>[g.key,g]));
+  const leadByKey = new Map(leadGroups.map(g=>[g.key,g]));
+  const combined = keys.map(key=>{
+    const lg = leadByKey.get(key) || { totalLeads:0, bookedDeals:0, salesEUR:0, salesGBP:0, profitEUR:0, profitGBP:0, rows:[] };
+    const sg = spendByKey.get(key) || { spendEUR:0, spendGBP:0, bills:0, rows:[] };
+    const cplEUR = lg.totalLeads ? sg.spendEUR/lg.totalLeads : 0;
+    const cplGBP = lg.totalLeads ? sg.spendGBP/lg.totalLeads : 0;
+    const cpbEUR = lg.bookedDeals ? sg.spendEUR/lg.bookedDeals : 0;
+    const cpbGBP = lg.bookedDeals ? sg.spendGBP/lg.bookedDeals : 0;
+    const rEUR = sg.spendEUR ? (lg.profitEUR-sg.spendEUR)/sg.spendEUR*100 : 0;
+    const rGBP = sg.spendGBP ? (lg.profitGBP-sg.spendGBP)/sg.spendGBP*100 : 0;
+    const roasEUR = sg.spendEUR ? lg.salesEUR/sg.spendEUR : 0;
+    const roasGBP = sg.spendGBP ? lg.salesGBP/sg.spendGBP : 0;
+    return { key, totalLeads:lg.totalLeads, bookedDeals:lg.bookedDeals, salesEUR:lg.salesEUR, salesGBP:lg.salesGBP, profitEUR:lg.profitEUR, profitGBP:lg.profitGBP,
+      spendEUR:sg.spendEUR, spendGBP:sg.spendGBP, bills:sg.bills,
+      costPerLeadEUR:cplEUR, costPerLeadGBP:cplGBP, costPerBookingEUR:cpbEUR, costPerBookingGBP:cpbGBP,
+      roiEUR:rEUR, roiGBP:rGBP, roasEUR, roasGBP, leadRows: lg.rows||[], spendRows: sg.rows||[] };
+  });
+
+  const sortKey = $('mkSort').value;
+  combined.sort((a,b)=>(b[sortKey]||0)-(a[sortKey]||0));
+
+  const chartCurrency = (currencyVisible('GBP') && !currencyVisible('EUR')) ? 'GBP' : 'EUR';
+  const metricSel = $('mkMetric').value;
+  const metricMap = {
+    spend: [g=>chartCurrency==='EUR'?g.spendEUR:g.spendGBP, colors().red, v=>money(v,chartCurrency)],
+    costPerLead: [g=>chartCurrency==='EUR'?g.costPerLeadEUR:g.costPerLeadGBP, colors().amber, v=>money(v,chartCurrency)],
+    costPerBooking: [g=>chartCurrency==='EUR'?g.costPerBookingEUR:g.costPerBookingGBP, colors().purple, v=>money(v,chartCurrency)],
+    roi: [g=>chartCurrency==='EUR'?g.roiEUR:g.roiGBP, colors().green, pct],
+    roas: [g=>chartCurrency==='EUR'?g.roasEUR:g.roasGBP, colors().cyan, v=>v.toFixed(2)+'x']
+  };
+  const [valueFn,color,fmt] = metricMap[metricSel];
+  const spendGroupsOnly = combined.filter(g=>g.spendEUR||g.spendGBP);
+  const sortedForChart = [...spendGroupsOnly].sort((a,b)=>valueFn(b)-valueFn(a)).slice(0,15);
+  horizontalBar('mkMetricChart', sortedForChart.map(g=>g.key), sortedForChart.map(valueFn), color, fmt);
+
+  const topForCompare = [...spendGroupsOnly].sort((a,b)=>(chartCurrency==='EUR'?b.spendEUR-a.spendEUR:b.spendGBP-a.spendGBP)).slice(0,12);
+  groupedBar('mkSpendVsProfitChart', topForCompare.map(g=>g.key), [
+    {label:`Spend ${chartCurrency}`, data:topForCompare.map(g=>chartCurrency==='EUR'?g.spendEUR:g.spendGBP), backgroundColor:colors().red, borderRadius:4},
+    {label:`Sales ${chartCurrency}`, data:topForCompare.map(g=>chartCurrency==='EUR'?g.salesEUR:g.salesGBP), backgroundColor:colors().blue, borderRadius:4},
+    {label:`Profit ${chartCurrency}`, data:topForCompare.map(g=>chartCurrency==='EUR'?g.profitEUR:g.profitGBP), backgroundColor:colors().green, borderRadius:4}
+  ]);
+
+  const tbody = $('mkTable'); tbody.innerHTML='';
+  if(!combined.length){
+    tbody.innerHTML = '<tr><td colspan="16" class="empty">No spend data for selected filters.</td></tr>';
+  } else {
+    combined.forEach(g=>{
+      const tr = document.createElement('tr');
+      tr.className = 'clickable-row';
+      tr.title = 'Click to view expense bills for this source';
+      tr.innerHTML = `<td>${g.key}</td>
+        <td>${currencyVisible('EUR')?money(g.spendEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.spendGBP,'GBP'):'—'}</td>
+        <td>${int(g.bills)}</td><td>${int(g.totalLeads)}</td><td>${int(g.bookedDeals)}</td>
+        <td>${currencyVisible('EUR')?money(g.costPerLeadEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.costPerLeadGBP,'GBP'):'—'}</td>
+        <td>${currencyVisible('EUR')?money(g.costPerBookingEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.costPerBookingGBP,'GBP'):'—'}</td>
+        <td>${currencyVisible('EUR')?money(g.salesEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.salesGBP,'GBP'):'—'}</td>
+        <td>${currencyVisible('EUR')?money(g.profitEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.profitGBP,'GBP'):'—'}</td>
+        <td class="${g.roiEUR>=0?'good':'bad'}">${g.spendEUR?pct(g.roiEUR):'—'}</td><td class="${g.roiGBP>=0?'good':'bad'}">${g.spendGBP?pct(g.roiGBP):'—'}</td>`;
+      tr.addEventListener('click', ()=> openExpensesModal(`Marketing: ${g.key} — Expense Bills`, g.spendRows));
+      tbody.appendChild(tr);
+    });
+  }
+
+  const byMonth = new Set();
+  expenseRows.forEach(r=>{ if(r.year&&r.month) byMonth.add(`${r.year}-${String(r.month).padStart(2,'0')}`); });
+  leadRows.forEach(r=>{ if(r.leadYear&&r.leadMonth) byMonth.add(`${r.leadYear}-${String(r.leadMonth).padStart(2,'0')}`); });
+  const months = [...byMonth].sort();
+  const trendLabels = [], trendSpend = [], trendProfit = [];
+  months.forEach(mk=>{
+    const [y,m] = mk.split('-').map(Number);
+    const sp = statsForSpendRows(expenseRows.filter(r=>r.year===y&&r.month===m));
+    const lp = statsForRows(leadRows.filter(r=>r.leadYear===y&&r.leadMonth===m));
+    trendLabels.push(`${monthNames[m-1]} ${y}`);
+    trendSpend.push(chartCurrency==='EUR'?sp.spendEUR:sp.spendGBP);
+    trendProfit.push(chartCurrency==='EUR'?lp.profitEUR:lp.profitGBP);
+  });
+  lineDualAxis('mkTrendChart', trendLabels, [
+    { label:`Spend ${chartCurrency}`, data:trendSpend, borderColor:colors().red, backgroundColor:'transparent', yAxisID:'y', tension:.3 },
+    { label:`Profit ${chartCurrency}`, data:trendProfit, borderColor:colors().green, backgroundColor:'transparent', yAxisID:'y1', tension:.3 }
+  ]);
+}
+
+function renderSalespersonSection(rows){
+  const ownerRows = rows.filter(r=>r.dealOwner);
+  const cohortGroups = computeGroupStats(ownerRows, r=>r.dealOwner);
+  const groups = mergeCohortWithPeriodDeals(cohortGroups, d=>d.dealOwner).sort((a,b)=>b.bookedDeals-a.bookedDeals);
+
+  const metricSel = $('spMetric').value;
+  const metricMap = {
+    bookedDeals:[colors().purple,int], deliveredDeals:[colors().cyan,int],
+    salesEUR:[colors().blue,v=>money(v,'EUR')], salesGBP:[colors().blue,v=>money(v,'GBP')],
+    profitEUR:[colors().green,v=>money(v,'EUR')], profitGBP:[colors().green,v=>money(v,'GBP')]
+  };
+  horizontalBar('spMetricChart', groups.map(g=>g.key), groups.map(g=>g[metricSel]), metricMap[metricSel][0], metricMap[metricSel][1]);
+
+  const tbody = $('spTable'); tbody.innerHTML='';
+  groups.forEach(g=>{
+    const tr = document.createElement('tr');
+    tr.className = 'clickable-row';
+    tr.title = 'Click to view this period\'s Sale Completed deals for this salesperson';
+    tr.innerHTML = `<td>${g.key}</td><td>${int(g.bookedCustomers)}</td><td>${int(g.bookedDeals)}</td><td>${int(g.deliveredDeals)}</td><td>${pct(g.deliveryRate)}</td>
+      <td>${currencyVisible('EUR')?money(g.salesEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.salesGBP,'GBP'):'—'}</td>
+      <td>${currencyVisible('EUR')?money(g.profitEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.profitGBP,'GBP'):'—'}</td>
+      <td>${currencyVisible('EUR')?money(g.avgDealEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.avgDealGBP,'GBP'):'—'}</td>
+      <td>${currencyVisible('EUR')?money(g.avgProfitPerDeliveredEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.avgProfitPerDeliveredGBP,'GBP'):'—'}</td>`;
+    tr.addEventListener('click', ()=> openPeriodDealsModal(`Salesperson: ${g.key} \u2014 Sale Completed Deals (${periodLabel()})`, g.saleDealsRaw, 'saleCompleted'));
+    tbody.appendChild(tr);
+  });
+
+  renderMatrix(ownerRows, groups.map(g=>g.key));
+}
+
+let matrixOwnerRowsCache = [];
+let matrixCellDealsCache = new Map();
+function renderMatrix(ownerRows, owners){
+  matrixOwnerRowsCache = ownerRows;
+  matrixCellDealsCache = new Map();
+  const metric = $('matrixMetric').value;
+  const sources = unique(ownerRows.map(r=>r.leadSource)).sort();
+  const cellKey = (owner,source)=>`${owner}||${source}`;
+  const saleByKey = groupDealsByKey(currentPeriodSaleDeals, d=>cellKey(d.dealOwner, normalizeLeadSource(d.rawLeadSource)));
+  const deliveredByKey = groupDealsByKey(currentPeriodDeliveredDeals, d=>cellKey(d.dealOwner, normalizeLeadSource(d.rawLeadSource)));
+  const table = $('matrixTable');
+  let html = '<thead><tr><th>Salesperson</th>' + sources.map(s=>`<th>${s}</th>`).join('') + '<th>Total</th></tr></thead><tbody>';
+  owners.forEach(owner=>{
+    let rowTotal = 0;
+    const cells = sources.map(source=>{
+      const key = cellKey(owner,source);
+      const saleDeals = saleByKey.get(key)||[], deliveredDeals = deliveredByKey.get(key)||[];
+      matrixCellDealsCache.set(key, saleDeals);
+      const s = statsForDealGroup(saleDeals, deliveredDeals);
+      const v = s[metric] || 0;
+      rowTotal += v;
+      const formatted = metric.startsWith('sales')||metric.startsWith('profit') ? money(v, metric.endsWith('EUR')?'EUR':'GBP') : int(v);
+      const cls = v ? 'clickable-row' : '';
+      return `<td class="${cls}" data-owner="${escapeAttr(owner)}" data-source="${escapeAttr(source)}">${v?formatted:'—'}</td>`;
+    });
+    const totalFormatted = metric.startsWith('sales')||metric.startsWith('profit') ? money(rowTotal, metric.endsWith('EUR')?'EUR':'GBP') : int(rowTotal);
+    html += `<tr><td>${owner}</td>${cells.join('')}<td><strong>${totalFormatted}</strong></td></tr>`;
+  });
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+function renderRepeatSection(rows){
+  const bookedRows = rows.filter(r=>r.bookedDeal);
+  const dedupedBooked = dedupeDeals(bookedRows);
+  const byContact = new Map();
+  dedupedBooked.forEach(r=>{
+    if(!r.contactId) return;
+    if(!byContact.has(r.contactId)) byContact.set(r.contactId, { contactId:r.contactId, contactName:r.contactName||r.contactId, leadSource:r.leadSource, firstLeadDate:r.leadCreated, refs:new Set(), rows:[] });
+    const rec = byContact.get(r.contactId);
+    rec.refs.add(r.dealReference || r.dealId);
+    rec.rows.push(r);
+    if(r.leadCreated && (!rec.firstLeadDate || r.leadCreated<rec.firstLeadDate)) rec.firstLeadDate = r.leadCreated;
+  });
+  const allDeliveredDeduped = dedupeDeals(rows.filter(r=>r.deliveredDeal));
+  const deliveredByContact = new Map();
+  allDeliveredDeduped.forEach(r=>{ if(!r.contactId) return; if(!deliveredByContact.has(r.contactId)) deliveredByContact.set(r.contactId,0); deliveredByContact.set(r.contactId, deliveredByContact.get(r.contactId)+1); });
+
+  const contacts = [...byContact.values()].map(rec=>({
+    contactId: rec.contactId, contactName: rec.contactName, leadSource: rec.leadSource, firstLeadDate: rec.firstLeadDate,
+    bookedDeals: rec.refs.size, deliveredDeals: deliveredByContact.get(rec.contactId)||0,
+    salesEUR: sumByCurrency(rec.rows,'dealValue','EUR'), salesGBP: sumByCurrency(rec.rows,'dealValue','GBP'),
+    profitEUR: sumByCurrency(rec.rows,'netProfit','EUR'), profitGBP: sumByCurrency(rec.rows,'netProfit','GBP'),
+    rows: rec.rows
+  }));
+
+  const repeatContacts = contacts.filter(c=>c.bookedDeals>=2);
+  const bookedCustomers = contacts.length;
+  const repeatRate = bookedCustomers ? repeatContacts.length/bookedCustomers*100 : 0;
+  const revEUR = repeatContacts.reduce((s,c)=>s+c.salesEUR,0), revGBP = repeatContacts.reduce((s,c)=>s+c.salesGBP,0);
+  const profEUR = repeatContacts.reduce((s,c)=>s+c.profitEUR,0), profGBP = repeatContacts.reduce((s,c)=>s+c.profitGBP,0);
+  const avgBookings = repeatContacts.length ? repeatContacts.reduce((s,c)=>s+c.bookedDeals,0)/repeatContacts.length : 0;
+
+  $('rRepeatCustomers').textContent = int(repeatContacts.length);
+  $('rRepeatRate').textContent = pct(repeatRate);
+  dualLine('rRevenue', revEUR, revGBP, money);
+  dualLine('rProfit', profEUR, profGBP, money);
+  $('rAvgBookings').textContent = avgBookings.toFixed(2);
+
+  const buckets = {'1 booking':0,'2 bookings':0,'3 bookings':0,'4 bookings':0,'5+ bookings':0};
+  contacts.forEach(c=>{
+    if(c.bookedDeals===1) buckets['1 booking']++;
+    else if(c.bookedDeals===2) buckets['2 bookings']++;
+    else if(c.bookedDeals===3) buckets['3 bookings']++;
+    else if(c.bookedDeals===4) buckets['4 bookings']++;
+    else if(c.bookedDeals>=5) buckets['5+ bookings']++;
+  });
+  horizontalBar('repeatClassChart', Object.keys(buckets), Object.values(buckets), colors().purple, int);
+  const classBody = $('repeatClassTable'); classBody.innerHTML='';
+  Object.entries(buckets).forEach(([label,count])=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${label}</td><td>${int(count)}</td><td>${pct(bookedCustomers?count/bookedCustomers*100:0)}</td>`;
+    classBody.appendChild(tr);
+  });
+
+  const onlyRepeat = $('repeatOnlyToggle').checked;
+  const detail = (onlyRepeat ? repeatContacts : contacts).sort((a,b)=>b.bookedDeals-a.bookedDeals);
+  const detailBody = $('repeatDetailTable'); detailBody.innerHTML='';
+  detail.forEach(c=>{
+    const tr = document.createElement('tr');
+    tr.className = 'clickable-row';
+    tr.title = 'Click to view this customer\'s deals';
+    tr.innerHTML = `<td>${c.contactName}</td><td>${c.contactId}</td><td>${c.leadSource}</td><td>${c.firstLeadDate?c.firstLeadDate.toLocaleDateString('en-GB'):'—'}</td>
+      <td>${int(c.bookedDeals)}</td><td>${int(c.deliveredDeals)}</td>
+      <td>${currencyVisible('EUR')?money(c.salesEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(c.salesGBP,'GBP'):'—'}</td>
+      <td>${currencyVisible('EUR')?money(c.profitEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(c.profitGBP,'GBP'):'—'}</td>`;
+    tr.addEventListener('click', ()=> openLeadsModal(`Customer: ${c.contactName}`, c.rows));
+    detailBody.appendChild(tr);
+  });
+}
+
+function renderCohortSection(rows){
+  const byLead = new Map();
+  rows.forEach(row=>{
+    if(!byLead.has(row.leadId)) byLead.set(row.leadId, { leadId:row.leadId, leadCreated:row.leadCreated, leadYear:row.leadYear, leadMonth:row.leadMonth, rows:[] });
+    byLead.get(row.leadId).rows.push(row);
+  });
+  const leadAgg = [...byLead.values()].map(rec=>{
+    const bookedRows = rec.rows.filter(r=>r.bookedDeal && r.dealCreated);
+    const firstBookedDate = bookedRows.length ? new Date(Math.min(...bookedRows.map(r=>r.dealCreated.getTime()))) : null;
+    const daysToBook = (firstBookedDate && rec.leadCreated) ? Math.round((firstBookedDate-rec.leadCreated)/86400000) : null;
+    return { ...rec, isBooked: rec.rows.some(r=>r.bookedDeal), daysToBook };
+  });
+
+  const monthKeyOf = rec => rec.leadYear && rec.leadMonth ? `${rec.leadYear}-${String(rec.leadMonth).padStart(2,'0')}` : null;
+  const months = unique(leadAgg.map(monthKeyOf)).sort();
+  const today = new Date();
+
+  const tbody = $('cohortTable'); tbody.innerHTML='';
+  const trendLabels = [], trendLeads = [], trendConversion = [];
+  months.forEach(mk=>{
+    const [y,m] = mk.split('-').map(Number);
+    const leadsInMonth = leadAgg.filter(r=>monthKeyOf(r)===mk);
+    const monthRows = rows.filter(r=>r.leadYear===y && r.leadMonth===m);
+    const cohortStats = statsForRows(monthRows);
+    const dealFrom = new Date(y, m-1, 1), dealTo = new Date(y, m, 0, 23,59,59,999);
+    const {saleDeals, deliveredDeals} = dealsForDateRange(dealFrom, dealTo);
+    const s = { ...cohortStats, ...statsForDealGroup(saleDeals, deliveredDeals) };
+    const monthEnd = new Date(y, m, 0, 23,59,59,999);
+    const daysSinceMonthEnd = (today-monthEnd)/86400000;
+    const conv = (n)=>{
+      const eligible = leadsInMonth.filter(r=>r.leadCreated && r.rows.some(x=>x.workable));
+      if(!eligible.length) return null;
+      const within = eligible.filter(r=>r.daysToBook!==null && r.daysToBook>=0 && r.daysToBook<=n).length;
+      return { value: within/eligible.length*100, mature: daysSinceMonthEnd>=n };
+    };
+    const c30 = conv(30), c60 = conv(60), c90 = conv(90);
+    const fmtConv = c => c===null ? '—' : (c.mature ? pct(c.value) : `<span class="pill warn" title="Cohort not yet mature">${pct(c.value)}*</span>`);
+    const isCurrentMonth = y===today.getFullYear() && m===today.getMonth()+1;
+    const conversionCell = isCurrentMonth ? `<span class="pill warn" title="Month in progress — most of these leads have not had time to convert yet">${pct(cohortStats.conversion)}*</span>` : pct(cohortStats.conversion);
+    const tr = document.createElement('tr');
+    tr.className = 'clickable-row';
+    tr.title = 'Click to view this month\'s Sale Completed deals';
+    tr.innerHTML = `<td>${monthNames[m-1]} ${y}</td><td>${int(cohortStats.totalLeads)}</td><td>${int(cohortStats.bookedLeads)}</td><td>${conversionCell}</td>
+      <td>${int(s.bookedCustomers)}</td><td>${int(s.bookedDeals)}</td><td>${int(s.deliveredDeals)}</td>
+      <td>${currencyVisible('EUR')?money(s.salesEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(s.salesGBP,'GBP'):'—'}</td>
+      <td>${currencyVisible('EUR')?money(s.profitEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(s.profitGBP,'GBP'):'—'}</td>
+      <td>${fmtConv(c30)}</td><td>${fmtConv(c60)}</td><td>${fmtConv(c90)}</td>`;
+    tr.addEventListener('click', ()=> openPeriodDealsModal(`${monthNames[m-1]} ${y} — Sale Completed Deals`, saleDeals, 'saleCompleted'));
+    tbody.appendChild(tr);
+    trendLabels.push(`${monthNames[m-1]} ${y}`);
+    trendLeads.push(cohortStats.totalLeads);
+    trendConversion.push(cohortStats.conversion);
+  });
+
+  lineDualAxis('cohortTrendChart', trendLabels, [
+    { label:'Contacts Created', data:trendLeads, borderColor:colors().blue, backgroundColor:'transparent', yAxisID:'y', tension:.3 },
+    { label:'Conversion %', data:trendConversion, borderColor:colors().amber, backgroundColor:'transparent', yAxisID:'y1', tension:.3 }
+  ]);
+}
+
+function renderSalesByMonthSection(){
+  const f=selected();
+  const bookedRows = dedupeDeals(allDealRows.filter(r=>{
+    if(!r.bookedDeal || !r.saleCompleted) return false;
+    if(f.leadSource!=='ALL' && normalizeLeadSource(r.rawLeadSource)!==f.leadSource) return false;
+    if(f.owner!=='ALL' && r.dealOwner!==f.owner) return false;
+    if(f.collectionCountry!=='ALL' && r.dealCollectionCountry!==f.collectionCountry) return false;
+    if(f.deliveryCountry!=='ALL' && r.dealDeliveryCountry!==f.deliveryCountry) return false;
+    if(f.route!=='ALL' && r.dealRoute!==f.route) return false;
+    if(f.currency!=='ALL' && r.dealCurrency!==f.currency) return false;
+    return true;
+  }));
+  const monthKeyOf = r => `${r.dealCreated.getFullYear()}-${String(r.dealCreated.getMonth()+1).padStart(2,'0')}`;
+  const months = unique(bookedRows.map(monthKeyOf)).sort();
+  const tbody = $('salesByMonthTable'); tbody.innerHTML='';
+  const trendLabels = [], trendDeals = [];
+  if(!months.length){
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">No Sale Completed deals for selected filters.</td></tr>';
+  }
+  months.forEach(mk=>{
+    const [y,m] = mk.split('-').map(Number);
+    const monthRows = bookedRows.filter(r=>monthKeyOf(r)===mk);
+    const dedupedBooked = dedupeDeals(monthRows);
+    const dealFrom = new Date(y, m-1, 1), dealTo = new Date(y, m, 0, 23,59,59,999);
+    const { deliveredDeals } = dealsForDateRange(dealFrom, dealTo);
+    const bookedCustomers = uniqueByKey(monthRows.filter(r=>r.contactId), r=>r.contactId).length;
+    const salesEUR = sumByCurrency(dedupedBooked,'dealValue','EUR'), salesGBP = sumByCurrency(dedupedBooked,'dealValue','GBP');
+    const profitEUR = sumByCurrency(deliveredDeals,'netProfit','EUR'), profitGBP = sumByCurrency(deliveredDeals,'netProfit','GBP');
+    const tr = document.createElement('tr');
+    tr.className = 'clickable-row';
+    tr.title = 'Click to view deals Sale Completed this month';
+    tr.innerHTML = `<td>${monthNames[m-1]} ${y}</td><td>${int(dedupedBooked.length)}</td><td>${int(bookedCustomers)}</td><td>${int(deliveredDeals.length)}</td>
+      <td>${currencyVisible('EUR')?money(salesEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(salesGBP,'GBP'):'—'}</td>
+      <td>${currencyVisible('EUR')?money(profitEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(profitGBP,'GBP'):'—'}</td>`;
+    tr.addEventListener('click', ()=> openLeadsModal(`${monthNames[m-1]} ${y} — Sale Completed Deals`, monthRows));
+    tbody.appendChild(tr);
+    trendLabels.push(`${monthNames[m-1]} ${y}`);
+    trendDeals.push(dedupedBooked.length);
+  });
+  groupedBar('salesByMonthChart', trendLabels, [
+    { label:'Sale Completed Deals', data:trendDeals, backgroundColor:colors().purple, borderRadius:4 }
+  ]);
+}
+
+function renderGeographySection(rows){
+  const collGroups = computeGroupStats(rows, r=>r.leadCollectionCountry).sort((a,b)=>b.totalLeads-a.totalLeads).slice(0,15);
+  const delGroups = computeGroupStats(rows, r=>r.leadDeliveryCountry).sort((a,b)=>b.totalLeads-a.totalLeads).slice(0,15);
+  horizontalBar('collectionCountryChart', collGroups.map(g=>g.key), collGroups.map(g=>g.totalLeads), colors().blue, int);
+  horizontalBar('deliveryCountryChart', delGroups.map(g=>g.key), delGroups.map(g=>g.totalLeads), colors().cyan, int);
+
+  const fillTable = (id, groups, labelPrefix)=>{
+    const body = $(id); body.innerHTML='';
+    groups.sort((a,b)=>b.conversion-a.conversion).forEach(g=>{
+      const tr = document.createElement('tr');
+      tr.className = 'clickable-row';
+      tr.title = 'Click to view all contacts for this country';
+      tr.innerHTML = `<td>${g.key}</td><td>${int(g.totalLeads)}</td><td>${int(g.bookedLeads)}</td><td>${pct(g.conversion)}</td>`;
+      tr.addEventListener('click', ()=> openLeadsModal(`${labelPrefix}: ${g.key}`, g.rows));
+      body.appendChild(tr);
+    });
+  };
+  fillTable('collectionCountryTable', [...collGroups], 'Collection Country');
+  fillTable('deliveryCountryTable', [...delGroups], 'Delivery Country');
+
+  const routeGroups = computeGroupStats(rows.filter(r=>r.bookedDeal), r=>r.dealRoute || r.leadRoute).sort((a,b)=>b.bookedDeals-a.bookedDeals).slice(0,15);
+  const routeBody = $('routeTable'); routeBody.innerHTML='';
+  routeGroups.forEach(g=>{
+    const tr = document.createElement('tr');
+    tr.className = 'clickable-row';
+    tr.title = 'Click to view all booked deals for this route';
+    tr.innerHTML = `<td>${g.key}</td><td>${int(g.bookedDeals)}</td><td>${int(g.deliveredDeals)}</td>
+      <td>${currencyVisible('EUR')?money(g.salesEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.salesGBP,'GBP'):'—'}</td>
+      <td>${currencyVisible('EUR')?money(g.profitEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.profitGBP,'GBP'):'—'}</td>`;
+    tr.addEventListener('click', ()=> openLeadsModal(`Route: ${g.key}`, g.rows));
+    routeBody.appendChild(tr);
+  });
+}
+
+/* ---------------- filter dropdown population ---------------- */
+function populateSelect(id, values, keepAll=true){
+  const el = $(id);
+  const current = el.value;
+  el.innerHTML = (keepAll ? `<option value="ALL">${el.dataset.allLabel||'All'}</option>` : '') + values.map(v=>`<option value="${v}">${v}</option>`).join('');
+  if([...el.options].some(o=>o.value===current)) el.value = current;
+}
+function populateFilters(){
+  const years = unique(allRows.map(r=>r.leadYear)).filter(Boolean).sort((a,b)=>a-b);
+  $('fYear').dataset.allLabel = 'All Years';
+  populateSelect('fYear', years);
+  $('fMonth').dataset.allLabel = 'All Months';
+  $('fMonth').innerHTML = '<option value="ALL">All Months</option>' + monthNames.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
+  populateSelect('fLeadSource', unique(allRows.map(r=>r.leadSource)).sort());
+  populateSelect('fOwner', unique(allRows.map(r=>r.dealOwner)).sort());
+  populateSelect('fCollectionCountry', unique(allRows.map(r=>r.leadCollectionCountry)).sort());
+  populateSelect('fDeliveryCountry', unique(allRows.map(r=>r.leadDeliveryCountry)).sort());
+  populateSelect('fRoute', unique(allRows.map(r=>r.leadRoute)).sort());
+}
+
+/* ---------------- main render ---------------- */
+function renderAll(){
+  if(!allRows.length) return;
+  const rows = getFilteredRows();
+  renderExecutiveOverview(rows);
+  renderYearComparison();
+  renderLeadSourceSection(rows);
+  renderMarketingSection(rows);
+  renderSalespersonSection(rows);
+  renderRepeatSection(rows);
+  renderCohortSection(rows);
+  renderSalesByMonthSection();
+  renderGeographySection(rows);
+  saveFiltersState();
+}
+
+/* ---------------- filter persistence ---------------- */
+function saveFiltersState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(selected()));
+}
+function restoreFiltersState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const state = JSON.parse(raw);
+    const map = {fYear:'year',fQuarter:'quarter',fMonth:'month',fDateFrom:'dateFrom',fDateTo:'dateTo',fLeadSource:'leadSource',fOwner:'owner',fCollectionCountry:'collectionCountry',fDeliveryCountry:'deliveryCountry',fRoute:'route',fCurrency:'currency',fBooked:'booked',fDelivered:'delivered',fRepeat:'repeat'};
+    Object.entries(map).forEach(([id,key])=>{
+      const el = $(id);
+      if(el && state[key]!==undefined && [...el.options||[]].some(o=>o.value===String(state[key]))) el.value = state[key];
+      else if(el && (el.type==='date') && state[key]) el.value = state[key];
+    });
+  }catch(err){ console.warn('Could not restore filters', err); }
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  if(window.lucide) lucide.createIcons();
+
+  const backToTopBtn = $('backToTopBtn');
+  window.addEventListener('scroll', ()=> backToTopBtn.classList.toggle('show', window.scrollY>400));
+  backToTopBtn.addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
+
+  $('leadsModalClose').addEventListener('click', closeLeadsModal);
+  $('leadsModalOverlay').addEventListener('click', e=>{ if(e.target.id==='leadsModalOverlay') closeLeadsModal(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeLeadsModal(); });
+  $('matrixTable').addEventListener('click', e=>{
+    const td = e.target.closest('td[data-owner]');
+    if(!td) return;
+    const subset = matrixCellDealsCache.get(`${td.dataset.owner}||${td.dataset.source}`) || [];
+    if(subset.length) openPeriodDealsModal(`${td.dataset.owner} \u00d7 ${td.dataset.source} \u2014 Sale Completed Deals (${periodLabel()})`, subset, 'saleCompleted');
+  });
+
+  const kpiModalLinks = [
+    ['kBookedDeals', ()=>currentPeriodSaleDeals, 'saleCompleted', 'Sale Completed Deals'],
+    ['kSales', ()=>currentPeriodSaleDeals, 'saleCompleted', 'Booked Sales — Sale Completed Deals'],
+    ['kAvgDeal', ()=>currentPeriodSaleDeals, 'saleCompleted', 'Average Booked Deal — Sale Completed Deals'],
+    ['kDeliveredDeals', ()=>currentPeriodDeliveredDeals, 'dealDeliveryDate', 'Delivered Deals'],
+    ['kProfit', ()=>currentPeriodDeliveredDeals, 'dealDeliveryDate', 'Net Profit — Delivered Deals'],
+    ['kAvgProfitDelivered', ()=>currentPeriodDeliveredDeals, 'dealDeliveryDate', 'Avg Profit / Delivered Job — Delivered Deals']
+  ];
+  kpiModalLinks.forEach(([id, getRows, sortField, title])=>{
+    const card = $(id).closest('.kpi');
+    if(!card) return;
+    card.classList.add('kpi-clickable');
+    card.title = 'Click to view the underlying deals';
+    card.addEventListener('click', ()=> openPeriodDealsModal(`${title} (${periodLabel()})`, getRows(), sortField));
+  });
+
+  const mkModalLinks = [
+    ['mkSpend', 'expenses', ()=>currentMarketingExpenseRows, null, 'Total Marketing Spend — Expense Bills'],
+    ['mkProfitAfterSpend', 'deals', ()=>currentPeriodDeliveredDeals, 'dealDeliveryDate', 'Net Profit After Spend — Delivered Deals'],
+    ['mkRoi', 'deals', ()=>currentPeriodDeliveredDeals, 'dealDeliveryDate', 'Marketing ROI — Delivered Deals']
+  ];
+  mkModalLinks.forEach(([id, kind, getRows, sortField, title])=>{
+    const card = $(id).closest('.kpi');
+    if(!card) return;
+    card.classList.add('kpi-clickable');
+    card.title = kind==='expenses' ? 'Click to view the underlying expense bills' : 'Click to view the underlying deals';
+    card.addEventListener('click', ()=>{
+      if(kind==='expenses') openExpensesModal(`${title} (${periodLabel()})`, getRows());
+      else openPeriodDealsModal(`${title} (${periodLabel()})`, getRows(), sortField);
+    });
+  });
+
+  document.querySelectorAll('.nav a').forEach(a=>{
+    a.addEventListener('click', ()=>{
+      document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+      a.classList.add('active');
+    });
+  });
+
+  function normalizeFilename(name){
+    return name.toLowerCase().replace(/\s*\(\d+\)(?=\.[^.]+$)/,'');
+  }
+  function findFileInList(fileList, targetName){
+    const target = targetName.toLowerCase();
+    for(const f of fileList){
+      // only match files directly inside the picked folder, not nested subfolders like node_modules
+      const rel = f.webkitRelativePath || f.name;
+      const depth = rel.split('/').length;
+      if(depth<=2 && normalizeFilename(f.name)===target) return f;
+    }
+    return null;
+  }
+  function setFileInput(inputEl, file){
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    inputEl.files = dt.files;
+  }
+  $('autoLocateBtn').addEventListener('click', ()=> $('autoLocateInput').click());
+  $('autoLocateInput').addEventListener('change', async ()=>{
+    const files = [...$('autoLocateInput').files];
+    if(!files.length) return;
+    $('status').textContent = `Scanning folder (${files.length.toLocaleString()} files found)…`;
+    const contacts = findFileInList(files, 'contacts.xlsx') || findFileInList(files, 'qt_contacts.xlsx');
+    const deals = findFileInList(files, 'qt_deal_financials.xlsx');
+    const exp = findFileInList(files, 'qt_expenses.xlsx');
+    if(!contacts){
+      $('status').innerHTML = '<span class="error">Could not find Contacts.xlsx (or QT_CONTACTS.xlsx) in that folder. Please select it manually.</span>';
+      return;
+    }
+    setFileInput($('contactsFile'), contacts);
+    if(deals) setFileInput($('dealsFile'), deals);
+    if(exp) setFileInput($('expensesFile'), exp);
+    $('status').innerHTML = `<span class="ok">Found ${contacts.name}${deals?` + ${deals.name}`:''}${exp?` + ${exp.name}`:''}. Generating report…</span>`;
+    $('generateBtn').click();
+  });
+
+  $('generateBtn').addEventListener('click', async ()=>{
+    const contactsFile = $('contactsFile').files[0];
+    const dealsFile = $('dealsFile').files[0];
+    if(!contactsFile){ $('status').innerHTML = '<span class="error">Please choose Contacts.xlsx first.</span>'; return; }
+    showProgress(8,'Reading Contacts workbook…');
+    $('status').textContent = 'Reading Contacts and Deals workbooks…';
+    try{
+      await nextFrame();
+      const rawContacts = await readWorkbook(contactsFile);
+      allContactRows = rawContacts.map(normalizeContactRow).filter(r=>r.contactCreated && (r.contactId || r.contactReference || r.contactName));
+      if(!allContactRows.length) throw new Error('No valid Contacts found. Expected fields include Id/Contact ID, Created Time, Full Name, Lead Source, Status and Reason Dead Lead.');
+
+      showProgress(30,'Reading Deals workbook…'); await nextFrame();
+      let rawDeals=[];
+      if(dealsFile){ rawDeals = await readWorkbook(dealsFile); allDealRows = rawDeals.map(normalizeDealRow); }
+      else { allDealRows=[]; }
+
+      showProgress(55,'Building dataset…'); await nextFrame();
+      allRows = buildContactDealRows(allContactRows, allDealRows);
+      populateFilters();
+      restoreFiltersState();
+
+      showProgress(70,'Loading marketing spend…'); await nextFrame();
+      if($('expensesFile').files[0] && !allExpenseRows.length) await loadExpensesFile();
+
+      showProgress(85,'Rendering charts & tables…'); await nextFrame();
+      renderAll();
+      showProgress(100,'Done');
+
+      const saleCompletedCount = dedupeDeals(allRows.filter(r=>r.bookedDeal)).length;
+      const soldCustomers = uniqueByKey(allRows.filter(r=>r.bookedDeal), r=>r.contactId||r.leadId).length;
+      const workable = allRows.filter(r=>r.workable).length;
+      const dealHasSaleCompleted = rawDeals.length ? rawDeals.some(r=>field(r,['Sale Completed','Sale Completed Date'])!==null) : false;
+      let warning='';
+      if(rawDeals.length && !dealHasSaleCompleted) warning=' <span class="error">Warning: the Deals export has no "Sale Completed" column, so sales conversion will be 0. Add Deals.Sale Completed to QT_DEAL_FINANCIALS and export again.</span>';
+      $('status').innerHTML = `<span class="ok">Loaded ${allContactRows.length.toLocaleString()} contacts · ${allDealRows.length.toLocaleString()} deal rows · ${saleCompletedCount.toLocaleString()} Sale Completed deal rows · ${soldCustomers.toLocaleString()} unique Contact IDs sold · ${workable.toLocaleString()} workable contacts. Sales activity is read directly from Deals → Sale Completed and deduplicated by Deal Reference/Deal ID.</span>${warning}`;
+      setTimeout(hideProgress, 600);
+    }catch(err){
+      console.error(err);
+      $('status').innerHTML = `<span class="error">Failed to build contact report: ${err.message}</span>`;
+      hideProgress();
+    }
+  });
+
+  $('clearBtn').addEventListener('click', ()=>{
+    allRows = [];
+    allContactRows = [];
+    allDealRows = [];
+    allExpenseRows = [];
+    $('contactsFile').value = '';
+    $('dealsFile').value = '';
+    $('expensesFile').value = '';
+    $('status').textContent = 'Upload Contacts.xlsx and QT_DEAL_FINANCIALS.xlsx to begin.';
+    $('expenseStatus').textContent = 'Optional: upload QT_EXPENSES.xlsx to see Marketing Spend & ROI.';
+    hideProgress();
+    Object.keys(charts).forEach(destroyChart);
+    document.querySelectorAll('table tbody').forEach(tb=>tb.innerHTML='');
+    document.querySelectorAll('.kpi .value').forEach(v=>v.innerHTML='—');
+    $('funnelWrap').innerHTML=''; $('funnelMoney').innerHTML='';
+  });
+
+  async function loadExpensesFile(){
+    const file = $('expensesFile').files[0];
+    if(!file){ $('expenseStatus').innerHTML = '<span class="error">Please choose QT_EXPENSES.xlsx first.</span>'; return; }
+    $('expenseStatus').textContent = 'Reading workbook…';
+    try{
+      const raw = await readWorkbook(file);
+      allExpenseRows = raw.map(normalizeExpenseRow).filter(r=>MARKETING_EXPENSE_ITEMS.includes(r.expenseItem));
+      if(!allExpenseRows.length){
+        $('expenseStatus').innerHTML = `<span class="error">Read ${raw.length.toLocaleString()} rows but none had Expense Item = Leads/Marketing/Google Ads. Check the file's "Expense Item" column.</span>`;
+      } else {
+        $('expenseStatus').innerHTML = `<span class="ok">Loaded ${allExpenseRows.length.toLocaleString()} marketing/lead bills.</span>`;
+      }
+      if(allRows.length) renderMarketingSection(getFilteredRows());
+    }catch(err){
+      console.error(err);
+      $('expenseStatus').innerHTML = `<span class="error">Failed to read file: ${err.message}</span>`;
+    }
+  }
+  // Auto-load as soon as a file is picked, so it's ready before/without needing Generate Report.
+  $('expensesFile').addEventListener('change', loadExpensesFile);
+
+  $('applyVendorMapBtn').addEventListener('click', ()=>{
+    try{
+      vendorToSourceMap = JSON.parse($('vendorMapJson').value);
+      allExpenseRows.forEach(r=>{ r.leadSource = vendorToSourceMap[r.vendorName] || 'Unmapped / Overhead'; });
+      if(allRows.length){
+        renderMarketingSection(getFilteredRows());
+        $('expenseStatus').innerHTML = '<span class="ok">Vendor mapping applied.</span>';
+      }
+    }catch(err){ alert('Invalid JSON: '+err.message); }
+  });
+
+  $('applyAliasBtn').addEventListener('click', ()=>{
+    try{
+      leadSourceAliases = JSON.parse($('leadSourceAliasJson').value);
+      allContactRows.forEach(r=>{ r.leadSource = normalizeLeadSource(r.rawLeadSource); });
+      allRows = buildContactDealRows(allContactRows, allDealRows);
+      if(allRows.length){
+        populateFilters();
+        renderAll();
+        $('status').innerHTML = '<span class="ok">Lead source normalization applied.</span>';
+      }
+    }catch(err){ alert('Invalid JSON: '+err.message); }
+  });
+
+  const filterIds = ['fYear','fQuarter','fMonth','fDateFrom','fDateTo','fLeadSource','fOwner','fCollectionCountry','fDeliveryCountry','fRoute','fCurrency','fBooked','fDelivered','fRepeat'];
+  filterIds.forEach(id=> $(id).addEventListener('change', renderAll));
+  $('ytdToggle').addEventListener('change', renderYearComparison);
+  $('leadSourceMetric').addEventListener('change', ()=>renderLeadSourceSection(getFilteredRows()));
+  $('leadSourceSort').addEventListener('change', ()=>renderLeadSourceSection(getFilteredRows()));
+  $('mkMetric').addEventListener('change', ()=>renderMarketingSection(getFilteredRows()));
+  $('mkSort').addEventListener('change', ()=>renderMarketingSection(getFilteredRows()));
+  $('spMetric').addEventListener('change', ()=>renderSalespersonSection(getFilteredRows()));
+  $('matrixMetric').addEventListener('change', ()=>renderSalespersonSection(getFilteredRows()));
+  $('repeatOnlyToggle').addEventListener('change', ()=>renderRepeatSection(getFilteredRows()));
+});
+</script>
+</body>
+</html>

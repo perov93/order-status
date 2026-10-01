@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Movega Business Intelligence v4 - Contacts & Conversion</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+:root{
+  --bg:#08111f;--panel:#0f1b2d;--panel2:#132238;--border:#22344c;--text:#eef4fb;--muted:#91a1b7;
+  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--purple:#a855f7;--cyan:#06b6d4;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.app{display:flex;min-height:100vh}
+.sidebar{width:240px;background:#0b1626;border-right:1px solid var(--border);padding:22px 16px;position:fixed;inset:0 auto 0 0;overflow:auto;display:flex;flex-direction:column}
+.brand{display:flex;flex-direction:column;align-items:center;margin-bottom:26px}
+.logo{width:100%;max-width:150px;height:auto;object-fit:contain;display:block}
+.nav a{display:flex;align-items:center;gap:10px;color:#c7d2e2;text-decoration:none;padding:9px 11px;border-radius:9px;margin:3px 0;font-size:13px}
+.nav a svg{width:16px;height:16px;stroke-width:1.8;flex:0 0 auto}.nav a.active svg{color:#60a5fa}
+.nav a:hover,.nav a.active{background:#15253c;color:#fff}.nav-title{font-size:10px;color:#65758b;letter-spacing:.13em;margin:18px 10px 6px}
+.sidebar-footer{margin-top:auto;padding:16px 10px 2px;border-top:1px solid var(--border);color:#65758b;font-size:10px;letter-spacing:.04em}
+.main{margin-left:240px;width:calc(100% - 240px);padding:22px}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:16px}
+.top h2{margin:0 0 5px;font-size:25px}.top p{margin:0;color:var(--muted);font-size:13px}
+.badge-live{font-size:11px;padding:5px 9px;border-radius:999px;background:#10311f;color:#86efac;border:1px solid #205a36}
+.badge-files{font-size:11px;padding:5px 9px;border-radius:999px;background:#0f2748;color:#7dabf5;border:1px solid #1e4a86;font-weight:650}
+.upload-panel,.filter-panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
+.upload-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:10px;align-items:end}
+label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px}
+input[type=file],select,button{width:100%;background:#0b1728;color:var(--text);border:1px solid #2a3d57;border-radius:9px;padding:10px 11px;font-size:13px}
+button{width:auto;cursor:pointer;background:#1d4ed8;border-color:#2563eb;font-weight:700;padding:11px 16px}
+button:hover{filter:brightness(1.08)}
+.status{font-size:12px;color:var(--muted);margin-top:9px}.error{color:#fca5a5}.ok{color:#86efac}
+.progress-wrap{display:none;margin-top:9px}
+.progress-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.progress-track{width:100%;height:7px;background:#16233a;border-radius:999px;overflow:hidden;border:1px solid var(--border)}
+.progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#3b82f6);border-radius:999px;transition:width .3s ease}
+.fx-audit{font-size:11px;color:var(--muted);margin-top:10px;padding-top:9px;border-top:1px solid var(--border)}
+.filters{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:9px}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px;margin-bottom:18px}.kpis.primary{grid-template-columns:repeat(5,minmax(0,1fr))}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:15px;min-width:0}
+.kpi .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:6px}.kpi .label .src-badge{text-transform:none}.kpi .value{font-size:25px;font-weight:850;margin:7px 0;line-height:1.25}.kpi .value .fx-total{display:block;font-size:11px;font-weight:600;margin-top:2px}
+.kpi .sub{display:flex;gap:8px;flex-wrap:wrap;font-size:11px}.good{color:#4ade80}.bad{color:#f87171}.neutral{color:#aab8ca}
+.animal-icon{display:inline-grid;place-items:center;width:22px;height:22px;margin-right:6px;border-radius:50%;background:#172a43;font-size:15px;vertical-align:middle}
+.section{scroll-margin-top:15px;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.grid21{display:grid;grid-template-columns:1.35fr .65fr;gap:18px;margin-bottom:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:18px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:15px;min-width:0}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.card-head h3{font-size:14px;margin:0}.card-head span{font-size:11px;color:var(--muted)}
+.src-badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:999px;letter-spacing:.02em}
+.src-badge.src-books{background:#0f2748;color:#7dabf5;border:1px solid #1e4a86}
+.src-badge.src-crm{background:#2a1547;color:#d8b4fe;border:1px solid #5b2e93}
+.src-badge.src-both{background:#132a24;color:#7fe0c4;border:1px solid #1e5c4b}
+.source-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:0 0 14px}
+.source-legend span{display:inline-flex;align-items:center;gap:6px}
+.fx-total{display:inline-block;font-size:10.5px;font-weight:600;color:#7fe0c4;margin-left:4px}
+.chart{height:300px}.chart.small{height:260px}.monthly-extra-profit-card{margin:12px 0}
+.print-report-header,.print-context,.management-print-report{display:none}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;border-bottom:1px solid #1d2e44;text-align:right;white-space:nowrap}th{color:#92a3ba;font-weight:650}th:first-child,td:first-child{text-align:left}
+.table-wrap{overflow:auto;max-height:390px}.pill{display:inline-block;padding:3px 7px;border-radius:999px;font-size:10px;background:#163323;color:#86efac}.pill.loss{background:#38171a;color:#fca5a5}
+.section-title{font-size:18px;margin:4px 0 12px}.empty{padding:32px;text-align:center;color:var(--muted)}
+.legend-note{font-size:11px;color:var(--muted);margin-top:8px}
+.kpi.clickable{cursor:pointer;transition:border-color .15s,transform .15s}.kpi.clickable:hover{border-color:#3b82f6;transform:translateY(-1px)}
+.expense-item-link{width:auto;padding:0;border:0;background:transparent;color:#7dabf5;font:inherit;font-weight:650;text-align:left}.expense-item-link:hover{color:#bfdbfe;text-decoration:underline}
+.chart canvas{cursor:pointer}
+.deals-modal-overlay{display:none;position:fixed;inset:0;background:rgba(4,10,20,0.72);z-index:1000;align-items:center;justify-content:center;padding:24px}
+.deals-modal-overlay.open{display:flex}
+.deals-modal{background:var(--panel);border:1px solid var(--border);border-radius:14px;width:min(1080px,96vw);max-height:86vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.deals-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.deals-modal-head h3{margin:0 0 4px;font-size:15px}
+.deals-modal-head span{font-size:12px;color:var(--muted)}
+.deals-modal-close{background:#0b1728;border:1px solid #2a3d57;color:var(--text);border-radius:8px;width:32px;height:32px;font-size:16px;line-height:1;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:0}
+.deals-modal-close:hover{border-color:#3b82f6}
+.deals-modal-body{overflow:auto;padding:0 20px 20px}
+.deals-modal-table{width:100%;border-collapse:collapse;font-size:12px}
+.deals-modal-table th,.deals-modal-table td{padding:8px;border-bottom:1px solid #1d2e44;text-align:right;white-space:nowrap}
+.deals-modal-table th:first-child,.deals-modal-table td:first-child{text-align:left}
+.deals-modal-table th{color:#92a3ba;font-weight:650;position:sticky;top:0;background:var(--panel)}
+@media(max-width:1150px){.kpis,.kpis.primary{grid-template-columns:repeat(2,1fr)}.grid2,.grid21,.grid3{grid-template-columns:1fr}.filters{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.sidebar{display:none}.main{margin-left:0;width:100%;padding:12px}.upload-grid,.filters,.kpis,.kpis.primary{grid-template-columns:1fr}.top{flex-direction:column}.chart{height:250px}}
+@page{size:A4 landscape;margin:10mm}
+@media print{
+  .sidebar,.main,.upload-panel,.filter-panel,.no-print,.deals-modal-overlay{display:none!important}
+  html,body{background:#fff!important;color:#111!important;font-family:Georgia,'Times New Roman',serif;font-size:10pt;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .app{display:block;min-height:auto}
+  .management-print-report{display:block!important}
+  .report-page{break-after:page;page-break-after:always;min-height:185mm;color:#111;background:#fff}
+  .report-page:last-child{break-after:auto;page-break-after:auto}
+  .report-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8mm;border-bottom:2px solid #111;padding-bottom:4mm;margin-bottom:5mm}
+  .report-head h1{font-size:20pt;line-height:1.05;margin:0 0 2mm;color:#111}.report-head p{margin:0;color:#444;line-height:1.35}
+  .report-meta{text-align:right;font-size:9pt;color:#333;line-height:1.4;min-width:70mm}
+  .report-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;margin-bottom:5mm}
+  .report-kpi{border:1px solid #b8b8b8;background:#fafafa;padding:3mm;border-radius:2mm;break-inside:avoid}
+  .report-kpi strong{display:block;font-size:8pt;color:#555;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1mm}.report-kpi span{display:block;font-size:15pt;font-weight:700;color:#111;line-height:1.25}.report-kpi small{display:block;color:#555;font-size:8pt;margin-top:1mm;line-height:1.3}
+  .report-grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm}.report-block{break-inside:avoid;margin-bottom:4mm}
+  .report-block h2{font-size:13pt;margin:0 0 2mm;color:#111}.report-block p{margin:0 0 2mm;color:#444;line-height:1.35}
+  .report-chart{height:58mm;border:1px solid #d3d3d3;background:#fff;padding:2mm;margin-bottom:3mm}.report-chart canvas{width:100%!important;height:100%!important}
+  .report-table{width:100%;border-collapse:collapse;font-size:8.5pt}.report-table th,.report-table td{padding:1.8mm 1.5mm;border-bottom:1px solid #ddd;color:#111!important;text-align:right;white-space:nowrap}.report-table th:first-child,.report-table td:first-child{text-align:left}.report-table th{background:#f1f5f9!important;font-weight:700}.report-table tr{break-inside:avoid;page-break-inside:avoid}
+  .report-note{border-left:3px solid #475569;background:#f8fafc;padding:2mm 3mm;color:#333;font-size:9pt;line-height:1.35;margin-bottom:4mm}
+  .report-bad{color:#991b1b!important}.report-good{color:#166534!important}
+  .main{margin-left:0!important;width:100%!important;padding:0!important}
+  .top{border-bottom:2px solid #111;margin:0 0 8mm;padding:0 0 5mm}
+  .top h2{font-size:22pt;color:#111!important;margin:0 0 2mm}.top p{font-size:10pt;color:#444!important}
+  .badge-live{background:#eef6ee!important;color:#14532d!important;border-color:#86a889!important}
+  .print-report-header,.print-context{display:none!important}
+  .print-report-header{margin:0 0 6mm;padding:4mm 0;border-bottom:1px solid #bbb}
+  .print-report-header h1{font-size:18pt;margin:0 0 2mm;color:#111}.print-report-header p{margin:0;color:#333;line-height:1.35}
+  .print-context{display:grid!important;grid-template-columns:1fr 1fr;gap:4mm;margin:0 0 7mm}
+  .print-context-box{border:1px solid #bbb;background:#fafafa;padding:3mm;border-radius:2mm;break-inside:avoid}
+  .print-context-box h4{margin:0 0 2mm;font-size:10pt;color:#111}.print-context-box p{margin:0;color:#333;line-height:1.35}
+  .source-legend{display:block;border:1px solid #bbb;background:#fafafa;padding:3mm;margin-bottom:5mm;color:#333!important}
+  .source-legend span{display:block;margin-bottom:1.5mm}
+  .kpis,.kpis.primary{grid-template-columns:repeat(5,1fr)!important;gap:3mm;margin-bottom:4mm}
+  .grid2,.grid21,.grid3{display:grid!important;grid-template-columns:1fr 1fr!important;gap:4mm;margin-bottom:4mm}
+  .card,.kpi{background:#fff!important;border:1px solid #b8b8b8!important;border-radius:2mm;box-shadow:none;break-inside:avoid;page-break-inside:avoid;padding:3mm}
+  .section{break-inside:auto;page-break-inside:auto;margin-bottom:6mm}
+  .section:not(:first-of-type){break-before:page;page-break-before:always}
+  .section-title{color:#111!important;font-size:15pt;margin:0 0 4mm;border-bottom:1px solid #bbb;padding-bottom:2mm}
+  .card-head{margin-bottom:2mm}.card-head h3,.kpi .value,.top h2{color:#111!important}.card-head h3{font-size:11pt}
+  .kpi .label,.card-head span,.sub,.muted,.status,.fx-audit{color:#444!important}.kpi .value{font-size:17pt}.kpi .sub{font-size:8.5pt;display:block}
+  .src-badge{border-color:#888!important;background:#f2f2f2!important;color:#111!important}
+  .good{color:#166534!important}.bad{color:#991b1b!important}.neutral{color:#444!important}.fx-total{color:#0f766e!important}
+  .chart{height:58mm!important}.chart.small{height:52mm!important}canvas{max-width:100%!important}
+  .table-wrap{max-height:none;overflow:visible}.table-wrap table{page-break-inside:auto}
+  table{font-size:8.5pt}th,td{padding:2mm 1.5mm;border-bottom:1px solid #ddd;color:#111!important}th{background:#f1f5f9!important;color:#111!important}
+  tr{break-inside:avoid;page-break-inside:avoid}
+  a[href]{text-decoration:none;color:inherit}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><img class="logo" src="white_movega_logo.png" alt="Movega logo"></div>
+  <div class="nav-title">OVERVIEW</div>
+  <nav class="nav">
+    <a class="active" href="#overview"><i data-lucide="layout-dashboard"></i>Executive Overview</a>
+      <a href="#conversion"><i data-lucide="git-branch"></i>Contact Conversion</a>
+    <a href="#trends"><i data-lucide="chart-no-axes-combined"></i>Monthly Trends</a>
+    <a href="#salespeople"><i data-lucide="users-round"></i>Sales Team</a>
+    <a href="#leadsource"><i data-lucide="megaphone"></i>Lead Sources</a>
+    <a href="#routes"><i data-lucide="route"></i>Routes</a>
+    <a href="#customers"><i data-lucide="building-2"></i>Customers</a>
+    <a href="#receivables"><i data-lucide="wallet-cards"></i>Receivables</a>
+    <a href="#losses"><i data-lucide="triangle-alert"></i>Loss Analysis</a>
+    <a href="#expenses"><i data-lucide="receipt-text"></i>Expenses</a>
+  </nav>
+  <div class="sidebar-footer">Author: Movega BI</div>
+</aside>
+
+<main class="main">
+  <div class="top">
+    <div><h2>Movega Business Intelligence</h2><p>Contacts are the CRM cohort source; Sale Completed drives sales activity. Financial, profit and expense statistics remain unchanged.</p></div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <span class="badge-files" title="Download these from Zoho and upload below">FILES NEEDED: Contacts.xlsx · QT_INVOICE_REVENUE.xlsx · QT_DEAL_FINANCIALS.xlsx · QT_EXPENSES.xlsx</span>
+      <span class="badge-live">LOCAL · YOUR DATA STAYS IN BROWSER</span>
+      <button id="exportPdfBtn" type="button" class="no-print">Export PDF</button>
+    </div>
+  </div>
+
+  <div class="upload-panel">
+    <div class="upload-grid">
+      <div><label>Zoho CRM — Contacts.xlsx</label><input id="contactFile" type="file" accept=".xlsx,.xls"></div>
+      <div><label>Zoho Books — QT_INVOICE_REVENUE.xlsx</label><input id="invoiceFile" type="file" accept=".xlsx,.xls"></div>
+      <div><label>Zoho CRM — QT_DEAL_FINANCIALS.xlsx</label><input id="dealFile" type="file" accept=".xlsx,.xls"></div>
+      <div><label>Expenses — QT_EXPENSES.xlsx</label><input id="expenseFile" type="file" accept=".xlsx,.xls"></div>
+      <div style="display:flex;gap:8px;align-items:end;">
+        <button id="generateBtn" type="button">Generate Full Report</button>
+        <button id="clearBtn" type="button" style="background:#0f172a;border-color:#334155;">Clear Dashboard</button>
+      </div>
+    </div>
+    <div style="margin-top:10px"><button id="autoLocateBtn" type="button" style="background:#0f172a;border-color:#334155;">📁 Auto-Locate Files in Folder</button><input id="autoLocateInput" type="file" webkitdirectory directory multiple style="display:none"></div>
+    <div id="status" class="status">Upload both files to begin.</div>
+    <div id="genProgress" class="progress-wrap">
+      <div class="progress-label" id="genProgressLabel">Reading file…</div>
+      <div class="progress-track"><div class="progress-fill" id="genProgressFill"></div></div>
+    </div>
+  </div>
+
+  <div class="filter-panel">
+    <div class="filters">
+      <div><label>Year</label><select id="yearFilter"><option value="ALL">All Years</option></select></div>
+      <div><label>Month</label><select id="monthFilter"><option value="ALL">All Months</option></select></div>
+      <div><label>Currency / Conversion</label><select id="currencyFilter"><option value="ALL">Both EUR + GBP · native</option></select></div>
+      <div><label>Salesperson</label><select id="salespersonFilter"><option value="ALL">All Salespeople</option></select></div>
+      <div><label>Lead Source</label><select id="leadFilter"><option value="ALL">All Lead Sources</option></select></div>
+    </div>
+    <div id="fxAudit" class="fx-audit">FX audit: upload files to load historical EUR/GBP rates by transaction date.</div>
+  </div>
+
+  <section id="overview" class="section">
+    <div class="print-report-header">
+      <h1>Movega Business Intelligence Report</h1>
+      <p>This PDF is formatted for paper reading. KPI cards show the selected reporting period first, followed by trend charts and detailed tables.</p>
+    </div>
+    <div class="print-context">
+      <div class="print-context-box"><h4>Report Filters</h4><p id="printFilterSummary">Generate the report to fill the selected filters.</p></div>
+      <div class="print-context-box"><h4>How to Read the Figures</h4><p>Books figures come from invoices. CRM profit and margin use delivered jobs. Paid but not-delivered jobs are included in the Jobs KPI as future paid work.</p></div>
+    </div>
+    <h3 class="section-title">Executive Overview</h3>
+    <div class="source-legend">
+      <span><span class="src-badge src-books">Zoho Books</span> Invoices &amp; receivables</span>
+      <span><span class="src-badge src-crm">Zoho CRM · Contacts</span> Contact quality, lead source and conversion cohorts</span>
+       <span><span class="src-badge src-crm">Zoho CRM · Deals</span> Sale Completed, delivered jobs, paid future jobs &amp; profit</span>
+      <span><span class="src-badge src-both">Books + CRM</span> Combined view</span>
+      <span>ℹ️ “€ X · £ Y” = separate native-currency totals (not summed). The small “≈ … combined” figure adds both together using the historical EUR/GBP FX rate for each transaction’s date (falls back to the latest rate only where a historical rate or date is unavailable).</span>
+    </div>
+    <div class="kpis primary">
+      <div class="kpi"><div class="label"><span class="src-badge src-books">Books</span> Invoice Sales</div><div id="kSales" class="value">—</div><div id="kSalesSub" class="sub"><span class="neutral">Sales FCY · before tax · native currency</span></div></div>
+      <div class="kpi"><div class="label"><span class="src-badge src-books">Books</span> Invoice Count</div><div id="kQty" class="value">—</div><div id="kQtySub" class="sub"><span class="neutral">One count per Books invoice</span></div></div>
+      <div class="kpi"><div class="label"><span class="src-badge src-crm">CRM</span> Executed Profit</div><div id="kProfit" class="value">—</div><div id="kProfitSub" class="sub"><span class="neutral">Delivered CRM deals</span></div></div>
+      <div class="kpi"><div class="label"><span class="src-badge src-crm">CRM</span> Delivered Jobs</div><div id="kJobs" class="value">—</div><div id="kJobsSub" class="sub"><span class="neutral">Delivered jobs vs last year</span></div></div>
+      <div class="kpi"><div class="label"><span class="src-badge src-books">Books</span> Receivables</div><div id="kRecv" class="value">—</div><div id="kRecvSub" class="sub"><span class="neutral">Outstanding FCY · native currency</span></div></div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Average Invoice</div><div id="kAvgSale" class="value">—</div><div class="sub"><span class="neutral">Books invoices</span></div></div>
+      <div class="kpi"><div class="label">Avg Profit / Job</div><div id="kAvgProfit" class="value">—</div><div class="sub"><span class="neutral">Executed jobs</span></div></div>
+      <div class="kpi"><div class="label">Operational Margin</div><div id="kMargin" class="value">—</div><div class="sub"><span class="neutral">Profit ÷ executed job value</span></div></div>
+      <div class="kpi"><div class="label">Loss-Making Jobs</div><div id="kLossJobs" class="value">—</div><div id="kLossSub" class="sub"></div></div>
+      <div class="kpi"><div class="label"><span class="src-badge src-crm">CRM</span> Fee Profit</div><div id="kFeeProfit" class="value">—</div><div id="kFeeProfitSub" class="sub"><span class="neutral">Profit Transaction Fee · delivered CRM deals</span></div></div>
+    </div>
+  </section>
+
+  <section id="conversion" class="section">
+    <h3 class="section-title">Contact Conversion & Sales Activity</h3>
+    <div class="section-sub">Contacts are grouped by <strong>Contact Created Time</strong>. Sales activity is grouped independently by <strong>Deals → Sale Completed</strong>. Non-workable contacts exclude the agreed dead-lead reasons.</div>
+    <div class="kpis">
+      <div class="kpi"><div class="label"><span class="src-badge src-crm">CRM Contacts</span> Contacts Created</div><div id="cTotalContacts" class="value">—</div><div class="sub"><span class="neutral">Selected contact-created period</span></div></div>
+      <div class="kpi"><div class="label">Non-Workable Contacts</div><div id="cNonWorkable" class="value">—</div><div class="sub"><span class="neutral">8 agreed dead-lead reasons</span></div></div>
+      <div class="kpi"><div class="label">Workable Contacts</div><div id="cWorkable" class="value">—</div><div class="sub"><span class="neutral">Contacts − non-workable</span></div></div>
+      <div class="kpi"><div class="label"><span class="src-badge src-crm">CRM Deals</span> Sale Completed Deals</div><div id="cSaleDeals" class="value">—</div><div class="sub"><span class="neutral">Sale Completed in selected period</span></div></div>
+      <div class="kpi"><div class="label">Unique Customers Sold</div><div id="cSoldCustomers" class="value">—</div><div class="sub"><span class="neutral">Unique contact behind Sale Completed deals</span></div></div>
+      <div class="kpi"><div class="label">Sale Completed Rate</div><div id="cDealRate" class="value">—</div><div class="sub"><span class="neutral">Sale Completed Deals ÷ Workable Contacts</span></div></div>
+      <div class="kpi"><div class="label">Customer Sales Rate</div><div id="cCustomerRate" class="value">—</div><div class="sub"><span class="neutral">Unique Customers Sold ÷ Workable Contacts</span></div></div>
+      <div class="kpi"><div class="label">All Dead Rate</div><div id="cDeadRate" class="value">—</div><div class="sub"><span class="neutral">Dead contacts ÷ Contacts Created</span></div></div>
+      <div class="kpi"><div class="label">Non-Workable Rate</div><div id="cNonWorkableRate" class="value">—</div><div class="sub"><span class="neutral">Non-workable ÷ Contacts Created</span></div></div>
+      <div class="kpi"><div class="label">Deals / Sold Customer</div><div id="cDealsPerCustomer" class="value">—</div><div class="sub"><span class="neutral">Shows repeat / upgrade activity</span></div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h3>Contact Source Conversion</h3><span>Selected period</span></div><div class="table-wrap"><table><thead><tr><th>Lead Source</th><th>Contacts</th><th>Dead</th><th>Non-Workable</th><th>Workable</th><th>Sale Completed Deals</th><th>Customers Sold</th><th>Deal Rate %</th><th>Customer Rate %</th></tr></thead><tbody id="contactSourceTable"></tbody></table></div></div>
+      <div class="card"><div class="card-head"><h3>Sale Completed by Lead Source</h3><span>Deals closed in selected period</span></div><div class="chart"><canvas id="contactSourceChart"></canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Monthly Contact Cohorts</h3><span>30/60/90-day customer conversion uses first Sale Completed date</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Cohort Month</th><th>Contacts</th><th>Workable</th><th>Ever Sold</th><th>Lifetime %</th><th>30D %</th><th>60D %</th><th>90D %</th></tr></thead><tbody id="contactCohortTable"></tbody></table></div>
+    </div>
+    <div id="contactAudit" class="legend-note"></div>
+  </section>
+
+  <section id="trends" class="section">
+    <h3 class="section-title">Monthly Trends & Comparisons</h3>
+    <div class="grid3">
+      <div class="card"><div class="card-head"><h3>Monthly Invoice Sales — Same Period YoY</h3><span class="src-badge src-books">Zoho Books</span></div><div class="chart"><canvas id="salesYoY"></canvas></div><div id="salesYoYNote" class="legend-note"></div></div>
+      <div class="card"><div class="card-head"><h3>Monthly Executed Profit — Current vs Previous Year</h3><span class="src-badge src-crm">CRM Delivered Deals</span></div><div class="chart"><canvas id="profitYoY"></canvas></div></div>
+      <div class="card"><div class="card-head"><h3>Monthly Deliveries Qty — Current vs Previous Year</h3><span class="src-badge src-crm">CRM Delivered Deals</span></div><div class="chart"><canvas id="deliveriesYoY"></canvas></div></div>
+    </div>
+    <div class="card monthly-extra-profit-card">
+      <div class="card-head"><h3>Cumulative Invoice Sales — Year to Date</h3><span class="src-badge src-books">Zoho Books</span></div>
+      <div class="chart small"><canvas id="salesYtd"></canvas></div>
+    </div>
+    <div class="grid3">
+      <div class="card"><div class="card-head"><h3>Books Qty — Same Month YoY</h3><span class="src-badge src-books">Zoho Books</span></div><div class="chart small"><canvas id="booksQtyMonthly"></canvas></div><div id="booksQtyYoYNote" class="legend-note"></div></div>
+      <div class="card"><div class="card-head"><h3>Delivered Jobs by Month</h3><span class="src-badge src-crm">CRM</span></div><div class="chart small"><canvas id="jobsMonthly"></canvas></div></div>
+      <div class="card"><div class="card-head"><h3>Operational Margin by Month</h3><span class="src-badge src-crm">CRM</span></div><div class="chart small"><canvas id="marginMonthly"></canvas></div></div>
+    </div>
+    <div class="card monthly-extra-profit-card">
+      <div class="card-head"><h3>Future Bookings by Month</h3><span class="src-badge src-crm">CRM · Not Delivered</span></div>
+      <div class="chart small"><canvas id="futureBookingsMonthly"></canvas></div>
+    </div>
+    <div class="card monthly-extra-profit-card">
+      <div class="card-head"><h3>Extra Service Budget Profit by Month</h3><span class="src-badge src-crm">CRM</span></div>
+      <div class="chart small"><canvas id="extraServiceBudgetProfitMonthly"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Books Qty & Delivered Jobs by Month</h3><span class="src-badge src-both">Books + CRM</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Month</th><th>Books Qty</th><th>Delivered Jobs</th><th>Delivered Profit</th><th>Extra Service Budget Profit</th></tr></thead><tbody id="monthlyStatsTable"></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="salespeople" class="section">
+    <h3 class="section-title">Sales Team Performance</h3>
+    <div class="grid21">
+      <div class="card"><div class="card-head"><h3>Sales vs Profit by Salesperson</h3><span class="src-badge src-both">Books + CRM</span></div><div class="chart"><canvas id="salespersonChart"></canvas></div></div>
+      <div class="card"><div class="card-head"><h3>Sales Team Summary</h3><span>Selected period</span></div><div class="table-wrap"><table><thead><tr><th>Salesperson</th><th>Sales</th><th>Jobs</th><th>Profit</th><th>Avg Profit</th><th>Loss Jobs</th></tr></thead><tbody id="salespersonTable"></tbody></table></div></div>
+    </div>
+  </section>
+
+  <section id="leadsource" class="section">
+    <h3 class="section-title">Lead Source Profitability</h3>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h3>Profit by Lead Source</h3><span class="src-badge src-crm">CRM Delivered Deals</span></div><div class="chart"><canvas id="leadChart"></canvas></div></div>
+      <div class="card"><div class="card-head"><h3>Lead Source Details</h3><span>Profit-focused</span></div><div class="table-wrap"><table><thead><tr><th>Lead Source</th><th>Jobs</th><th>Profit</th><th>Avg Profit</th><th>Loss Jobs</th></tr></thead><tbody id="leadTable"></tbody></table></div></div>
+    </div>
+  </section>
+
+  <section id="routes" class="section">
+    <h3 class="section-title">Route Profitability</h3>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h3>Top Routes by Profit</h3><span class="src-badge src-crm">CRM</span></div><div class="chart"><canvas id="routeChart"></canvas></div></div>
+      <div class="card"><div class="card-head"><h3>Route Details</h3><span>Top 15</span></div><div class="table-wrap"><table><thead><tr><th>Route</th><th>Jobs</th><th>Profit</th><th>Avg Profit</th><th>Loss Jobs</th></tr></thead><tbody id="routeTable"></tbody></table></div></div>
+    </div>
+  </section>
+
+  <section id="customers" class="section">
+    <h3 class="section-title">Customer Sales</h3>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h3>Top Customers by Books Sales</h3><span class="src-badge src-books">Invoices</span></div><div class="chart"><canvas id="customerChart"></canvas></div></div>
+      <div class="card"><div class="card-head"><h3>Customer Details</h3><span>Top 15</span></div><div class="table-wrap"><table><thead><tr><th>Customer</th><th>Invoices</th><th>Sales</th><th>Outstanding</th></tr></thead><tbody id="customerTable"></tbody></table></div></div>
+    </div>
+  </section>
+
+  <section id="receivables" class="section">
+    <h3 class="section-title">Receivables & Aging</h3>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h3>Outstanding by Aging Bucket</h3><span class="src-badge src-books">Books</span></div><div class="chart"><canvas id="agingChart"></canvas></div></div>
+      <div class="card"><div class="card-head"><h3>Largest Outstanding Customers</h3><span class="src-badge src-books">Books</span></div><div class="table-wrap"><table><thead><tr><th>Customer</th><th>Outstanding</th><th>Invoices</th></tr></thead><tbody id="receivableTable"></tbody></table></div></div>
+    </div>
+  </section>
+
+  <section id="losses" class="section">
+    <h3 class="section-title">Loss Analysis</h3>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h3>Losses by Salesperson</h3><span class="src-badge src-crm">CRM</span></div><div class="chart"><canvas id="lossSalespersonChart"></canvas></div></div>
+      <div class="card"><div class="card-head"><h3>All Loss-Making Jobs</h3><span class="src-badge src-crm">CRM</span></div><div class="table-wrap"><table><thead><tr><th>Reference</th><th>Date</th><th>Deal Status</th><th>System Status</th><th>Salesperson</th><th>Route</th><th>Loss</th></tr></thead><tbody id="lossTable"></tbody></table></div></div>
+    </div>
+  </section>
+
+  <section id="expenses" class="section">
+    <h3 class="section-title">Expenses</h3>
+    <div class="kpis">
+      <div class="kpi"><div class="label"><span class="src-badge src-books">Expenses</span> Total Expenses</div><div id="kExpenses" class="value">—</div><div class="sub"><span class="neutral">Filtered expense bills</span></div></div>
+      <div class="kpi"><div class="label">Expense Bills</div><div id="kExpenseBills" class="value">—</div><div class="sub"><span class="neutral">Number of bills</span></div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h3>Expenses by Month</h3><span class="src-badge src-books">QT_EXPENSES</span></div><div class="chart"><canvas id="expensesMonthlyChart"></canvas></div></div>
+      <div class="card"><div class="card-head"><h3>Expenses by Item</h3><span>Selected period</span></div><div class="table-wrap"><table><thead><tr><th>Expense Item</th><th>Bills</th><th>Expense</th></tr></thead><tbody id="expenseItemTable"></tbody></table></div></div>
+    </div>
+  </section>
+</main>
+<div id="managementPrintReport" class="management-print-report"></div>
+<div id="dealsModalOverlay" class="deals-modal-overlay no-print">
+  <div class="deals-modal">
+    <div class="deals-modal-head">
+      <div><h3 id="dealsModalTitle">Details</h3><span id="dealsModalCount"></span></div>
+      <button type="button" class="deals-modal-close" id="dealsModalClose" aria-label="Close">✕</button>
+    </div>
+    <div class="deals-modal-body" id="dealsModalBody"></div>
+  </div>
+</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let contacts = [], invoices = [], deals = [], expenses = [], charts = {}, printCharts = {}, printMode = false;
+const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const STORAGE_KEY = 'movega_dashboard_filters';
+const FX_BASE_CURRENCY = 'EUR';
+let fxRates = { EUR: 1, GBP: 0.85 };
+let historicalFxRates = {};
+let fxAuditState = { source:'Frankfurter', latestDate:null, minDate:null, maxDate:null, historical:false, fallback:false };
+
+function saveFiltersState(){
+  const state = {
+    year: $('yearFilter') ? $('yearFilter').value : 'ALL',
+    month: $('monthFilter') ? $('monthFilter').value : 'ALL',
+    currency: $('currencyFilter') ? $('currencyFilter').value : 'ALL',
+    salesperson: $('salespersonFilter') ? $('salespersonFilter').value : 'ALL',
+    lead: $('leadFilter') ? $('leadFilter').value : 'ALL'
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function restoreFiltersState(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const state = JSON.parse(raw);
+    const selectMap = {
+      yearFilter: 'year',
+      monthFilter: 'month',
+      currencyFilter: 'currency',
+      salespersonFilter: 'salesperson',
+      leadFilter: 'lead'
+    };
+    Object.entries(selectMap).forEach(([id,key]) => {
+      const el = $(id);
+      if(!el || !state[key]) return;
+      if([...el.options].some(o => o.value === String(state[key]))) el.value = String(state[key]);
+    });
+    return true;
+  } catch (err) {
+    console.warn('Could not restore saved dashboard filters.', err);
+    return false;
+  }
+}
+
+function toDateKey(date){
+  if(!date || isNaN(date)) return null;
+  const y=date.getFullYear(), m=String(date.getMonth()+1).padStart(2,'0'), d=String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+function transactionDateKey(row){
+  const isInvoice=Object.prototype.hasOwnProperty.call(row,'Invoice Date');
+  const isExpense=Object.prototype.hasOwnProperty.call(row,'Bill Date');
+  const value=val(row,isInvoice?['Invoice Date']:isExpense?['Bill Date']:['Delivery Date']);
+  const date=dateVal(value);
+  if(!date) return null;
+  return toDateKey(date);
+}
+
+function historicalRateForRow(row){
+  const key=transactionDateKey(row);
+  if(!key) return null;
+  if(historicalFxRates[key]) return historicalFxRates[key];
+  const date=new Date(`${key}T00:00:00Z`);
+  for(let days=1;days<=7;days++){
+    date.setUTCDate(date.getUTCDate()-1);
+    const prior=date.toISOString().slice(0,10);
+    if(historicalFxRates[prior]) return historicalFxRates[prior];
+  }
+  return null;
+}
+
+async function loadExchangeRates(){
+  historicalFxRates={};
+  fxAuditState={source:'Frankfurter',latestDate:null,minDate:null,maxDate:null,historical:false,fallback:false,error:null};
+  const dates=[...invoices,...deals,...expenses].map(transactionDateKey).filter(Boolean).sort();
+  fxAuditState.minDate=dates[0]||null;
+  fxAuditState.maxDate=dates[dates.length-1]||null;
+  try {
+    const latestResponse=await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=GBP',{cache:'no-store'});
+    if(!latestResponse.ok) throw new Error(`Frankfurter latest request failed (HTTP ${latestResponse.status})`);
+    const latest=await latestResponse.json();
+    const latestRate=Number(latest && latest.rates && latest.rates.GBP);
+    if(!Number.isFinite(latestRate)||latestRate<=0) throw new Error('Frankfurter returned no GBP rate');
+    fxRates={EUR:1,GBP:latestRate};
+    fxAuditState.latestDate=latest.date||null;
+  } catch(err) {
+    console.warn('Frankfurter latest rate unavailable, using built-in fallback rate.',err);
+    if(!fxRates.GBP) fxRates={EUR:1,GBP:0.85};
+    fxAuditState.fallback=true;
+    fxAuditState.error=err.message;
+  }
+  if(!dates.length) return !fxAuditState.fallback;
+  // historical rates only exist up to today; clamp so a future-dated row doesn't break the whole range request
+  const today=toDateKey(new Date());
+  const start=dates[0], end=dates[dates.length-1]>today?today:dates[dates.length-1];
+  if(start>end) return !fxAuditState.fallback;
+  try {
+    const response=await fetch(`https://api.frankfurter.dev/v1/${start}..${end}?base=EUR&symbols=GBP`,{cache:'no-store'});
+    if(!response.ok) throw new Error(`Frankfurter historical request failed (HTTP ${response.status})`);
+    const data=await response.json();
+    Object.entries(data.rates||{}).forEach(([date,rates])=>{
+      const rate=Number(rates && rates.GBP);
+      if(Number.isFinite(rate)&&rate>0) historicalFxRates[date]=rate;
+    });
+    fxAuditState.historical=Object.keys(historicalFxRates).length>0;
+    if(!fxAuditState.historical) throw new Error('Frankfurter returned no historical rates for the selected date range');
+    return true;
+  } catch(err) {
+    console.warn('Frankfurter historical rates unavailable, using latest/fallback rate.',err);
+    fxAuditState.fallback=true;
+    fxAuditState.error=err.message;
+    return false;
+  }
+}
+
+function resolveTargetCurrency(){
+  const c = selected().currency;
+  return c && c !== 'ALL' ? c : null;
+}
+
+function convertCurrencyValue(value, fromCurrency, toCurrency = null){
+  const source = String(fromCurrency || '').toUpperCase();
+  const target = toCurrency ? String(toCurrency).toUpperCase() : null;
+  if (!Number.isFinite(value) || !source || !target || source === target) return value;
+  const fromRate = source === 'EUR' ? 1 : (fxRates[source] || 0);
+  const toRate = target === 'EUR' ? 1 : (fxRates[target] || 0);
+  if (!fromRate || !toRate) return value;
+  return value * (toRate / fromRate);
+}
+
+function convertForRow(value,row,toCurrency=null){
+  const rate=historicalRateForRow(row);
+  if(!rate) return convertCurrencyValue(value,currencyOf(row),toCurrency);
+  const source=currencyOf(row), target=toCurrency?String(toCurrency).toUpperCase():null;
+  if(!Number.isFinite(value)||!source||!target||source===target) return value;
+  if(source==='EUR'&&target==='GBP') return value*rate;
+  if(source==='GBP'&&target==='EUR') return value/rate;
+  return value;
+}
+
+function readWorkbook(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      try{
+        const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        resolve(XLSX.utils.sheet_to_json(ws,{defval:null,raw:true}));
+      }catch(err){reject(err)}
+    };
+    reader.onerror=reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+function showProgress(pct,label){
+  const wrap=$('genProgress'); if(!wrap) return;
+  wrap.style.display='block';
+  $('genProgressFill').style.width=pct+'%';
+  $('genProgressLabel').textContent=label;
+}
+function hideProgress(){ const wrap=$('genProgress'); if(wrap) wrap.style.display='none'; }
+// yields to the browser so the progress bar repaints before the next (synchronous) step runs
+function nextFrame(){ return new Promise(r=>setTimeout(r,0)); }
+function val(row,names){
+  for(const n of names){ if(Object.prototype.hasOwnProperty.call(row,n) && row[n]!==null && row[n]!=='') return row[n]; }
+  return null;
+}
+const NON_WORKABLE_REASONS = new Set([
+  'wrong number / invalid email','language barrier','incomplete information','dates out of range',
+  'distance too short','unreachable','location out of range','load too small'
+]);
+function normalizeLeadSource(v){
+  const raw=String(v||'').trim();
+  const key=raw.toLowerCase();
+  const aliases={'comparemymove':'Compare My Move','compare my move':'Compare My Move','quot8 website':'Quot8','quot8':'Quot8','unidentified':'Unidentified','':'Unidentified'};
+  return aliases[key] || raw || 'Unidentified';
+}
+function contactCreatedOf(r){return dateVal(val(r,['Created Time','Contact Created Time']))}
+function contactIdOf(r){return String(val(r,['Id','Contact ID'])||'')}
+function contactRefOf(r){return String(val(r,['Reference','CRM Reference'])||'')}
+function contactNameOf(r){return String(val(r,['Full Name','Contact Name','Name'])||'Unknown Contact')}
+function contactStatusOf(r){return String(val(r,['Status','Contact Status'])||'')}
+function deadReasonOf(r){return String(val(r,['Reason Dead Lead','Dead Lead Reason'])||'')}
+function contactLeadSourceOf(r){return normalizeLeadSource(val(r,['Lead Source']))}
+function isDeadContact(r){return normalizedText(contactStatusOf(r))==='dead lead'}
+function isNonWorkableContact(r){return isDeadContact(r) && NON_WORKABLE_REASONS.has(normalizedText(deadReasonOf(r)))}
+function dealSaleCompletedOf(r){return dateVal(val(r,['Sale Completed','Sale Completed Date']))}
+function dealContactIdOf(r){return String(val(r,['Contact ID','Contact Name ID','CRM Contact ID'])||'')}
+function dealContactRefOf(r){return String(val(r,['Contact Reference','CRM Reference'])||'')}
+function dealReferenceOf(r){return String(val(r,['d.Reference','Reference','Deal Reference'])||'')}
+function isSaleCompletedDeal(r){return !!dealSaleCompletedOf(r)}
+function contactFilterPass(r){
+  const f=selected(), d=contactCreatedOf(r);
+  if(f.year!=='ALL' && (!d || d.getFullYear()!==Number(f.year))) return false;
+  if(f.month!=='ALL' && (!d || d.getMonth()+1!==Number(f.month))) return false;
+  if(f.lead!=='ALL' && contactLeadSourceOf(r)!==f.lead) return false;
+  return true;
+}
+function filteredContacts(){return contacts.filter(contactFilterPass)}
+function saleCompletedFilterPass(r){
+  const f=selected(), d=dealSaleCompletedOf(r);
+  if(!d) return false;
+  if(f.year!=='ALL' && d.getFullYear()!==Number(f.year)) return false;
+  if(f.month!=='ALL' && d.getMonth()+1!==Number(f.month)) return false;
+  if(f.salesperson!=='ALL' && salespersonOf(r)!==f.salesperson) return false;
+  if(f.lead!=='ALL' && leadOf(r)!==f.lead) return false;
+  return true;
+}
+function filteredSaleCompletedDeals(){return deals.filter(saleCompletedFilterPass)}
+function contactKeyOf(r){return contactRefOf(r)||contactIdOf(r)||`${contactNameOf(r)}|${contactCreatedOf(r)?.toISOString()||''}`}
+function dealCustomerKey(r, contactIndex){
+  const cid=dealContactIdOf(r);
+  if(cid) return `id:${cid}`;
+  const cref=dealContactRefOf(r);
+  if(cref && contactIndex.byRef.has(cref)){
+    const c=contactIndex.byRef.get(cref);
+    const actualId=contactIdOf(c);
+    return actualId ? `id:${actualId}` : `ref:${cref}`;
+  }
+  return '';
+}
+function buildContactIndex(){
+  const byId=new Map(),byRef=new Map();
+  contacts.forEach(c=>{const id=contactIdOf(c),ref=contactRefOf(c);if(id)byId.set(id,c);if(ref)byRef.set(ref,c)});
+  return {byId,byRef};
+}
+function matchDealToContact(d,index){
+  const id=dealContactIdOf(d); if(id&&index.byId.has(id)) return index.byId.get(id);
+  const ref=dealContactRefOf(d); if(ref&&index.byRef.has(ref)) return index.byRef.get(ref);
+  return null;
+}
+
+function num(v){
+  if(v===null||v===undefined||v==='') return 0;
+  if(typeof v==='number' && Number.isFinite(v)) return v;
+  const s=String(v).replace(/[,\s€£$]/g,'').replace(/[()]/g,'');
+  const x=parseFloat(s);
+  return Number.isFinite(x)?x:0;
+}
+function dateVal(v){
+  if(!v) return null;
+  if(v instanceof Date && !isNaN(v)) return v;
+  if(typeof v==='number'){
+    const x=XLSX.SSF.parse_date_code(v);
+    if(x) return new Date(x.y,x.m-1,x.d,x.H||0,x.M||0,Math.floor(x.S||0));
+  }
+  const s=String(v).trim();
+  const m=s.match(/^(\d{1,2})\s+([A-Za-z]{3}),?\s+(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?$/i);
+  if(m){
+    const months={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+    const mon=months[m[2][0].toUpperCase()+m[2].slice(1).toLowerCase()];
+    if(mon!==undefined){
+      let hour=Number(m[4]||0),minute=Number(m[5]||0),second=Number(m[6]||0);
+      const ap=String(m[7]||'').toUpperCase();
+      if(ap){hour%=12;if(ap==='PM')hour+=12;}
+      return new Date(Number(m[3]),mon,Number(m[1]),hour,minute,second);
+    }
+  }
+  const d=new Date(s);
+  return isNaN(d)?null:d;
+}
+function dealDateValue(row){
+  return val(row,['Delivery Date','Move Date','Pickup Date','Collection Date','Scheduled Date','Expected Delivery Date','Payment Date','Paid Date','Closing Date','Created Time','Created Date']);
+}
+function yearOf(row,type){
+  const d=dateVal(type==='invoice'?val(row,['Invoice Date']):type==='expense'?val(row,['Bill Date']):dealDateValue(row));
+  return d?d.getFullYear():null;
+}
+function monthOf(row,type){
+  const d=dateVal(type==='invoice'?val(row,['Invoice Date']):type==='expense'?val(row,['Bill Date']):dealDateValue(row));
+  return d?d.getMonth()+1:null;
+}
+function currencyOf(r){
+  const isExpense=Object.prototype.hasOwnProperty.call(r,'Expense FCY')||Object.prototype.hasOwnProperty.call(r,'Expense BCY');
+  const raw=val(r,isExpense
+    ? ['Expense Currency','Expense Currency Code','Currency Code','Currency','Currency Name','Currency Symbol','d.Currency']
+    : ['Currency','Currency Code','d.Currency']);
+  const text=String(raw||'').trim().toUpperCase();
+  if(text.includes('GBP')||text.includes('£')||text.includes('POUND')) return 'GBP';
+  if(text.includes('EUR')||text.includes('€')||text.includes('EURO')) return 'EUR';
+  return text;
+}
+function salespersonOf(r){return String(val(r,['Salesperson','Deal Owner','Sales Person'])||'Unassigned')}
+function leadOf(r){return String(val(r,['Lead Source'])||'Unidentified')}
+function routeOf(r){return String(val(r,['Route'])||'Unknown Route')}
+function normalizedText(v){return String(v||'').trim().toLowerCase()}
+function dealStatusOf(r){return String(val(r,['Status','Deal Status','Job Status','Stage','Deal Stage'])||'')}
+function systemStatusOf(r){return paymentStageOf(r)}
+function paymentStageOf(r){return String(val(r,['Payment Stage','Payment Status','Payment','Invoice Status','Paid Status'])||'')}
+function isDeliveredDeal(r){
+  const status=normalizedText(dealStatusOf(r));
+  if(!status.includes('delivered')) return false;
+  const deliveryDate=futureBookingDateOf(r);
+  if(!deliveryDate) return true;
+  const today=new Date(); today.setHours(0,0,0,0);
+  return deliveryDate<=today;
+}
+function isPaidDeal(r){
+  const text=normalizedText(paymentStageOf(r)+' '+dealStatusOf(r));
+  if(!text || text.includes('unpaid') || text.includes('not paid')) return false;
+  return text.includes('paid') || text.includes('payment received') || text.includes('fully settled');
+}
+function isPaidFutureDeal(r){return !isDeliveredDeal(r) && isPaidDeal(r)}
+function futureBookingDateOf(r){return dateVal(val(r,['Delivery Date','Move Date','Pickup Date','Collection Date','Scheduled Date','Expected Delivery Date']))}
+function isFutureBooking(r){
+  const bookingDate=futureBookingDateOf(r);
+  const today=new Date(); today.setHours(0,0,0,0);
+  return !isDeliveredDeal(r) && !!bookingDate && bookingDate>=today;
+}
+function profitOf(r){return num(val(r,['Net Profit']))}
+function expenseAmountOf(r){
+  const fcy=val(r,['Expense FCY']);
+  return fcy!==null ? num(fcy) : num(val(r,['Expense BCY']));
+}
+function expenseFcyOf(r){return num(val(r,['Expense FCY']))}
+function expenseBcyOf(r){return num(val(r,['Expense BCY']))}
+function expenseItemOf(r){return String(val(r,['Expense Item','Account ID','Account'])||'Uncategorised Expense')}
+function vendorOf(r){return String(val(r,['Vendor Name','Vendor','Supplier Name','Supplier','Vendor Display Name','Vendor ID'])||'Unknown Vendor')}
+function extraServiceBudgetProfitOf(r){return num(val(r,['Extra Service Budget Profit','Extra Services Budget Profit','Extra Service Profit']))}
+function executedValueOf(r){return num(val(r,['Executed Job Value','Sales Revenue','Client Price']))}
+function salesOf(r){return num(val(r,['Sales FCY','Total (FCY)']))}
+function quantityOf(r){
+  const candidates = [
+    'Quantity','Qty','Item Quantity','Total Quantity','Quantity Sold','Item Qty','Qty.','QTY',
+    'Total Qty','Quantity Ordered','Qty Ordered','Quantity Invoiced','Qty Invoiced',
+    'Number of Units','No. of Units','Units','No of Units','No. of Items','Items',
+    'Unit Quantity','Qty Sold','Quantity Shipped'
+  ];
+  for(const key of candidates){
+    const direct = val(r,[key]);
+    if(direct!==null && direct!=='' && num(direct)!==0) return num(direct);
+  }
+  const key=Object.keys(r).find(name=>{
+    const normalized=String(name).toLowerCase().replace(/[^a-z0-9]/g,'');
+    return normalized.includes('quantity') || normalized.startsWith('qty') || normalized.includes('units') || normalized.includes('items');
+  });
+  return key ? num(r[key]) : 0;
+}
+function hasQuantityColumn(rows){
+  return rows.some(row=>Object.keys(row).some(name=>{
+    const normalized=String(name).toLowerCase().replace(/[^a-z0-9]/g,'');
+    return normalized.includes('quantity') || normalized.startsWith('qty') || normalized.includes('units') || normalized.includes('items');
+  }));
+}
+function invoiceCountOf(){return 1}
+const salespersonAnimals=['🦊','🐼','🦁','🐨','🐯','🐸','🐙','🦄','🐧','🐵','🦉','🐢','🐳','🦋','🐝','🦒','🐰','🐻'];
+function animalForSalesperson(name){
+  const text=String(name||'');
+  let hash=0;
+  for(let i=0;i<text.length;i++) hash=(hash*31+text.charCodeAt(i))>>>0;
+  return salespersonAnimals[hash%salespersonAnimals.length];
+}
+function outstandingOf(r){return num(val(r,['Outstanding FCY','Balance (FCY)']))}
+function feeProfitOf(r){return num(val(r,['Profit Transaction Fee']))}
+function deliveryDateOf(r){const d=dateVal(val(r,['Delivery Date']));return d?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—'}
+function customerOf(r){return String(val(r,['Customer Name','Company Name'])||'Unknown Customer')}
+function invoiceIdOf(r){return String(val(r,['Invoice Number','Invoice ID'])||'')}
+function refOf(r){return String(val(r,['Reference'])||'')}
+function clientPriceOf(r){return num(val(r,['Client Price','Executed Job Value','Sales Revenue']))}
+
+function money(v,c){
+  if(c==='GBP') return '£'+Math.abs(v).toLocaleString(undefined,{maximumFractionDigits:0});
+  if(c==='EUR') return '€'+Math.abs(v).toLocaleString(undefined,{maximumFractionDigits:0});
+  return v.toLocaleString(undefined,{maximumFractionDigits:0});
+}
+function signedMoney(v,c){return (v<0?'-':'')+money(v,c)}
+function pct(v){return (Number.isFinite(v)?v:0).toFixed(1)+'%'}
+function netProfitAfterFeesOf(r){return profitOf(r)-feeProfitOf(r)}
+function unique(arr){return [...new Set(arr.filter(x=>x!==null&&x!==undefined&&x!==''))]}
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id]}}
+function destroyPrintCharts(){Object.keys(printCharts).forEach(id=>{printCharts[id].destroy();delete printCharts[id]})}
+function colors(){
+  return {blue:'#3b82f6',green:'#22c55e',red:'#ef4444',amber:'#f59e0b',purple:'#a855f7',cyan:'#06b6d4',gray:'#64748b'};
+}
+function chartTextColor(){return printMode ? '#111827' : '#9fb0c5'}
+function chartGridColor(){return printMode ? '#d1d5db' : '#21344d'}
+Chart.defaults.color=chartTextColor(); Chart.defaults.borderColor=chartGridColor();
+
+function selected(){return {year:$('yearFilter').value,month:$('monthFilter').value,currency:$('currencyFilter').value,salesperson:$('salespersonFilter').value,lead:$('leadFilter').value}}
+function labelForSelect(id){
+  const el=$(id);
+  return el && el.selectedOptions && el.selectedOptions[0] ? el.selectedOptions[0].textContent : 'All';
+}
+function updatePrintSummary(){
+  const el=$('printFilterSummary');
+  if(!el) return;
+  el.textContent=`Year: ${labelForSelect('yearFilter')} | Month: ${labelForSelect('monthFilter')} | Currency: ${labelForSelect('currencyFilter')} | Salesperson: ${labelForSelect('salespersonFilter')} | Lead Source: ${labelForSelect('leadFilter')}`;
+}
+function currencyMatches(rowCurrency,filterCurrency){
+  return filterCurrency==='ALL'||(filterCurrency==='EUR'||filterCurrency==='GBP' ? ['EUR','GBP'].includes(rowCurrency) : rowCurrency===filterCurrency);
+}
+function passCommon(row,type){
+  const f=selected(), y=yearOf(row,type), m=monthOf(row,type), c=currencyOf(row), s=salespersonOf(row);
+  if(f.year!=='ALL' && y!==Number(f.year)) return false;
+  if(f.month!=='ALL' && m!==Number(f.month)) return false;
+  if(!currencyMatches(c,f.currency)) return false;
+  if(f.salesperson!=='ALL' && s!==f.salesperson) return false;
+  if(type==='deal' && f.lead!=='ALL' && leadOf(row)!==f.lead) return false;
+  return true;
+}
+function filteredInvoices(){return invoices.filter(r=>passCommon(r,'invoice'))}
+function filteredDeals(){return deals.filter(r=>passCommon(r,'deal'))}
+function filteredExpenses(){return expenses.filter(r=>passCommon(r,'expense'))}
+function paymentBucketOf(r){
+  if(isDeliveredDeal(r)) return 'Delivered';
+  const text=normalizedText(`${paymentStageOf(r)} ${dealStatusOf(r)}`);
+  if(text.includes('pending')) return 'Payment Pending';
+  if(text.includes('deposit')) return 'Deposit Paid';
+  if(text.includes('50') || text.includes('half')) return '50/50 Paid';
+  if(isPaidDeal(r) || text.includes('full')) return 'Full Payment';
+  return 'Upcoming';
+}
+function updateFxAudit(){
+  const el=$('fxAudit');
+  if(!el) return;
+  const target=resolveTargetCurrency();
+  if(!target){
+    el.innerHTML='<strong>FX audit:</strong> native EUR + GBP display; no conversion applied.';
+    return;
+  }
+  const rows=[...filteredInvoices(),...filteredDeals()].filter(r=>currencyOf(r)!==target);
+  const entries={};
+  rows.forEach(row=>{
+    const date=transactionDateKey(row), rate=historicalRateForRow(row);
+    if(!date||!rate) return;
+    const key=`${date}|${rate}`;
+    if(!entries[key]) entries[key]={date,rate,count:0};
+    entries[key].count++;
+  });
+  const list=Object.values(entries).sort((a,b)=>a.date.localeCompare(b.date));
+  const direction=target==='GBP'?'EUR → GBP':'GBP → EUR';
+  const summary=fxAuditState.historical?'Frankfurter historical rates':'latest/fallback rate';
+  const errorNote=fxAuditState.fallback&&fxAuditState.error?` <span class="bad">(${fxAuditState.error})</span>`:'';
+  const detail=list.map(item=>`<tr><td>${item.date}</td><td>${direction==='EUR → GBP'?item.rate.toFixed(6):(1/item.rate).toFixed(6)}</td><td>${item.count.toLocaleString()}</td></tr>`).join('');
+  el.innerHTML=`<strong>FX audit:</strong> ${direction} using ${summary}${errorNote}; transaction dates ${fxAuditState.minDate||'n/a'} to ${fxAuditState.maxDate||'n/a'}. <details><summary>Show ${list.length.toLocaleString()} date/rate entries</summary><div class="table-wrap"><table><thead><tr><th>Date</th><th>${direction} rate</th><th>Rows</th></tr></thead><tbody>${detail||'<tr><td colspan="3">No converted rows</td></tr>'}</tbody></table></div></details>`;
+}
+function currencySet(rows){return unique(rows.map(currencyOf)).filter(c=>['EUR','GBP'].includes(c))}
+function splitMoney(rows, valueFn, targetCurrency = null){
+  const out={EUR:0,GBP:0,combinedEUR:0};
+  rows.forEach(r=>accumulateAmount(out,r,valueFn(r),targetCurrency));
+  return out;
+}
+function accumulateAmount(bucket,row,value,targetCurrency=null){
+  const c=currencyOf(row);
+  bucket.combinedEUR=(bucket.combinedEUR||0)+convertForRow(value,row,'EUR');
+  if(targetCurrency){
+    bucket[targetCurrency]=(bucket[targetCurrency]||0)+convertForRow(value,row,targetCurrency);
+    return;
+  }
+  if(c in bucket) bucket[c]+=value;
+}
+function sumConverted(rows,valueFn,targetCurrency='EUR'){
+  return rows.reduce((sum,row)=>sum+convertForRow(valueFn(row),row,targetCurrency),0);
+}
+function marginFromRows(rows, profitFn=netProfitAfterFeesOf){
+  const profit=sumConverted(rows,profitFn,'EUR');
+  const value=sumConverted(rows,executedValueOf,'EUR');
+  return value ? (profit/value)*100 : 0;
+}
+function groupRows(rows,keyFn){
+  return rows.reduce((groups,row)=>{const key=keyFn(row);if(!groups[key]) groups[key]=[];groups[key].push(row);return groups},{});
+}
+function moneyForRows(rows,valueFn,targetCurrency=null){return formatDual(splitMoney(rows,valueFn,targetCurrency))}
+function formatDual(obj){
+  const parts=[]; if(obj.EUR) parts.push(money(obj.EUR,'EUR')); if(obj.GBP) parts.push(money(obj.GBP,'GBP'));
+  if(!parts.length) return '—';
+  if(obj.GBP){
+    const historical = typeof obj.combinedEUR==='number';
+    const combinedEur = historical ? obj.combinedEUR : obj.EUR + convertCurrencyValue(obj.GBP,'GBP','EUR');
+    const note = historical ? 'GBP converted to EUR using the historical FX rate for each transaction\u2019s date' : 'GBP converted to EUR at the latest FX rate (no per-transaction dates available here)';
+    const label = obj.EUR ? 'combined' : 'in EUR';
+    return parts.join(' · ') + ` <span class="fx-total" title="${note}">≈ ${money(combinedEur,'EUR')} ${label}</span>`;
+  }
+  return parts.join(' · ');
+}
+function monthYearLabel(monthNumber, yearNumber){
+  if(!monthNumber || !yearNumber) return 'n/a';
+  return `${monthNames[monthNumber-1]} ${yearNumber}`;
+}
+
+function compFor(rows,type,valueFn){
+  const f=selected();
+  const years=unique(rows.map(r=>yearOf(r,type))).filter(Boolean).sort((a,b)=>b-a);
+  const yr=f.year==='ALL' ? (years[0] || null) : Number(f.year);
+  if(!yr) return {mom:null,yoy:null,momLabel:null,yoyLabel:null};
+
+  const matchesFilters=(r,y)=>yearOf(r,type)===y&&currencyMatches(currencyOf(r),f.currency)&&(f.salesperson==='ALL'||salespersonOf(r)===f.salesperson)&&(type!=='deal'||f.lead==='ALL'||leadOf(r)===f.lead);
+  if(f.month==='ALL'){
+    const cur=rows.filter(r=>matchesFilters(r,yr)).reduce((s,r)=>s+valueFn(r),0);
+    const previousYear=rows.filter(r=>matchesFilters(r,yr-1)).reduce((s,r)=>s+valueFn(r),0);
+    const yoy=previousYear?((cur-previousYear)/Math.abs(previousYear))*100:null;
+    return {mom:null,yoy:yoy,momLabel:null,yoyLabel:`vs ${yr-1} full year`,current:cur,previous:null,lastYear:previousYear};
+  }
+  const monthsForYear = unique(rows.filter(r=>yearOf(r,type)===yr).map(r=>monthOf(r,type))).filter(Boolean).sort((a,b)=>a-b);
+  const mo=f.month==='ALL' ? (monthsForYear[monthsForYear.length-1] || null) : Number(f.month);
+  if(!mo) return {mom:null,yoy:null,momLabel:null,yoyLabel:null};
+
+  const match=(r,y,m)=>yearOf(r,type)===y&&monthOf(r,type)===m&&currencyMatches(currencyOf(r),f.currency)&&(f.salesperson==='ALL'||salespersonOf(r)===f.salesperson)&&(type!=='deal'||f.lead==='ALL'||leadOf(r)===f.lead);
+  const cur=rows.filter(r=>match(r,yr,mo)).reduce((s,r)=>s+valueFn(r),0);
+
+  let py=yr, pm=mo-1;
+  if(pm===0){pm=12;py--}
+  const prev=rows.filter(r=>match(r,py,pm)).reduce((s,r)=>s+valueFn(r),0);
+  const ly=rows.filter(r=>match(r,yr-1,mo)).reduce((s,r)=>s+valueFn(r),0);
+  const change=(a,b)=>b?((a-b)/Math.abs(b))*100:null;
+
+  const momLabel = `vs ${monthYearLabel(pm, py)}`;
+  const yoyLabel = `vs ${monthYearLabel(mo, yr-1)}`;
+
+  return {mom:change(cur,prev),yoy:change(cur,ly),momLabel:momLabel,yoyLabel:yoyLabel,current:cur,previous:prev,lastYear:ly};
+}
+function setComparison(elId,comp,increaseGood=true,showValues=false){
+  const el=$(elId); el.innerHTML='';
+  const entries = [
+    [comp.momLabel || 'vs previous month', comp.mom, comp.previous],
+    [comp.yoyLabel || 'vs previous year', comp.yoy, comp.lastYear]
+  ];
+
+  entries.forEach(([label,v,baseline])=>{
+    if(v===null) return;
+    const good=increaseGood?v>=0:v<=0;
+    const sp=document.createElement('span');
+    sp.className=good ? 'good' : 'bad';
+    sp.style.display='inline-block';
+    sp.style.marginRight='8px';
+    sp.style.fontSize='11px';
+    sp.style.fontWeight='700';
+    sp.style.padding='3px 7px';
+    sp.style.borderRadius='999px';
+    sp.style.background = good ? 'rgba(34,197,94,0.14)' : 'rgba(239,68,68,0.12)';
+    sp.style.border = good ? '1px solid rgba(34,197,94,0.35)' : '1px solid rgba(239,68,68,0.35)';
+    const valueText=showValues?` (${comp.current.toLocaleString()} vs ${baseline.toLocaleString()})`:'';
+    sp.textContent = `${v>=0 ? '▲' : '▼'} ${Math.abs(v).toFixed(1)}%${valueText} ${label}`;
+    el.appendChild(sp);
+  });
+}
+function groupMonthly(rows,type,valueFn,year,targetCurrency = null){
+  const a=Array(12).fill(0); rows.forEach(r=>{if(yearOf(r,type)===year){const m=monthOf(r,type);if(m){const v=valueFn(r);a[m-1]+=targetCurrency ? convertForRow(v,r,targetCurrency) : v;}}}); return a;
+}
+function cumulative(values){
+  let total=0;
+  return values.map(value=>total+=value);
+}
+function invoiceComparisonCutoff(year){
+  const today=new Date();
+  if(year===today.getFullYear()) return new Date(year,today.getMonth(),today.getDate(),23,59,59,999);
+  return new Date(year,11,31,23,59,59,999);
+}
+function invoiceRowsThroughCutoff(rows,year,cutoff){
+  const equivalentCutoff=new Date(year,cutoff.getMonth(),cutoff.getDate(),23,59,59,999);
+  return rows.filter(row=>{
+    const date=dateVal(val(row,['Invoice Date']));
+    return date&&date.getFullYear()===year&&date<=equivalentCutoff;
+  });
+}
+function currentChartYear(){
+  const f=selected(); if(f.year!=='ALL') return Number(f.year);
+  const years=unique([...invoices.map(r=>yearOf(r,'invoice')),...deals.map(r=>yearOf(r,'deal')),...expenses.map(r=>yearOf(r,'expense'))]).filter(Boolean);
+  return years.length?Math.max(...years):new Date().getFullYear();
+}
+function fxRateInfoForRow(row){
+  const source=currencyOf(row);
+  const rate=historicalRateForRow(row);
+  if(rate){
+    const dateKey=transactionDateKey(row);
+    return `1 EUR = ${rate.toFixed(4)} GBP${dateKey?` (rate on ${dateKey})`:''}`;
+  }
+  if(fxRates.GBP && source){
+    return `1 EUR = ${fxRates.GBP.toFixed(4)} GBP (latest rate, no historical rate found)`;
+  }
+  return '—';
+}
+function dealListRowHtml(r,targetCurrency,showExtraServiceProfit=false){
+  const currency=currencyOf(r);
+  const converted = targetCurrency && currency && currency!==targetCurrency ? convertForRow(netProfitAfterFeesOf(r),r,targetCurrency) : null;
+  const extraServiceProfit = extraServiceBudgetProfitOf(r);
+  const extraConverted = targetCurrency && currency && currency!==targetCurrency ? convertForRow(extraServiceProfit,r,targetCurrency) : null;
+  return `<tr>
+    <td>${refOf(r)||'—'}</td>
+    <td>${deliveryDateOf(r)}</td>
+    <td>${dealStatusOf(r)||'—'}</td>
+    <td>${systemStatusOf(r)||'—'}</td>
+    <td>${salespersonOf(r)}</td>
+    <td>${routeOf(r)}</td>
+    <td>${leadOf(r)}</td>
+    <td>${signedMoney(executedValueOf(r),currency)}</td>
+    <td class="${netProfitAfterFeesOf(r)<0?'bad':''}">${signedMoney(netProfitAfterFeesOf(r),currency)}${converted!==null?` <span class="fx-total">≈ ${signedMoney(converted,targetCurrency)}</span>`:''}</td>
+    ${showExtraServiceProfit?`<td>${signedMoney(extraServiceProfit,currency)}${extraConverted!==null?` <span class="fx-total">≈ ${signedMoney(extraConverted,targetCurrency)}</span>`:''}</td>`:''}
+    <td>${fxRateInfoForRow(r)}</td>
+  </tr>`;
+}
+function invoiceListRowHtml(r,targetCurrency){
+  const currency=currencyOf(r);
+  const converted = targetCurrency && currency && currency!==targetCurrency ? convertForRow(salesOf(r),r,targetCurrency) : null;
+  const d=dateVal(val(r,['Invoice Date']));
+  const dateText=d?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
+  return `<tr>
+    <td>${invoiceIdOf(r)||'—'}</td>
+    <td>${dateText}</td>
+    <td>${salespersonOf(r)}</td>
+    <td>${customerOf(r)}</td>
+    <td>${signedMoney(salesOf(r),currency)}${converted!==null?` <span class="fx-total">≈ ${signedMoney(converted,targetCurrency)}</span>`:''}</td>
+    <td class="${outstandingOf(r)>0?'bad':''}">${signedMoney(outstandingOf(r),currency)}</td>
+    <td>${fxRateInfoForRow(r)}</td>
+  </tr>`;
+}
+function expenseListRowHtml(r,targetCurrency){
+  const currency=currencyOf(r), fcy=expenseFcyOf(r), bcy=expenseBcyOf(r);
+  const converted=targetCurrency&&currency&&currency!==targetCurrency?convertForRow(fcy,r,targetCurrency):null;
+  const billDate=dateVal(val(r,['Bill Date']));
+  const dateText=billDate?billDate.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
+  return `<tr>
+    <td>${String(val(r,['Bill Number','Bill ID'])||'—')}</td>
+    <td>${dateText}</td>
+    <td>${String(val(r,['Bill Status'])||'—')}</td>
+    <td>${vendorOf(r)}</td>
+    <td>${expenseItemOf(r)}</td>
+    <td>${signedMoney(fcy,currency||'EUR')} <span class="fx-total">${currency||'Unknown'}</span>${converted!==null?` <span class="fx-total">≈ ${signedMoney(converted,targetCurrency)}</span>`:''}</td>
+    <td>${signedMoney(bcy,FX_BASE_CURRENCY)} <span class="fx-total">${FX_BASE_CURRENCY}</span></td>
+  </tr>`;
+}
+function openDealsModal(title,rows,kind='deal',showExtraServiceProfit=false){
+  const overlay=$('dealsModalOverlay'), body=$('dealsModalBody'), heading=$('dealsModalTitle'), count=$('dealsModalCount');
+  if(!overlay||!body||!heading) return;
+  heading.textContent=title;
+  count.textContent = rows.length ? `${rows.length.toLocaleString()} ${kind==='invoice'?'invoice(s)':'job(s)'} · FX rate shown per transaction date` : 'No matching records for this selection';
+  const targetCurrency=resolveTargetCurrency();
+  if(kind==='invoice'){
+    body.innerHTML = `<table class="deals-modal-table"><thead><tr><th>Invoice</th><th>Date</th><th>Salesperson</th><th>Customer</th><th>Sales</th><th>Outstanding</th><th>FX Rate Used</th></tr></thead><tbody>${
+      rows.length ? rows.map(r=>invoiceListRowHtml(r,targetCurrency)).join('') : '<tr><td colspan="7" class="empty">No records</td></tr>'
+    }</tbody></table>`;
+  } else if(kind==='expense') {
+    body.innerHTML = `<table class="deals-modal-table"><thead><tr><th>Bill Number</th><th>Bill Date</th><th>Status</th><th>Vendor</th><th>Expense Item</th><th>Expense FCY</th><th>Expense BCY</th></tr></thead><tbody>${
+      rows.length ? rows.map(r=>expenseListRowHtml(r,targetCurrency)).join('') : '<tr><td colspan="7" class="empty">No records</td></tr>'
+    }</tbody></table>`;
+  } else {
+    const extraHeader=showExtraServiceProfit?'<th>Extra Service Budget Profit</th>':'';
+    const dealColumnCount=showExtraServiceProfit?11:10;
+    body.innerHTML = `<table class="deals-modal-table"><thead><tr><th>Reference</th><th>Delivery Date</th><th>Deal Status</th><th>System Status</th><th>Salesperson</th><th>Route</th><th>Lead Source</th><th>Job Value</th><th>Net Profit</th>${extraHeader}<th>FX Rate Used</th></tr></thead><tbody>${
+      rows.length ? rows.map(r=>dealListRowHtml(r,targetCurrency,showExtraServiceProfit)).join('') : `<tr><td colspan="${dealColumnCount}" class="empty">No records</td></tr>`
+    }</tbody></table>`;
+  }
+  overlay.classList.add('open');
+}
+function closeDealsModal(){
+  const overlay=$('dealsModalOverlay');
+  if(overlay) overlay.classList.remove('open');
+}
+function handleChartClick(config,label,index,datasetIndex){
+  const result = config.rowsFor(label,index,datasetIndex);
+  const rows = Array.isArray(result) ? result : (result && result.rows) || [];
+  const kind = Array.isArray(result) ? (config.kind||'deal') : (result && result.kind) || config.kind || 'deal';
+  const dsTitle = config.datasetTitles && config.datasetTitles[datasetIndex] ? ` — ${config.datasetTitles[datasetIndex]}` : '';
+  openDealsModal(`${config.title} — ${label}${dsTitle}`, rows, kind, config.metric==='extraServiceBudgetProfit');
+}
+function applyChartClick(options,clickConfig,labels){
+  if(!clickConfig) return;
+  options.onClick=(evt,elements)=>{
+    if(!elements.length) return;
+    const el=elements[0];
+    handleChartClick(clickConfig,labels[el.index],el.index,el.datasetIndex);
+  };
+  options.onHover=(evt,elements)=>{ if(evt.native && evt.native.target) evt.native.target.style.cursor = elements.length ? 'pointer' : 'default'; };
+}
+function chartLine(id,labels,datasets,clickConfig=null){
+  destroyChart(id);
+  const options={responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{color:chartTextColor()}}},scales:{y:{beginAtZero:true,ticks:{color:chartTextColor()},grid:{color:chartGridColor()}},x:{ticks:{color:chartTextColor()},grid:{color:chartGridColor()}}}};
+  applyChartClick(options,clickConfig,labels);
+  charts[id]=new Chart($(id),{type:'line',data:{labels,datasets},options});
+}
+function chartBar(id,labels,datasets,horizontal=false,clickConfig=null){
+  destroyChart(id);
+  const options={indexAxis:horizontal?'y':'x',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{position:'bottom',labels:{color:chartTextColor()}}},scales:{y:horizontal?{ticks:{color:chartTextColor()},grid:{color:chartGridColor()}}:{beginAtZero:true,ticks:{color:chartTextColor()},grid:{color:chartGridColor()}},x:horizontal?{beginAtZero:true,ticks:{color:chartTextColor()},grid:{color:chartGridColor()}}:{ticks:{color:chartTextColor()},grid:{color:chartGridColor()}}}};
+  applyChartClick(options,clickConfig,labels);
+  charts[id]=new Chart($(id),{type:'bar',data:{labels,datasets},options});
+}
+function printChart(id,type,labels,datasets,horizontal=false){
+  const canvas=$(id);
+  if(!canvas) return;
+  if(printCharts[id]){printCharts[id].destroy();delete printCharts[id]}
+  printCharts[id]=new Chart(canvas,{type,data:{labels,datasets},options:{indexAxis:horizontal?'y':'x',responsive:false,maintainAspectRatio:false,animation:false,plugins:{legend:{position:'bottom',labels:{color:'#111827',boxWidth:14,font:{size:10}}}},scales:{y:horizontal?{ticks:{color:'#111827',font:{size:10}},grid:{color:'#d1d5db'}}:{beginAtZero:true,ticks:{color:'#111827',font:{size:10}},grid:{color:'#d1d5db'}},x:horizontal?{beginAtZero:true,ticks:{color:'#111827',font:{size:10}},grid:{color:'#d1d5db'}}:{ticks:{color:'#111827',font:{size:10}},grid:{color:'#d1d5db'}}}}});
+}
+function reportChart(id){return `<div class="report-chart"><canvas id="${id}" width="900" height="260"></canvas></div>`}
+function reportPage(title,subtitle,body){
+  return `<section class="report-page"><div class="report-head"><div><h1>${title}</h1><p>${subtitle}</p></div><div class="report-meta">Movega Management Report<br>${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}<br>${labelForSelect('yearFilter')} | ${labelForSelect('monthFilter')} | ${labelForSelect('currencyFilter')}</div></div>${body}</section>`;
+}
+function reportTable(headers,rows){
+  const head=headers.map(h=>`<th>${h}</th>`).join('');
+  const body=rows.length?rows.map(row=>`<tr>${row.map(cell=>`<td>${cell}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}">No data for selected filters</td></tr>`;
+  return `<table class="report-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+function reportKpi(label,value,note=''){
+  return `<div class="report-kpi"><strong>${label}</strong><span>${value}</span>${note?`<small>${note}</small>`:''}</div>`;
+}
+function renderPrintReport(){
+  const host=$('managementPrintReport');
+  if(!host || !invoices.length || !deals.length) return;
+  destroyPrintCharts();
+  const yr=currentChartYear(), prev=yr-1, targetCurrency=resolveTargetCurrency(), reportCurrency=targetCurrency || 'EUR';
+  const inv=filteredInvoices(), dls=filteredDeals(), delivered=dls.filter(isDeliveredDeal), upcoming=dls.filter(r=>!isDeliveredDeal(r)), paidFuture=dls.filter(isPaidFutureDeal);
+  const netProfit=splitMoney(delivered,netProfitAfterFeesOf,targetCurrency), executedValue=splitMoney(delivered,executedValueOf,targetCurrency), margin=marginFromRows(delivered);
+  const summary=reportPage('Executive Summary','Core performance, movement and cash position for the selected report filters.',`
+    <div class="report-note">Filters: ${labelForSelect('yearFilter')} | ${labelForSelect('monthFilter')} | ${labelForSelect('currencyFilter')} | ${labelForSelect('salespersonFilter')} | ${labelForSelect('leadFilter')}</div>
+    <div class="report-kpis">
+      ${reportKpi('Sales EUR/GBP',moneyForRows(inv,salesOf,targetCurrency),'Zoho Books invoice sales before tax')}
+      ${reportKpi('Net Profit After Fees',formatDual(netProfit),'Delivered CRM jobs only')}
+      ${reportKpi('Margin',pct(margin),'Net profit after fees divided by executed value')}
+      ${reportKpi('Delivered Jobs',delivered.length.toLocaleString(),'Completed operational jobs')}
+      ${reportKpi('Upcoming Jobs',upcoming.length.toLocaleString(),`${paidFuture.length.toLocaleString()} already paid`)}
+      ${reportKpi('Receivables',moneyForRows(inv,outstandingOf,targetCurrency),'Outstanding Books balances')}
+      ${reportKpi('Executed Value',formatDual(executedValue),'Delivered job value')}
+      ${reportKpi('Loss-Making Jobs',delivered.filter(r=>netProfitAfterFeesOf(r)<0).length.toLocaleString(),'Delivered jobs below zero net profit')}
+    </div>
+    <div class="report-grid"><div class="report-block"><h2>Sales Movement</h2><p>${$('kSalesSub').textContent || 'Generate the report to calculate month and year movement.'}</p></div><div class="report-block"><h2>Jobs Movement</h2><p>${$('kJobsSub').textContent || 'Generate the report to calculate job movement.'}</p></div></div>
+  `);
+  const salesProfit=reportPage('Sales & Profit','Monthly sales, profit, average profit per delivered job and margin trend.',`
+    <div class="report-grid"><div class="report-block"><h2>Sales: ${prev} vs ${yr}</h2>${reportChart('printSalesYoY')}</div><div class="report-block"><h2>Net Profit After Fees: ${prev} vs ${yr}</h2>${reportChart('printProfitYoY')}</div></div>
+    <div class="report-grid"><div class="report-block"><h2>Average Profit per Job</h2>${reportChart('printAvgProfitMonthly')}</div><div class="report-block"><h2>Margin Trend</h2>${reportChart('printMarginMonthly')}</div></div>
+  `);
+  const paymentGroups=groupRows(dls,paymentBucketOf), paymentOrder=['Delivered','Upcoming','Payment Pending','Deposit Paid','50/50 Paid','Full Payment'];
+  const operationalRows=paymentOrder.map(name=>{const rows=paymentGroups[name]||[];return [name,rows.length.toLocaleString(),moneyForRows(rows,executedValueOf,targetCurrency),moneyForRows(rows,netProfitAfterFeesOf,targetCurrency)]});
+  const operational=reportPage('Operational Jobs','Delivered, upcoming and payment-stage pipeline with expected value and profit.',`
+    <div class="report-grid"><div class="report-block"><h2>Jobs by Payment Stage</h2>${reportChart('printPaymentStages')}</div><div class="report-block"><h2>Delivered Jobs: ${prev} vs ${yr}</h2>${reportChart('printDeliveriesYoY')}</div></div>
+    ${reportTable(['Stage','Jobs','Job Value','Expected / Net Profit'],operationalRows)}
+  `);
+  const people=unique([...inv.map(salespersonOf),...delivered.map(salespersonOf)]).filter(x=>x!=='Unassigned');
+  const salesTeamRows=people.map(name=>{const personDeals=delivered.filter(r=>salespersonOf(r)===name), profit=sumConverted(personDeals,netProfitAfterFeesOf,'EUR'), value=sumConverted(personDeals,executedValueOf,'EUR');return {name,jobs:personDeals.length,value:moneyForRows(personDeals,executedValueOf,targetCurrency),profit:moneyForRows(personDeals,netProfitAfterFeesOf,targetCurrency),margin:value?profit/value*100:0,avg:personDeals.length?profit/personDeals.length:0,losses:personDeals.filter(r=>netProfitAfterFeesOf(r)<0).length,sort:profit}}).sort((a,b)=>b.sort-a.sort).slice(0,22).map(r=>[r.name,r.jobs.toLocaleString(),r.value,r.profit,pct(r.margin),money(r.avg,'EUR'),r.losses.toLocaleString()]);
+  const salesTeam=reportPage('Sales Team','Salesperson performance using delivered jobs and net profit after transaction fees.',reportTable(['Salesperson','Jobs','Executed Value','Net Profit After Fees','Margin','Avg Profit/Job','Loss Jobs'],salesTeamRows));
+  const leadRows=Object.entries(groupRows(delivered,leadOf)).map(([name,rows])=>{const value=sumConverted(rows,executedValueOf,'EUR'), profit=sumConverted(rows,netProfitAfterFeesOf,'EUR');return {name,jobs:rows.length,value:moneyForRows(rows,executedValueOf,targetCurrency),profit:moneyForRows(rows,netProfitAfterFeesOf,targetCurrency),margin:value?profit/value*100:0,losses:rows.filter(r=>netProfitAfterFeesOf(r)<0).length,sort:profit}}).sort((a,b)=>b.sort-a.sort).slice(0,24).map(r=>[r.name,r.jobs.toLocaleString(),r.value,r.profit,pct(r.margin),r.losses.toLocaleString()]);
+  const leads=reportPage('Lead Sources','Lead source quality by delivered jobs, job value, profit, margin and losses.',reportTable(['Lead Source','Jobs','Revenue / Job Value','Profit','Margin','Losses'],leadRows));
+  const routeRows=Object.entries(groupRows(delivered,routeOf)).map(([name,rows])=>{const profit=sumConverted(rows,netProfitAfterFeesOf,'EUR');return {name,jobs:rows.length,profit:moneyForRows(rows,netProfitAfterFeesOf,targetCurrency),avg:rows.length?profit/rows.length:0,losses:rows.filter(r=>netProfitAfterFeesOf(r)<0).length,sort:profit}}).sort((a,b)=>b.sort-a.sort).slice(0,12).map(r=>[r.name,r.jobs.toLocaleString(),r.profit,money(r.avg,'EUR'),r.losses.toLocaleString()]);
+  const customerRows=Object.entries(groupRows(inv,customerOf)).map(([name,rows])=>({name,count:rows.length,sales:moneyForRows(rows,salesOf,targetCurrency),out:moneyForRows(rows,outstandingOf,targetCurrency),sort:sumConverted(rows,salesOf,'EUR')})).sort((a,b)=>b.sort-a.sort).slice(0,12).map(r=>[r.name,r.count.toLocaleString(),r.sales,r.out]);
+  const routesCustomers=reportPage('Routes & Customers','Strongest routes by profit and top customers by Books sales.',`<div class="report-grid"><div class="report-block"><h2>Top Routes</h2>${reportTable(['Route','Jobs','Profit','Avg Profit','Loss Jobs'],routeRows)}</div><div class="report-block"><h2>Top Customers</h2>${reportTable(['Customer','Invoices','Sales','Outstanding'],customerRows)}</div></div>`);
+  const recvInv=inv.filter(r=>outstandingOf(r)>0), agingOrder=['Current','1-30','31-60','61-90','90+'];
+  const receivableRows=Object.entries(groupRows(recvInv,customerOf)).map(([name,rows])=>({name,out:moneyForRows(rows,outstandingOf,targetCurrency),count:rows.length,sort:sumConverted(rows,outstandingOf,'EUR')})).sort((a,b)=>b.sort-a.sort).slice(0,18).map(r=>[r.name,r.out,r.count.toLocaleString()]);
+  const receivables=reportPage('Receivables','Outstanding EUR/GBP, aging buckets and largest outstanding customers.',`<div class="report-grid"><div class="report-block"><h2>Aging Buckets</h2>${reportChart('printAging')}</div><div class="report-block"><h2>Largest Outstanding Customers</h2>${reportTable(['Customer','Outstanding','Invoices'],receivableRows)}</div></div>`);
+  const lossRows=delivered.filter(r=>netProfitAfterFeesOf(r)<0).sort((a,b)=>netProfitAfterFeesOf(a)-netProfitAfterFeesOf(b)).slice(0,30).map(r=>[refOf(r)||'-',dealStatusOf(r)||'-',systemStatusOf(r)||'-',salespersonOf(r),routeOf(r),signedMoney(clientPriceOf(r),currencyOf(r)||reportCurrency),`<span class="report-bad">${signedMoney(netProfitAfterFeesOf(r),currencyOf(r)||reportCurrency)}</span>`,signedMoney(feeProfitOf(r),currencyOf(r)||reportCurrency)]);
+  const losses=reportPage('Loss Analysis','Loss-making delivered jobs with reference, deal status, system status, salesperson, route, client price, profit and transaction fee.',reportTable(['Reference','Deal Status','System Status','Salesperson','Route','Client Price','Profit After Fees','Transaction Fee'],lossRows));
+  host.innerHTML=summary+salesProfit+operational+salesTeam+leads+routesCustomers+receivables+losses;
+  const col=colors();
+  printChart('printSalesYoY','line',monthNames,[{label:String(prev),data:groupMonthly(inv,'invoice',salesOf,prev,reportCurrency),borderColor:'#64748b',backgroundColor:'#64748b',tension:.25},{label:String(yr),data:groupMonthly(inv,'invoice',salesOf,yr,reportCurrency),borderColor:col.blue,backgroundColor:col.blue,tension:.25}]);
+  printChart('printProfitYoY','line',monthNames,[{label:String(prev),data:groupMonthly(delivered,'deal',netProfitAfterFeesOf,prev,reportCurrency),borderColor:'#64748b',backgroundColor:'#64748b',tension:.25},{label:String(yr),data:groupMonthly(delivered,'deal',netProfitAfterFeesOf,yr,reportCurrency),borderColor:col.green,backgroundColor:col.green,tension:.25}]);
+  printChart('printAvgProfitMonthly','bar',monthNames,[{label:`Avg Profit / Job ${reportCurrency}`,data:monthNames.map((_,i)=>{const rows=delivered.filter(r=>yearOf(r,'deal')===yr&&monthOf(r,'deal')===i+1);return rows.length?sumConverted(rows,netProfitAfterFeesOf,reportCurrency)/rows.length:0}),backgroundColor:col.green}]);
+  printChart('printMarginMonthly','line',monthNames,[{label:'Margin %',data:monthNames.map((_,i)=>marginFromRows(delivered.filter(r=>yearOf(r,'deal')===yr&&monthOf(r,'deal')===i+1))),borderColor:col.cyan,backgroundColor:col.cyan,tension:.25}]);
+  printChart('printPaymentStages','bar',paymentOrder,[{label:'Jobs',data:paymentOrder.map(name=>(paymentGroups[name]||[]).length),backgroundColor:[col.green,col.gray,col.amber,col.cyan,col.purple,col.blue]}]);
+  printChart('printDeliveriesYoY','bar',monthNames,[{label:String(prev),data:groupMonthly(delivered,'deal',()=>1,prev),backgroundColor:'#64748b'},{label:String(yr),data:groupMonthly(delivered,'deal',()=>1,yr),backgroundColor:col.purple}]);
+  const agingGroups=groupRows(recvInv,ageBucket);
+  printChart('printAging','bar',agingOrder,[{label:`Outstanding ${reportCurrency}`,data:agingOrder.map(bucket=>sumConverted(agingGroups[bucket]||[],outstandingOf,reportCurrency)),backgroundColor:[col.green,col.blue,col.amber,'#f97316',col.red]}]);
+}
+function fillTable(id,rows,render){
+  const tb=$(id); tb.innerHTML=''; if(!rows.length){tb.innerHTML='<tr><td colspan="8" class="empty">No data for selected filters</td></tr>';return}
+  rows.forEach(r=>{const tr=document.createElement('tr');tr.innerHTML=render(r);tb.appendChild(tr)});
+}
+function dominantCurrency(){
+  const c=selected().currency;
+  return c==='ALL' ? 'EUR' : c || 'EUR';
+}
+
+function updateFilters(){
+  const old={y:$('yearFilter').value,m:$('monthFilter').value,c:$('currencyFilter').value,s:$('salespersonFilter').value,l:$('leadFilter').value};
+  const years=unique([...contacts.map(r=>{const d=contactCreatedOf(r);return d?d.getFullYear():null}),...invoices.map(r=>yearOf(r,'invoice')),...deals.map(r=>{const d=dealSaleCompletedOf(r);return d?d.getFullYear():yearOf(r,'deal')}),...expenses.map(r=>yearOf(r,'expense'))]).filter(Boolean).sort((a,b)=>b-a);
+  $('yearFilter').innerHTML='<option value="ALL">All Years</option>'+years.map(y=>`<option value="${y}">${y}</option>`).join('');
+  $('monthFilter').innerHTML='<option value="ALL">All Months</option>'+monthNames.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
+  const currencies=unique([...invoices.map(currencyOf),...deals.map(currencyOf),...expenses.map(currencyOf)]).filter(c=>['EUR','GBP'].includes(c)).sort();
+  $('currencyFilter').innerHTML='<option value="ALL">Both EUR + GBP · native</option>'+currencies.map(c=>`<option value="${c}">${c} · historical FX by date</option>`).join('');
+  const people=unique([...invoices.map(salespersonOf),...deals.map(salespersonOf)]).filter(x=>x!=='Unassigned').sort();
+  $('salespersonFilter').innerHTML='<option value="ALL">All Salespeople</option>'+people.map(x=>`<option value="${x}">${x}</option>`).join('');
+  const leads=unique([...contacts.map(contactLeadSourceOf),...deals.map(leadOf)]).sort();
+  $('leadFilter').innerHTML='<option value="ALL">All Lead Sources</option>'+leads.map(x=>`<option value="${x}">${x}</option>`).join('');
+
+  const restored = restoreFiltersState();
+  if(!restored && years.length) $('yearFilter').value=String(Math.max(...years));
+  if(old && old.y && restored) $('yearFilter').value = old.y;
+
+  ['yearFilter','monthFilter','currencyFilter','salespersonFilter','leadFilter'].forEach(id=>$(id).addEventListener('change',()=>{
+    saveFiltersState();
+    renderAll();
+  }));
+  updateFxAudit();
+}
+function renderContactConversion(){
+  const cs=filteredContacts();
+  const sales=filteredSaleCompletedDeals();
+  const total=cs.length;
+  const dead=cs.filter(isDeadContact).length;
+  const nonWorkable=cs.filter(isNonWorkableContact).length;
+  const workable=Math.max(0,total-nonWorkable);
+  const saleDeals=new Map(); sales.forEach(d=>{const k=dealReferenceOf(d)||String(val(d,['Deal ID','Id'])||''); if(k&&!saleDeals.has(k)) saleDeals.set(k,d)});
+  const saleRows=[...saleDeals.values()];
+  const index=buildContactIndex();
+  const soldKeys=new Set();
+  saleRows.forEach(d=>{const k=dealCustomerKey(d,index);if(k)soldKeys.add(k)});
+  const soldCustomers=soldKeys.size;
+  const dealRate=workable?saleRows.length/workable*100:0;
+  const customerRate=workable?soldCustomers/workable*100:0;
+  $('cTotalContacts').textContent=total.toLocaleString();
+  $('cNonWorkable').textContent=nonWorkable.toLocaleString();
+  $('cWorkable').textContent=workable.toLocaleString();
+  $('cSaleDeals').textContent=saleRows.length.toLocaleString();
+  $('cSoldCustomers').textContent=soldCustomers.toLocaleString();
+  $('cDealRate').textContent=pct(dealRate);
+  $('cCustomerRate').textContent=pct(customerRate);
+  $('cDeadRate').textContent=pct(total?dead/total*100:0);
+  $('cNonWorkableRate').textContent=pct(total?nonWorkable/total*100:0);
+  $('cDealsPerCustomer').textContent=soldCustomers?(saleRows.length/soldCustomers).toFixed(2):'0.00';
+
+  const contactGroups=groupRows(cs,contactLeadSourceOf);
+  const salesGroups=groupRows(saleRows,r=>{
+    const c=matchDealToContact(r,index); return c?contactLeadSourceOf(c):leadOf(r);
+  });
+  const keys=unique([...Object.keys(contactGroups),...Object.keys(salesGroups)]).sort();
+  const sourceRows=keys.map(name=>{
+    const crows=contactGroups[name]||[], drows=salesGroups[name]||[];
+    const ctotal=crows.length, cdead=crows.filter(isDeadContact).length, cnw=crows.filter(isNonWorkableContact).length, cwork=Math.max(0,ctotal-cnw);
+    const dd=new Map(); drows.forEach(d=>{const k=dealReferenceOf(d)||String(val(d,['Deal ID','Id'])||''); if(k&&!dd.has(k))dd.set(k,d)}); const dealList=[...dd.values()];
+    const sk=new Set();dealList.forEach(d=>{const k=dealCustomerKey(d,index);if(k)sk.add(k)});
+    return {name,contacts:ctotal,dead:cdead,nonWorkable:cnw,workable:cwork,deals:dealList.length,customers:sk.size,dealRate:cwork?dealList.length/cwork*100:0,customerRate:cwork?sk.size/cwork*100:0};
+  }).sort((a,b)=>b.deals-a.deals);
+  fillTable('contactSourceTable',sourceRows,r=>`<td>${r.name}</td><td>${r.contacts.toLocaleString()}</td><td>${r.dead.toLocaleString()}</td><td>${r.nonWorkable.toLocaleString()}</td><td>${r.workable.toLocaleString()}</td><td>${r.deals.toLocaleString()}</td><td>${r.customers.toLocaleString()}</td><td>${pct(r.dealRate)}</td><td>${pct(r.customerRate)}</td>`);
+  const top=sourceRows.slice(0,15),col=colors();
+  chartBar('contactSourceChart',top.map(r=>r.name),[{label:'Sale Completed Deals',data:top.map(r=>r.deals),backgroundColor:col.purple},{label:'Unique Customers Sold',data:top.map(r=>r.customers),backgroundColor:col.blue}],true);
+
+  const contactByKey=new Map(); contacts.forEach(c=>contactByKey.set(contactKeyOf(c),c));
+  const firstSale=new Map();
+  deals.filter(isSaleCompletedDeal).forEach(d=>{
+    const c=matchDealToContact(d,index); if(!c)return; const ck=contactKeyOf(c),sd=dealSaleCompletedOf(d); const cur=firstSale.get(ck); if(!cur||sd<cur)firstSale.set(ck,sd);
+  });
+  const monthMap=new Map();
+  contacts.forEach(c=>{const cd=contactCreatedOf(c);if(!cd)return;const key=`${cd.getFullYear()}-${String(cd.getMonth()+1).padStart(2,'0')}`;if(!monthMap.has(key))monthMap.set(key,[]);monthMap.get(key).push(c)});
+  const months=[...monthMap.keys()].sort();
+  const today=new Date();
+  const cohortRows=months.map(key=>{
+    const arr=monthMap.get(key), workableArr=arr.filter(c=>!isNonWorkableContact(c));
+    let ever=0,c30=0,c60=0,c90=0;
+    workableArr.forEach(c=>{const fs=firstSale.get(contactKeyOf(c));if(!fs)return;const cd=contactCreatedOf(c);const days=Math.floor((fs-cd)/86400000);if(days<0)return;ever++;if(days<=30)c30++;if(days<=60)c60++;if(days<=90)c90++;});
+    const [y,m]=key.split('-').map(Number), monthEnd=new Date(y,m,0,23,59,59,999),age=(today-monthEnd)/86400000;
+    const rate=n=>workableArr.length?n/workableArr.length*100:0;
+    return {key,contacts:arr.length,workable:workableArr.length,ever,lifetime:rate(ever),r30:rate(c30),r60:rate(c60),r90:rate(c90),m30:age>=30,m60:age>=60,m90:age>=90};
+  });
+  fillTable('contactCohortTable',cohortRows,r=>`<td>${monthNames[Number(r.key.slice(5))-1]} ${r.key.slice(0,4)}</td><td>${r.contacts.toLocaleString()}</td><td>${r.workable.toLocaleString()}</td><td>${r.ever.toLocaleString()}</td><td>${pct(r.lifetime)}</td><td>${r.m30?pct(r.r30):pct(r.r30)+'*'}</td><td>${r.m60?pct(r.r60):pct(r.r60)+'*'}</td><td>${r.m90?pct(r.r90):pct(r.r90)+'*'}</td>`);
+
+  const matched=saleRows.filter(d=>matchDealToContact(d,index)).length;
+  const hasSaleField=deals.some(d=>Object.prototype.hasOwnProperty.call(d,'Sale Completed')||Object.prototype.hasOwnProperty.call(d,'Sale Completed Date'));
+  const hasContactLink=deals.some(d=>dealContactIdOf(d)||dealContactRefOf(d));
+  const notes=[];
+  if(!hasSaleField)notes.push('<span class="bad">Deals export is missing Sale Completed. Add this field to QT_DEAL_FINANCIALS for accurate sales activity.</span>');
+  if(!hasContactLink)notes.push('<span class="bad">Deals export has no Contact ID/Contact Reference. Cohort matching is falling back to Deal Reference ↔ Contact Reference and can miss upgrades.</span>');
+  notes.push(`Sale Completed source: QT_DEAL_FINANCIALS → Sale Completed. Deals are deduplicated by Deal Reference/Deal ID. Unique customers use actual Contact ID. Contact/deal join audit: ${matched.toLocaleString()} of ${saleRows.length.toLocaleString()} Sale Completed deals matched to a Contact.`);
+  $('contactAudit').innerHTML=notes.join(' · ');
+}
+
+function renderKPIs(){
+  const inv=filteredInvoices(), dls=filteredDeals();
+  const targetCurrency = resolveTargetCurrency();
+  const deliveredDeals=dls.filter(isDeliveredDeal), paidFutureDeals=dls.filter(isPaidFutureDeal), kpiDeals=[...deliveredDeals,...paidFutureDeals];
+  const sales=splitMoney(inv,salesOf,targetCurrency), profit=splitMoney(deliveredDeals,profitOf,targetCurrency), recv=splitMoney(inv,outstandingOf,targetCurrency), feeProfit=splitMoney(deliveredDeals,feeProfitOf,targetCurrency);
+  const paidFutureValue=splitMoney(paidFutureDeals,executedValueOf,targetCurrency), paidFutureProfit=splitMoney(paidFutureDeals,profitOf,targetCurrency);
+  const quantity=inv.reduce((sum,row)=>sum+invoiceCountOf(row),0);
+  $('kSales').innerHTML=formatDual(sales); $('kQty').textContent=quantity.toLocaleString(); $('kProfit').innerHTML=formatDual(profit); $('kRecv').innerHTML=formatDual(recv); $('kJobs').textContent=deliveredDeals.length.toLocaleString(); $('kFeeProfit').innerHTML=formatDual(feeProfit);
+  const avgSale={EUR:0,GBP:0,combinedEUR:0}, avgProfit={EUR:0,GBP:0,combinedEUR:0};
+  ['EUR','GBP'].forEach(c=>{
+    const ii=inv.filter(r=>currencyOf(r)===c), dd=deliveredDeals.filter(r=>currencyOf(r)===c);
+    avgSale[c]=ii.length?ii.reduce((s,r)=>s+convertForRow(salesOf(r),r,targetCurrency || c),0)/ii.length:0;
+    avgProfit[c]=dd.length?dd.reduce((s,r)=>s+convertForRow(profitOf(r),r,targetCurrency || c),0)/dd.length:0;
+  });
+  avgSale.combinedEUR=inv.length?sumConverted(inv,salesOf,'EUR')/inv.length:0;
+  avgProfit.combinedEUR=deliveredDeals.length?sumConverted(deliveredDeals,profitOf,'EUR')/deliveredDeals.length:0;
+  $('kAvgSale').innerHTML=formatDual(avgSale); $('kAvgProfit').innerHTML=formatDual(avgProfit);
+  const execVal=splitMoney(deliveredDeals,executedValueOf,targetCurrency); let marginTxt=[];
+  ['EUR','GBP'].forEach(c=>{if(execVal[c] && (profit[c]||0)) marginTxt.push(c+' '+pct((profit[c]/execVal[c])*100))});
+  $('kMargin').textContent=marginTxt.length?marginTxt.join(' · '):'—';
+  const losses=deliveredDeals.filter(r=>profitOf(r)<0); const lossAmt=splitMoney(losses,r=>Math.abs(profitOf(r)),targetCurrency);
+  $('kLossJobs').textContent=losses.length.toLocaleString(); $('kLossSub').innerHTML='<span class="bad">'+formatDual(lossAmt)+' total losses</span>';
+  setComparison('kSalesSub',compFor(invoices,'invoice',salesOf),true,true);
+  setComparison('kQtySub',compFor(invoices,'invoice',invoiceCountOf),true,true);
+  setComparison('kProfitSub',compFor(deals.filter(r=>isDeliveredDeal(r)),'deal',profitOf),true,true);
+  const futureText = paidFutureDeals.length ? `<span class="neutral">Paid future: ${paidFutureDeals.length.toLocaleString()} jobs · ${formatDual(paidFutureValue)} value · ${formatDual(paidFutureProfit)} expected profit</span>` : '<span class="neutral">No paid future jobs in selected filters</span>';
+  const jobComp=compFor(deals.filter(r=>isDeliveredDeal(r)),'deal',()=>1); setComparison('kJobsSub',jobComp,true,true);
+  $('kJobsSub').insertAdjacentHTML('beforeend', futureText);
+  const recvComp=compFor(invoices,'invoice',outstandingOf); setComparison('kRecvSub',recvComp,false,true);
+  setComparison('kFeeProfitSub',compFor(deals.filter(r=>isDeliveredDeal(r)),'deal',feeProfitOf),true,true);
+  bindKpiCard('kSales','Books Invoice Sales',inv,'invoice');
+  bindKpiCard('kQty','Books Invoice Count',inv,'invoice');
+  bindKpiCard('kProfit','CRM Executed Profit — Delivered Jobs',deliveredDeals,'deal');
+  bindKpiCard('kJobs','Delivered Jobs — Current vs Last Year',deliveredDeals,'deal');
+  bindKpiCard('kRecv','Books Receivables',inv.filter(r=>outstandingOf(r)>0),'invoice');
+  bindKpiCard('kAvgSale','Average Invoice',inv,'invoice');
+  bindKpiCard('kAvgProfit','Avg Profit / Job',deliveredDeals,'deal');
+  bindKpiCard('kMargin','Operational Margin — Delivered Jobs',deliveredDeals,'deal');
+  bindKpiCard('kLossJobs','Loss-Making Jobs',losses,'deal');
+  bindKpiCard('kFeeProfit','CRM Fee Profit — Delivered Jobs',deliveredDeals,'deal');
+}
+function bindKpiCard(valueId,title,rows,kind){
+  const card=$(valueId) && $(valueId).closest('.kpi');
+  if(!card) return;
+  card.classList.add('clickable');
+  card.onclick=()=>openDealsModal(title,rows,kind);
+}
+function renderTrends(){
+  const f=selected(), yr=currentChartYear(), prev=yr-1, col=colors();
+  const targetCurrency = resolveTargetCurrency();
+  const chartCurrency = targetCurrency || 'EUR';
+  const inv=invoices.filter(r=>currencyMatches(currencyOf(r),f.currency)&&(f.salesperson==='ALL'||salespersonOf(r)===f.salesperson));
+  const dls=deals.filter(r=>isDeliveredDeal(r)&&currencyMatches(currencyOf(r),f.currency)&&(f.salesperson==='ALL'||salespersonOf(r)===f.salesperson)&&(f.lead==='ALL'||leadOf(r)===f.lead));
+  const salesCutoff=invoiceComparisonCutoff(yr);
+  const comparisonInv=[...invoiceRowsThroughCutoff(inv,prev,salesCutoff),...invoiceRowsThroughCutoff(inv,yr,salesCutoff)];
+  const cutoffLabel=salesCutoff.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+  $('salesYoYNote').textContent=`Like-for-like comparison: 1 Jan to ${cutoffLabel} in ${prev} and ${yr}.`;
+  const salesMonthLabels=monthNames.slice(0,salesCutoff.getMonth()+1);
+  const salesCurrencies=f.currency==='ALL'?['EUR','GBP']:[f.currency];
+  const salesDatasets=salesCurrencies.flatMap((currency,currencyIndex)=>[
+    {label:`${prev} ${currency}`,data:groupMonthly(comparisonInv.filter(r=>currencyOf(r)===currency),'invoice',salesOf,prev).slice(0,salesMonthLabels.length),borderColor:currencyIndex?'#94a3b8':'#64748b',backgroundColor:currencyIndex?'#94a3b8':'#64748b',borderDash:[5,4],tension:.3},
+    {label:`${yr} ${currency}`,data:groupMonthly(comparisonInv.filter(r=>currencyOf(r)===currency),'invoice',salesOf,yr).slice(0,salesMonthLabels.length),borderColor:currencyIndex?col.purple:col.blue,backgroundColor:currencyIndex?col.purple:col.blue,tension:.3}
+  ]);
+  chartLine('salesYoY',salesMonthLabels,salesDatasets,{title:'Monthly Invoice Sales — Same Period YoY',kind:'invoice',datasetTitles:salesDatasets.map(dataset=>dataset.label),rowsFor:(label,index,datasetIndex)=>{const currency=salesCurrencies[Math.floor(datasetIndex/2)], year=datasetIndex%2===0?prev:yr;return comparisonInv.filter(r=>currencyOf(r)===currency&&yearOf(r,'invoice')===year&&monthOf(r,'invoice')===index+1)}});
+  const salesYtdDatasets=salesDatasets.map(dataset=>({...dataset,data:cumulative(dataset.data)}));
+  chartLine('salesYtd',salesMonthLabels,salesYtdDatasets,{title:'Cumulative Invoice Sales — Year to Date',kind:'invoice',datasetTitles:salesYtdDatasets.map(dataset=>dataset.label),rowsFor:(label,index,datasetIndex)=>{const currency=salesCurrencies[Math.floor(datasetIndex/2)], year=datasetIndex%2===0?prev:yr;return comparisonInv.filter(r=>currencyOf(r)===currency&&yearOf(r,'invoice')===year&&monthOf(r,'invoice')<=index+1)}});
+  const dlsEUR=dls.filter(r=>currencyOf(r)==='EUR'), dlsGBP=dls.filter(r=>currencyOf(r)==='GBP');
+  chartLine('profitYoY',monthNames,[
+    {label:`${prev} EUR`,data:groupMonthly(dlsEUR,'deal',profitOf,prev),borderColor:'#64748b',backgroundColor:'#64748b',borderDash:[5,4],tension:.3},
+    {label:`${yr} EUR`,data:groupMonthly(dlsEUR,'deal',profitOf,yr),borderColor:col.green,backgroundColor:col.green,tension:.3},
+    {label:`${prev} GBP`,data:groupMonthly(dlsGBP,'deal',profitOf,prev),borderColor:'#94a3b8',backgroundColor:'#94a3b8',borderDash:[5,4],tension:.3},
+    {label:`${yr} GBP`,data:groupMonthly(dlsGBP,'deal',profitOf,yr),borderColor:col.purple,backgroundColor:col.purple,tension:.3}
+  ],{title:'Monthly Executed Profit',kind:'deal',datasetTitles:[`${prev} EUR`,`${yr} EUR`,`${prev} GBP`,`${yr} GBP`],rowsFor:(label,index,datasetIndex)=>{
+    const year=datasetIndex%2===0?prev:yr;
+    const currencyRows=datasetIndex<2?dlsEUR:dlsGBP;
+    return currencyRows.filter(r=>yearOf(r,'deal')===year&&monthOf(r,'deal')===index+1);
+  }});
+  chartBar('deliveriesYoY',monthNames,[{label:String(prev),data:groupMonthly(dls,'deal',()=>1,prev),backgroundColor:'#64748b'},{label:String(yr),data:groupMonthly(dls,'deal',()=>1,yr),backgroundColor:col.purple}],false,{title:'Monthly Deliveries',kind:'deal',datasetTitles:[String(prev),String(yr)],rowsFor:(label,index,datasetIndex)=>{const year=datasetIndex===0?prev:yr;return dls.filter(r=>yearOf(r,'deal')===year&&monthOf(r,'deal')===index+1)}});
+  const booksQtyValue=hasQuantityColumn(inv)?quantityOf:invoiceCountOf;
+  const booksQtyMetric=hasQuantityColumn(inv)?'item quantity':'invoice count';
+  const selectedQtyMonth=f.month==='ALL'?null:Number(f.month);
+  const booksQtyLabels=selectedQtyMonth?[monthNames[selectedQtyMonth-1]]:salesMonthLabels;
+  const booksQtyMonths=selectedQtyMonth?[selectedQtyMonth]:salesMonthLabels.map((_,index)=>index+1);
+  const booksQtyDatasets=[
+    {label:`${prev} ${booksQtyMetric}`,data:booksQtyMonths.map(month=>comparisonInv.filter(r=>yearOf(r,'invoice')===prev&&monthOf(r,'invoice')===month).reduce((sum,row)=>sum+booksQtyValue(row),0)),backgroundColor:'#64748b'},
+    {label:`${yr} ${booksQtyMetric}`,data:booksQtyMonths.map(month=>comparisonInv.filter(r=>yearOf(r,'invoice')===yr&&monthOf(r,'invoice')===month).reduce((sum,row)=>sum+booksQtyValue(row),0)),backgroundColor:col.blue}
+  ];
+  $('booksQtyYoYNote').textContent=`${booksQtyMetric==='item quantity'?'Summed Books quantity':'No quantity column found; showing invoice count'} · ${prev} vs ${yr}${selectedQtyMonth?` for ${monthNames[selectedQtyMonth-1]}`:' by month'}.`;
+  chartBar('booksQtyMonthly',booksQtyLabels,booksQtyDatasets,false,{title:'Books Qty — Same Month YoY',kind:'invoice',datasetTitles:booksQtyDatasets.map(dataset=>dataset.label),rowsFor:(label,index,datasetIndex)=>{const year=datasetIndex===0?prev:yr, month=booksQtyMonths[index];return comparisonInv.filter(r=>yearOf(r,'invoice')===year&&monthOf(r,'invoice')===month)}});
+  chartBar('jobsMonthly',monthNames,[{label:String(yr),data:groupMonthly(dls,'deal',()=>1,yr),backgroundColor:col.purple}],false,{title:'Delivered Jobs by Month',kind:'deal',rowsFor:(label,index)=>dls.filter(r=>yearOf(r,'deal')===yr&&monthOf(r,'deal')===index+1)});
+  const futureBookings=deals.filter(r=>isFutureBooking(r)&&currencyMatches(currencyOf(r),f.currency)&&(f.salesperson==='ALL'||salespersonOf(r)===f.salesperson)&&(f.lead==='ALL'||leadOf(r)===f.lead));
+  chartBar('futureBookingsMonthly',monthNames,[{label:String(yr),data:groupMonthly(futureBookings,'deal',()=>1,yr),backgroundColor:col.amber}],false,{title:'Future Bookings by Month',kind:'deal',rowsFor:(label,index)=>futureBookings.filter(r=>yearOf(r,'deal')===yr&&monthOf(r,'deal')===index+1)});
+  const extraProfitDatasets=targetCurrency
+    ? [
+      {label:`${prev} ${targetCurrency}`,data:groupMonthly(dls,'deal',extraServiceBudgetProfitOf,prev,targetCurrency),borderColor:'#64748b',backgroundColor:'#64748b',borderDash:[5,4],tension:.3},
+      {label:`${yr} ${targetCurrency}`,data:groupMonthly(dls,'deal',extraServiceBudgetProfitOf,yr,targetCurrency),borderColor:col.amber,backgroundColor:col.amber,tension:.3}
+    ]
+    : [
+      {label:`${prev} EUR`,data:groupMonthly(dlsEUR,'deal',extraServiceBudgetProfitOf,prev),borderColor:'#64748b',backgroundColor:'#64748b',borderDash:[5,4],tension:.3},
+      {label:`${yr} EUR`,data:groupMonthly(dlsEUR,'deal',extraServiceBudgetProfitOf,yr),borderColor:col.amber,backgroundColor:col.amber,tension:.3},
+      {label:`${prev} GBP`,data:groupMonthly(dlsGBP,'deal',extraServiceBudgetProfitOf,prev),borderColor:'#94a3b8',backgroundColor:'#94a3b8',borderDash:[5,4],tension:.3},
+      {label:`${yr} GBP`,data:groupMonthly(dlsGBP,'deal',extraServiceBudgetProfitOf,yr),borderColor:col.purple,backgroundColor:col.purple,tension:.3}
+    ];
+  chartBar('extraServiceBudgetProfitMonthly',monthNames,extraProfitDatasets,false,{title:'Extra Service Budget Profit by Month',kind:'deal',metric:'extraServiceBudgetProfit',datasetTitles:extraProfitDatasets.map(dataset=>dataset.label),rowsFor:(label,index,datasetIndex)=>{const year=targetCurrency?(datasetIndex===0?prev:yr):(datasetIndex%2===0?prev:yr), currencyRows=targetCurrency?dls:(datasetIndex<2?dlsEUR:dlsGBP);return currencyRows.filter(r=>yearOf(r,'deal')===year&&monthOf(r,'deal')===index+1)}});
+  const margins=monthNames.map((_,i)=>{
+    const rr=dls.filter(r=>yearOf(r,'deal')===yr&&monthOf(r,'deal')===i+1); const p=rr.reduce((s,r)=>s+(targetCurrency?convertForRow(profitOf(r),r,targetCurrency):profitOf(r)),0), v=rr.reduce((s,r)=>s+(targetCurrency?convertForRow(executedValueOf(r),r,targetCurrency):executedValueOf(r)),0); return v?p/v*100:0;
+  });
+  chartLine('marginMonthly',monthNames,[{label:'Operational Margin %',data:margins,borderColor:col.cyan,backgroundColor:col.cyan,tension:.3}],{title:'Operational Margin by Month',kind:'deal',rowsFor:(label,index)=>dls.filter(r=>yearOf(r,'deal')===yr&&monthOf(r,'deal')===index+1)});
+}
+function renderMonthlyStatsTable(){
+  const f=selected();
+  const year = f.year === 'ALL' ? currentChartYear() : Number(f.year);
+  const selectedMonth = f.month === 'ALL' ? null : Number(f.month);
+  const targetCurrency = resolveTargetCurrency();
+  const months = selectedMonth ? [selectedMonth] : monthNames.map((_, index) => index + 1);
+  const rows = months.map(monthNum => {
+    const inv = invoices.filter(r => yearOf(r,'invoice') === year && monthOf(r,'invoice') === monthNum && currencyMatches(currencyOf(r),f.currency) && (f.salesperson === 'ALL' || salespersonOf(r) === f.salesperson));
+    const dls = deals.filter(r => isDeliveredDeal(r) && yearOf(r,'deal') === year && monthOf(r,'deal') === monthNum && currencyMatches(currencyOf(r),f.currency) && (f.salesperson === 'ALL' || salespersonOf(r) === f.salesperson) && (f.lead === 'ALL' || leadOf(r) === f.lead));
+    const profit = splitMoney(dls, profitOf, targetCurrency);
+    const extraServiceBudgetProfit = splitMoney(dls, extraServiceBudgetProfitOf, targetCurrency);
+    const rawQty = inv.reduce((sum, row) => sum + quantityOf(row), 0);
+    const qty = rawQty > 0 ? rawQty : inv.length;
+    return { month: monthNum, qty, jobs: dls.length, profit, extraServiceBudgetProfit };
+  }).filter(r => r.jobs || r.qty > 0);
+
+  fillTable('monthlyStatsTable', rows, r => `
+    <td>${monthNames[r.month - 1]} ${year}</td>
+    <td>${r.qty.toLocaleString()}</td>
+    <td>${r.jobs}</td>
+    <td>${formatDual(r.profit)}</td>
+    <td>${formatDual(r.extraServiceBudgetProfit)}</td>
+  `);
+}
+function summarizeBy(rows,keyFn,valueFn){
+  const m={};rows.forEach(r=>{const k=keyFn(r);if(!m[k])m[k]={key:k,count:0,value:0,lossJobs:0};m[k].count++;m[k].value+=valueFn(r);if(valueFn===profitOf&&profitOf(r)<0)m[k].lossJobs++});return Object.values(m);
+}
+function renderSalespeople(){
+  const inv=filteredInvoices(), dls=filteredDeals(), people=unique([...inv.map(salespersonOf),...dls.map(salespersonOf)]).filter(x=>x!=='Unassigned');
+  const targetCurrency = resolveTargetCurrency();
+  const rows=people.map(p=>{
+    const ii=inv.filter(r=>salespersonOf(r)===p), dd=dls.filter(r=>salespersonOf(r)===p); return {name:p,sales:splitMoney(ii,salesOf,targetCurrency),jobs:dd.length,profit:splitMoney(dd,profitOf,targetCurrency),avg:splitMoney(dd, r=>0,targetCurrency),lossJobs:dd.filter(r=>profitOf(r)<0).length};
+  }).map(r=>{['EUR','GBP'].forEach(c=>{const dd=dls.filter(x=>salespersonOf(x)===r.name&&currencyOf(x)===c);r.avg[c]=dd.length?dd.reduce((s,x)=>s+convertForRow(profitOf(x),x,targetCurrency || c),0)/dd.length:0});r.avg.combinedEUR=r.jobs?r.profit.combinedEUR/r.jobs:0;return r}).sort((a,b)=>(b.profit.EUR+b.profit.GBP)-(a.profit.EUR+a.profit.GBP));
+  const top=rows.slice(0,10), c=targetCurrency || 'EUR', col=colors();
+  chartBar('salespersonChart',top.map(r=>r.name),[{label:'Books Sales '+c,data:top.map(r=>r.sales[c]||0),backgroundColor:col.blue},{label:'Executed Profit '+c,data:top.map(r=>r.profit[c]||0),backgroundColor:col.green}],true,{title:'Sales vs Profit by Salesperson',datasetTitles:['Books Sales','Executed Profit'],rowsFor:(label,index,datasetIndex)=>datasetIndex===0?{rows:inv.filter(r=>salespersonOf(r)===label),kind:'invoice'}:{rows:dls.filter(r=>salespersonOf(r)===label),kind:'deal'}});
+  fillTable('salespersonTable',rows.slice(0,20),r=>`<td><span class="animal-icon" title="${r.name}&#39;s animal">${animalForSalesperson(r.name)}</span>${r.name}</td><td>${formatDual(r.sales)}</td><td>${r.jobs}</td><td>${formatDual(r.profit)}</td><td>${formatDual(r.avg)}</td><td>${r.lossJobs}</td>`);
+}
+function renderLeadSources(){
+  const dls=filteredDeals(); const groups={}; const targetCurrency = resolveTargetCurrency();
+  dls.forEach(r=>{
+    const k=leadOf(r);
+    if(!groups[k]) groups[k]={name:k,jobs:0,profit:{EUR:0,GBP:0,combinedEUR:0},lossJobs:0};
+    groups[k].jobs++;
+    accumulateAmount(groups[k].profit,r,profitOf(r),targetCurrency);
+    if(profitOf(r)<0) groups[k].lossJobs++;
+  });
+  const c=targetCurrency || 'EUR';
+  const rows=Object.values(groups).map(r=>({...r,sort:r.profit[c]||0})).sort((a,b)=>b.sort-a.sort), top=rows.slice(0,12), col=colors();
+  chartBar('leadChart',top.map(r=>r.name),[{label:'Profit '+c,data:top.map(r=>r.profit[c]||0),backgroundColor:col.green}],true,{title:'Profit by Lead Source',kind:'deal',rowsFor:(label)=>dls.filter(r=>leadOf(r)===label)});
+  fillTable('leadTable',rows.slice(0,20),r=>`<td>${r.name}</td><td>${r.jobs}</td><td>${formatDual(r.profit)}</td><td>${formatDual({EUR:r.jobs?r.profit.EUR/r.jobs:0,GBP:r.jobs?r.profit.GBP/r.jobs:0,combinedEUR:r.jobs?r.profit.combinedEUR/r.jobs:0})}</td><td>${r.lossJobs}</td>`);
+}
+function renderRoutes(){
+  const dls=filteredDeals(); const groups={}; const targetCurrency = resolveTargetCurrency();
+  dls.forEach(r=>{const k=routeOf(r); if(!groups[k])groups[k]={name:k,jobs:0,profit:{EUR:0,GBP:0,combinedEUR:0},lossJobs:0}; groups[k].jobs++; accumulateAmount(groups[k].profit,r,profitOf(r),targetCurrency); if(profitOf(r)<0)groups[k].lossJobs++});
+  const c=targetCurrency || 'EUR', rows=Object.values(groups).map(r=>({...r,sort:r.profit[c]||0})).sort((a,b)=>b.sort-a.sort),top=rows.slice(0,12),col=colors();
+  chartBar('routeChart',top.map(r=>r.name),[{label:'Profit '+c,data:top.map(r=>r.profit[c]||0),backgroundColor:col.cyan}],true,{title:'Profit by Route',kind:'deal',rowsFor:(label)=>dls.filter(r=>routeOf(r)===label)});
+  fillTable('routeTable',rows.slice(0,15),r=>`<td>${r.name}</td><td>${r.jobs}</td><td>${formatDual(r.profit)}</td><td>${formatDual({EUR:r.jobs?r.profit.EUR/r.jobs:0,GBP:r.jobs?r.profit.GBP/r.jobs:0,combinedEUR:r.jobs?r.profit.combinedEUR/r.jobs:0})}</td><td>${r.lossJobs}</td>`);
+}
+function renderCustomers(){
+  const inv=filteredInvoices(); const groups={}; const targetCurrency=resolveTargetCurrency();
+  inv.forEach(r=>{const k=customerOf(r); if(!groups[k])groups[k]={name:k,count:0,sales:{EUR:0,GBP:0,combinedEUR:0},out:{EUR:0,GBP:0,combinedEUR:0}}; groups[k].count++; accumulateAmount(groups[k].sales,r,salesOf(r),targetCurrency); accumulateAmount(groups[k].out,r,outstandingOf(r),targetCurrency); });
+  const c=targetCurrency || 'EUR',rows=Object.values(groups).map(r=>({...r,sort:r.sales[c]||0})).sort((a,b)=>b.sort-a.sort),top=rows.slice(0,12),col=colors();
+  chartBar('customerChart',top.map(r=>r.name),[{label:'Sales '+c,data:top.map(r=>r.sales[c]||0),backgroundColor:col.blue}],true,{title:'Sales by Customer',kind:'invoice',rowsFor:(label)=>inv.filter(r=>customerOf(r)===label)});
+  fillTable('customerTable',rows.slice(0,15),r=>`<td>${r.name}</td><td>${r.count}</td><td>${formatDual(r.sales)}</td><td>${formatDual(r.out)}</td>`);
+}
+function ageBucket(r){
+  const t=String(val(r,['Age Tier'])||'').trim(); if(t)return t;
+  const d=num(val(r,['Age In Days'])); if(d<=0)return 'Current'; if(d<=30)return '1-30'; if(d<=60)return '31-60'; if(d<=90)return '61-90'; return '90+';
+}
+function renderReceivables(){
+  const inv=filteredInvoices().filter(r=>outstandingOf(r)>0); const groups={}; const targetCurrency=resolveTargetCurrency();
+  inv.forEach(r=>{const k=ageBucket(r); if(!groups[k])groups[k]={EUR:0,GBP:0,combinedEUR:0}; accumulateAmount(groups[k],r,outstandingOf(r),targetCurrency); });
+  const order=['Current','1-30','31-60','61-90','90+'],c=targetCurrency || 'EUR',col=colors();
+  chartBar('agingChart',order,[{label:'Outstanding '+c,data:order.map(k=>(groups[k]&&groups[k][c])||0),backgroundColor:[col.green,col.blue,col.amber,'#f97316',col.red]}],false,{title:'Outstanding by Aging Bucket',kind:'invoice',rowsFor:(label)=>inv.filter(r=>ageBucket(r)===label)});
+  const cust={};inv.forEach(r=>{const k=customerOf(r); if(!cust[k])cust[k]={name:k,out:{EUR:0,GBP:0,combinedEUR:0},count:0}; cust[k].count++; accumulateAmount(cust[k].out,r,outstandingOf(r),targetCurrency); });
+  const rows=Object.values(cust).sort((a,b)=>(b.out[c]||0)-(a.out[c]||0));
+  fillTable('receivableTable',rows.slice(0,20),r=>`<td>${r.name}</td><td>${formatDual(r.out)}</td><td>${r.count}</td>`);
+}
+function renderLosses(){
+  const dls=filteredDeals().filter(r=>profitOf(r)<0); const groups={}; const targetCurrency=resolveTargetCurrency();
+  dls.forEach(r=>{const k=salespersonOf(r); if(!groups[k])groups[k]={name:k,loss:{EUR:0,GBP:0,combinedEUR:0},count:0}; groups[k].count++; accumulateAmount(groups[k].loss,r,Math.abs(profitOf(r)),targetCurrency); });
+  const c=targetCurrency || 'EUR',rows=Object.values(groups).sort((a,b)=>(b.loss[c]||0)-(a.loss[c]||0)),col=colors();
+  chartBar('lossSalespersonChart',rows.map(r=>r.name),[{label:'Loss '+c,data:rows.map(r=>r.loss[c]||0),backgroundColor:col.red}],true,{title:'Losses by Salesperson',kind:'deal',rowsFor:(label)=>dls.filter(r=>salespersonOf(r)===label)});
+  const top=dls.slice().sort((a,b)=>profitOf(a)-profitOf(b));
+  fillTable('lossTable',top,r=>`<td>${refOf(r)||'—'}</td><td>${deliveryDateOf(r)}</td><td>${salespersonOf(r)}</td><td>${routeOf(r)}</td><td class="bad">${signedMoney(targetCurrency ? convertForRow(profitOf(r),r,targetCurrency) : profitOf(r), targetCurrency || currencyOf(r))}</td>`);
+}
+function renderExpenses(){
+  const f=selected(), rows=filteredExpenses(), targetCurrency=resolveTargetCurrency(), year=currentChartYear(), col=colors();
+  $('kExpenses').innerHTML=formatDual(splitMoney(rows,expenseAmountOf,targetCurrency));
+  $('kExpenseBills').textContent=rows.length.toLocaleString();
+  const expenseCurrencies=f.currency==='ALL'?['EUR','GBP']:[f.currency];
+  const expenseDatasets=expenseCurrencies.map((currency,index)=>({label:`Expenses ${currency}`,data:groupMonthly(rows.filter(r=>currencyOf(r)===currency),'expense',expenseAmountOf,year),backgroundColor:index?col.purple:col.red}));
+  chartBar('expensesMonthlyChart',monthNames,expenseDatasets,false,{title:'Expenses by Month',kind:'expense',datasetTitles:expenseDatasets.map(dataset=>dataset.label),rowsFor:(label,index,datasetIndex)=>{const currency=expenseCurrencies[datasetIndex];return rows.filter(r=>currencyOf(r)===currency&&yearOf(r,'expense')===year&&monthOf(r,'expense')===index+1)}});
+  const groups=groupRows(rows,expenseItemOf);
+  const itemRows=Object.entries(groups).map(([name,itemRows])=>({name,count:itemRows.length,total:splitMoney(itemRows,expenseAmountOf,targetCurrency),sort:sumConverted(itemRows,expenseAmountOf,'EUR')})).sort((a,b)=>b.sort-a.sort);
+  fillTable('expenseItemTable',itemRows,r=>`<td><button type="button" class="expense-item-link" data-expense-item="${encodeURIComponent(r.name)}">${r.name}</button></td><td>${r.count.toLocaleString()}</td><td>${formatDual(r.total)}</td>`);
+  $('expenseItemTable').onclick=event=>{
+    const item=event.target.closest('[data-expense-item]');
+    if(!item) return;
+    const name=decodeURIComponent(item.dataset.expenseItem);
+    openDealsModal(`Expenses — ${name}`,groups[name]||[],'expense');
+  };
+}
+function renderAll(){
+  if(!contacts.length||!invoices.length||!deals.length||!expenses.length)return;
+  updatePrintSummary();
+  renderKPIs();renderContactConversion();renderTrends();renderMonthlyStatsTable();renderSalespeople();renderLeadSources();renderRoutes();renderCustomers();renderReceivables();renderLosses();renderExpenses();updateFxAudit();
+  renderPrintReport();
+  saveFiltersState();
+}
+
+function clearDashboard(){
+  contacts=[]; invoices=[]; deals=[]; expenses=[];
+  $('contactFile').value='';
+  $('invoiceFile').value='';
+  $('dealFile').value='';
+  $('expenseFile').value='';
+  localStorage.removeItem(STORAGE_KEY);
+  Object.keys(charts).forEach(id => destroyChart(id));
+  destroyPrintCharts();
+  charts={};
+  $('managementPrintReport').innerHTML='';
+  $('status').className='status';
+  $('status').textContent='Dashboard cleared. Upload all four files to begin again.';
+  hideProgress();
+  $('yearFilter').value='ALL';
+  $('monthFilter').value='ALL';
+  $('currencyFilter').value='ALL';
+  $('salespersonFilter').value='ALL';
+  $('leadFilter').value='ALL';
+  $('kSales').textContent='—';
+  $('kQty').textContent='—';
+  $('kProfit').textContent='—';
+  $('kJobs').textContent='—';
+  $('kRecv').textContent='—';
+  $('kAvgSale').textContent='—';
+  $('kAvgProfit').textContent='—';
+  $('kMargin').textContent='—';
+  $('kLossJobs').textContent='—';
+  $('kFeeProfit').textContent='—';
+  $('kSalesSub').innerHTML='';
+  $('kQtySub').innerHTML='';
+  $('kProfitSub').innerHTML='';
+  $('kJobsSub').innerHTML='';
+  $('kRecvSub').innerHTML='';
+  $('kLossSub').innerHTML='';
+  $('kFeeProfitSub').innerHTML='';
+  $('kExpenses').textContent='—'; $('kExpenseBills').textContent='—';
+  ['cTotalContacts','cNonWorkable','cWorkable','cSaleDeals','cSoldCustomers','cDealRate','cCustomerRate','cDeadRate','cNonWorkableRate','cDealsPerCustomer'].forEach(id=>{if($(id))$(id).textContent='—'});
+  if($('contactAudit'))$('contactAudit').textContent='';
+  ['contactSourceTable','contactCohortTable','monthlyStatsTable','salespersonTable','leadTable','routeTable','customerTable','receivableTable','lossTable','expenseItemTable'].forEach(id => $(id).innerHTML='<tr><td colspan="8" class="empty">No data for selected filters</td></tr>');
+}
+
+async function generate(){
+  const fc=$('contactFile').files[0],fi=$('invoiceFile').files[0],fd=$('dealFile').files[0],fe=$('expenseFile').files[0],status=$('status');
+  if(!fc||!fi||!fd||!fe){status.className='status error';status.textContent='Please upload all four Excel files.';return}
+  try{
+    status.className='status';status.textContent='Reading Excel files...';
+    showProgress(8,'Reading Excel files…'); await nextFrame();
+    const [ct,a,b,c]=await Promise.all([readWorkbook(fc),readWorkbook(fi),readWorkbook(fd),readWorkbook(fe)]);
+    contacts=ct;invoices=a;deals=b;expenses=c;
+    if(!contacts.length||!invoices.length||!deals.length||!expenses.length)throw new Error('One of the files contains no rows.');
+    showProgress(45,'Loading historical EUR/GBP exchange rates…');
+    status.textContent='Loading historical EUR/GBP exchange rates...';
+    await nextFrame();
+    const historicalOk=await loadExchangeRates();
+    showProgress(75,'Rendering dashboard…'); await nextFrame();
+    updateFilters(); renderAll();
+    showProgress(100,'Done');
+    const paidFutureCount=deals.filter(isPaidFutureDeal).length;
+    const saleCompletedCount=deals.filter(isSaleCompletedDeal).length;
+    const base=`Loaded ${contacts.length.toLocaleString()} contacts, ${invoices.length.toLocaleString()} invoices, ${deals.filter(isDeliveredDeal).length.toLocaleString()} delivered jobs, ${saleCompletedCount.toLocaleString()} Sale Completed deal rows, ${expenses.length.toLocaleString()} expenses and ${paidFutureCount.toLocaleString()} paid future jobs.`;
+    if(historicalOk){status.className='status ok';status.textContent=base+' Historical FX rates loaded and report generated.';}
+    else{status.className='status error';status.textContent=base+` Historical FX rates could not be loaded (${fxAuditState.error||'unknown error'}). Using the latest EUR/GBP rate for conversions.`;}
+    setTimeout(hideProgress, 600);
+  }catch(e){console.error(e);status.className='status error';status.textContent='Could not generate report: '+e.message;hideProgress();}
+}
+$('generateBtn').addEventListener('click',generate);
+$('clearBtn').addEventListener('click',clearDashboard);
+function normalizeFilename(name){
+  return name.toLowerCase().replace(/\s*\(\d+\)(?=\.[^.]+$)/,'');
+}
+function findFileInList(fileList, targetName){
+  const target = targetName.toLowerCase();
+  for(const f of fileList){
+    // only match files directly inside the picked folder, not nested subfolders like node_modules
+    const rel = f.webkitRelativePath || f.name;
+    const depth = rel.split('/').length;
+    if(depth<=2 && normalizeFilename(f.name)===target) return f;
+  }
+  return null;
+}
+function setFileInput(inputEl, file){
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  inputEl.files = dt.files;
+}
+$('autoLocateBtn').addEventListener('click', ()=> $('autoLocateInput').click());
+$('autoLocateInput').addEventListener('change', async ()=>{
+  const files = [...$('autoLocateInput').files];
+  if(!files.length) return;
+  const status=$('status');
+  status.className='status';status.textContent=`Scanning folder (${files.length.toLocaleString()} files found)…`;
+  const contact = findFileInList(files, 'contacts.xlsx') || findFileInList(files, 'qt_contacts.xlsx');
+  const invoice = findFileInList(files, 'qt_invoice_revenue.xlsx');
+  const deal = findFileInList(files, 'qt_deal_financials.xlsx');
+  const expense = findFileInList(files, 'qt_expenses.xlsx');
+  if(!contact || !invoice || !deal || !expense){
+    const missing = [!contact&&'Contacts.xlsx', !invoice&&'QT_INVOICE_REVENUE.xlsx', !deal&&'QT_DEAL_FINANCIALS.xlsx', !expense&&'QT_EXPENSES.xlsx'].filter(Boolean).join(', ');
+    status.className='status error';status.textContent=`Could not find: ${missing}. Please select missing file(s) manually.`;
+    if(contact) setFileInput($('contactFile'), contact);
+    if(invoice) setFileInput($('invoiceFile'), invoice);
+    if(deal) setFileInput($('dealFile'), deal);
+    if(expense) setFileInput($('expenseFile'), expense);
+    return;
+  }
+  setFileInput($('contactFile'), contact);
+  setFileInput($('invoiceFile'), invoice);
+  setFileInput($('dealFile'), deal);
+  setFileInput($('expenseFile'), expense);
+  status.className='status ok';status.textContent=`Found all 4 files. Generating report…`;
+  $('generateBtn').click();
+});
+$('exportPdfBtn').addEventListener('click',()=>{
+  if(!contacts.length || !invoices.length || !deals.length || !expenses.length){
+    $('status').className='status error';
+    $('status').textContent='Please generate the report with all four files before exporting PDF.';
+    return;
+  }
+  updatePrintSummary();
+  renderPrintReport();
+  window.print();
+});
+window.addEventListener('beforeprint',()=>{
+  printMode=true;
+  updatePrintSummary();
+  renderAll();
+});
+window.addEventListener('afterprint',()=>{
+  printMode=false;
+  renderAll();
+});
+$('dealsModalClose').addEventListener('click',closeDealsModal);
+$('dealsModalOverlay').addEventListener('click',e=>{ if(e.target.id==='dealsModalOverlay') closeDealsModal(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDealsModal(); });
+lucide.createIcons();
+</script>
+</body>
+</html>
