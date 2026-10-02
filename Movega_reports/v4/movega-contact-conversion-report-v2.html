@@ -59,6 +59,7 @@ button.ghost{background:#0f172a;border-color:#334155}
 .card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .card-head h3{font-size:13.5px;margin:0}.card-head span{font-size:11px;color:var(--muted)}
 .card-head select{width:auto;padding:6px 9px;font-size:11.5px}
+.period-chip{color:#f59e0b;font-weight:700;white-space:nowrap;margin-left:6px}
 .chart{height:270px}.chart.small{height:230px}.chart.tall{height:340px}
 table{width:100%;border-collapse:collapse;font-size:11.5px}
 th,td{padding:8px 7px;border-bottom:1px solid #1d2e44;text-align:right;white-space:nowrap}
@@ -85,6 +86,9 @@ th:first-child,td:first-child{text-align:left}
 .funnel-money .box{background:#0b1728;border:1px solid var(--border);border-radius:10px;padding:10px 12px}
 .funnel-money .box strong{display:block;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
 .funnel-money .box span{font-size:16px;font-weight:800}
+.funnel-money .box .box-sub{font-size:10.5px;color:var(--muted);margin-top:4px}
+.funnel-money .box.clickable-row{cursor:pointer;transition:border-color .15s,background .15s}
+.funnel-money .box.clickable-row:hover{border-color:#3b82f6;background:#0f2238}
 /* matrix */
 .matrix-wrap{overflow:auto;max-height:420px}
 .matrix{border-collapse:collapse;font-size:11px}
@@ -112,6 +116,7 @@ td.clickable-row:hover{background:#17304d}
 #backToTopBtn.show{display:flex}
 #backToTopBtn:hover{filter:brightness(1.1)}
 .leads-modal-body{overflow:auto;padding:14px 20px 20px}
+.modal-total-row td{border-top:2px solid #3b82f6;background:#0f2238;font-weight:700}
 @media(max-width:1250px){.grid2,.grid21,.grid3{grid-template-columns:1fr}.filters{grid-template-columns:repeat(3,1fr)}.upload-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){.sidebar{display:none}.main{margin-left:0;width:100%;padding:12px}.filters{grid-template-columns:1fr 1fr}.funnel-row{grid-template-columns:110px 1fr}.funnel-meta{grid-column:2;text-align:left}.upload-grid{grid-template-columns:1fr}}
 </style>
@@ -208,7 +213,7 @@ td.clickable-row:hover{background:#17304d}
 
   <section id="yearcompare" class="section">
     <h3 class="section-title">Year Comparison</h3>
-    <div class="section-sub">Total Contacts / Workable Contacts / Sale Completed Rate % / Repeat are Contact-Created-time cohort (recent/current year partial — use YTD mode to compare fairly). Unique Customers Sold, Sale Completed Deals, Delivered Deals, Sales and Profit are period-activity figures (deal's own Sale Completed / Delivery date within that calendar year) — this avoids the current year looking artificially low just because its created-contact cohort hasn't had time to convert yet. Delivery Ratio can exceed 100% in a given year since Delivered and Sale Completed are independently-dated sets (deals booked the prior year can be delivered this year).</div>
+    <div class="section-sub">Total Contacts / Workable Contacts / Sale Completed Rate % are Contact-Created-time cohort (recent/current year partial — use YTD mode to compare fairly). Unique Customers Sold, Sale Completed Deals, Delivered Deals, Delivery Ratio, Repeat Customers/Rate, Sales and Profit are period-activity figures (deal's own Sale Completed / Delivery date) — this avoids the current year looking artificially low just because its created-contact cohort hasn't had time to convert yet. If a Quarter/Month/From-To filter is set above, each year column shows only that slice of the year (e.g. Q1 of every year), not the full 12 months. Delivery Ratio can exceed 100% since Delivered and Sale Completed are independently-dated sets (deals booked the prior year/period can be delivered this year/period).</div>
     <div class="card">
       <div class="card-head">
         <h3 id="yearCompareTitle">Full Year Comparison</h3>
@@ -375,9 +380,10 @@ td.clickable-row:hover{background:#17304d}
 
   <section id="repeat" class="section">
     <h3 class="section-title">Repeat Customer Analysis</h3>
+    <div class="section-sub">Based on each deal's own Sale Completed date within the selected period (not Contact Created Time) — a customer created years ago who booked 2+ deals in the selected period still counts as repeat here.</div>
     <div class="kpis">
-      <div class="kpi"><div class="label">Repeat Customers</div><div id="rRepeatCustomers" class="value">—</div><div class="sub">2+ unique booked deals</div></div>
-      <div class="kpi"><div class="label">Repeat Customer Rate</div><div id="rRepeatRate" class="value">—</div><div class="sub">of Booked Customers</div></div>
+      <div class="kpi"><div class="label">Repeat Customers</div><div id="rRepeatCustomers" class="value">—</div><div class="sub">2+ Sale Completed deals in period</div></div>
+      <div class="kpi"><div class="label">Repeat Customer Rate</div><div id="rRepeatRate" class="value">—</div><div class="sub">of customers sold in period</div></div>
       <div class="kpi"><div class="label">Revenue from Repeat</div><div id="rRevenue" class="value">—</div><div class="sub">Sale Completed deals · native currency</div></div>
       <div class="kpi"><div class="label">Profit from Repeat</div><div id="rProfit" class="value">—</div><div class="sub">Sale Completed deals · native currency</div></div>
       <div class="kpi"><div class="label">Avg Bookings / Repeat Cust.</div><div id="rAvgBookings" class="value">—</div><div class="sub">Booked deals / repeat contacts</div></div>
@@ -482,6 +488,9 @@ let allDealRows = [];
 let allExpenseRows = [];
 let currentPeriodSaleDeals = [];
 let currentPeriodDeliveredDeals = [];
+let currentCohortRows = [];
+let currentCohortBookedDeals = [];
+let currentRepeatActivityBookedDeals = [];
 let currentMarketingExpenseRows = [];
 let charts = {};
 const STORAGE_KEY = 'movega_leadconv_filters';
@@ -809,7 +818,8 @@ function statsForRows(rows){
     avgProfitPerDeliveredEUR:dEUR?deliveredProfitEUR/dEUR:0, avgProfitPerDeliveredGBP:dGBP?deliveredProfitGBP/dGBP:0,
     salesPerLeadEUR:totalLeads?salesEUR/totalLeads:0, salesPerLeadGBP:totalLeads?salesGBP/totalLeads:0,
     profitPerLeadEUR:totalLeads?profitEUR/totalLeads:0, profitPerLeadGBP:totalLeads?profitGBP/totalLeads:0,
-    avgBookingsPerCustomer:bookedCustomers?bookedDeals/bookedCustomers:0
+    avgBookingsPerCustomer:bookedCustomers?bookedDeals/bookedCustomers:0,
+    bookedDealsRaw: dedupedBooked
   };
 }
 
@@ -846,8 +856,23 @@ function statsForDealGroup(saleDeals, deliveredDealsArr){
     avgProfitPerDeliveredEUR:dEUR?profitEUR/dEUR:0, avgProfitPerDeliveredGBP:dGBP?profitGBP/dGBP:0
   };
 }
-// Merges cohort contact stats (Total/Workable Contacts, Conv%, Repeat — by Contact Created Time) with
-// period deal stats (Sale Completed Deals/Sales/Delivered Deals/Profit — by the deal's own Sale Completed/Delivery date).
+// Repeat = contact with 2+ distinct Sale Completed deals INSIDE the given deal list (e.g. the selected period's
+// Sale Completed deals), keyed by the deal's own contactId — so a customer created years ago who booked
+// several deals this period still counts as a repeat customer for this period.
+function repeatStatsFromDeals(saleDeals){
+  const byContact = new Map();
+  saleDeals.forEach(d=>{
+    if(!d.contactId) return;
+    if(!byContact.has(d.contactId)) byContact.set(d.contactId, new Set());
+    byContact.get(d.contactId).add(d.dealReference || d.dealId);
+  });
+  let repeatCustomers = 0;
+  byContact.forEach(refs=>{ if(refs.size>=2) repeatCustomers++; });
+  const bookedCustomers = byContact.size;
+  return { repeatCustomers, repeatRate: bookedCustomers ? repeatCustomers/bookedCustomers*100 : 0 };
+}
+// Merges cohort contact stats (Total/Workable Contacts, Sale Completed Rate % — by Contact Created Time) with
+// period deal stats (Sale Completed Deals/Sales/Delivered Deals/Profit/Repeat — by the deal's own Sale Completed/Delivery date).
 // Uses the union of keys so a group with period deal activity but no contacts created this period (or vice versa) isn't dropped.
 function mergeCohortWithPeriodDeals(cohortGroups, dealKeyFn){
   const saleByKey = groupDealsByKey(currentPeriodSaleDeals, dealKeyFn);
@@ -855,11 +880,13 @@ function mergeCohortWithPeriodDeals(cohortGroups, dealKeyFn){
   const cohortByKey = new Map(cohortGroups.map(g=>[g.key,g]));
   const keys = unique([...cohortGroups.map(g=>g.key), ...saleByKey.keys(), ...deliveredByKey.keys()]);
   return keys.map(key=>{
-    const cg = cohortByKey.get(key) || { key, rows:[], totalLeads:0, bookedLeads:0, workableContacts:0, conversion:0, repeatCustomers:0, repeatRate:0 };
-    const dealStats = statsForDealGroup(saleByKey.get(key)||[], deliveredByKey.get(key)||[]);
+    const cg = cohortByKey.get(key) || { key, rows:[], totalLeads:0, bookedLeads:0, workableContacts:0, conversion:0 };
+    const saleDeals = saleByKey.get(key)||[];
+    const dealStats = statsForDealGroup(saleDeals, deliveredByKey.get(key)||[]);
+    const repeatStats = repeatStatsFromDeals(saleDeals);
     const salesPerLeadEUR = cg.totalLeads?dealStats.salesEUR/cg.totalLeads:0, salesPerLeadGBP = cg.totalLeads?dealStats.salesGBP/cg.totalLeads:0;
     const profitPerLeadEUR = cg.totalLeads?dealStats.profitEUR/cg.totalLeads:0, profitPerLeadGBP = cg.totalLeads?dealStats.profitGBP/cg.totalLeads:0;
-    return { ...cg, ...dealStats, salesPerLeadEUR, salesPerLeadGBP, profitPerLeadEUR, profitPerLeadGBP, saleDealsRaw: saleByKey.get(key)||[], deliveredDealsRaw: deliveredByKey.get(key)||[] };
+    return { ...cg, ...dealStats, ...repeatStats, salesPerLeadEUR, salesPerLeadGBP, profitPerLeadEUR, profitPerLeadGBP, saleDealsRaw: saleDeals, deliveredDealsRaw: deliveredByKey.get(key)||[] };
   });
 }
 
@@ -969,8 +996,79 @@ function openPeriodDealsModal(title, rows, sortField){
   });
   $('leadsModalOverlay').classList.add('open');
 }
+// Builds a contact-name lookup (contactId -> name) from the uploaded Contacts.xlsx, used to label customers
+// in the one-row-per-customer drill-down modal (raw deal rows only carry a contactId, not the contact's name).
+function contactNameLookup(){
+  const map = new Map();
+  allContactRows.forEach(c=>{ if(c.contactId && !map.has(c.contactId)) map.set(c.contactId, c.contactName||c.contactId); });
+  return map;
+}
+const CUSTOMER_DEALS_MODAL_HEAD_HTML = '<th>Contact Name</th><th>Contact ID</th><th>Deals</th><th>Latest Sale Completed</th><th>Sales EUR</th><th>Sales GBP</th><th>Profit EUR</th><th>Profit GBP</th>';
+// Shows exactly one row per unique customer (deduped by contactId) so the row count always matches a
+// "customer" number shown on a card (e.g. "Booked Customers" or "Repeat Customers"), unlike a per-deal list
+// which can show more rows than customers when someone has 2+ deals. Click a customer row to see their deals.
+function openCustomerDealsModal(title, deals){
+  const lookup = contactNameLookup();
+  const byContact = new Map();
+  deals.forEach(d=>{
+    if(!d.contactId) return;
+    if(!byContact.has(d.contactId)) byContact.set(d.contactId, []);
+    byContact.get(d.contactId).push(d);
+  });
+  const customers = [...byContact.entries()].map(([contactId,list])=>{
+    const latest = list.reduce((a,b)=> (!a || (b.saleCompleted && (!a.saleCompleted || b.saleCompleted>a.saleCompleted))) ? b : a, null);
+    return {
+      contactId, contactName: lookup.get(contactId) || contactId, rows:list,
+      deals: list.length, latestSaleCompleted: latest ? latest.saleCompleted : null,
+      salesEUR: sumByCurrency(list,'dealValue','EUR'), salesGBP: sumByCurrency(list,'dealValue','GBP'),
+      profitEUR: sumByCurrency(list,'netProfit','EUR'), profitGBP: sumByCurrency(list,'netProfit','GBP')
+    };
+  }).sort((a,b)=>(b.latestSaleCompleted?b.latestSaleCompleted.getTime():0)-(a.latestSaleCompleted?a.latestSaleCompleted.getTime():0));
 
-/* ---------------- filters ---------------- */
+  $('leadsModalHeadRow').innerHTML = CUSTOMER_DEALS_MODAL_HEAD_HTML;
+  $('leadsModalTitle').textContent = title;
+  $('leadsModalCount').textContent = `${customers.length.toLocaleString()} customer${customers.length===1?'':'s'}`;
+  const body = $('leadsModalBody'); body.innerHTML='';
+  if(!customers.length){ body.innerHTML = '<tr><td colspan="8" class="empty">No customers for this selection.</td></tr>'; $('leadsModalOverlay').classList.add('open'); return; }
+  customers.forEach(c=>{
+    const tr = document.createElement('tr');
+    tr.className = 'clickable-row';
+    tr.title = 'Click to view this customer\'s individual deals';
+    tr.innerHTML = `<td>${c.contactName}</td><td>${c.contactId}</td><td>${int(c.deals)}</td><td>${c.latestSaleCompleted?c.latestSaleCompleted.toLocaleDateString('en-GB'):'—'}</td>
+      <td>${c.salesEUR?money(c.salesEUR,'EUR'):'—'}</td><td>${c.salesGBP?money(c.salesGBP,'GBP'):'—'}</td>
+      <td>${c.profitEUR?money(c.profitEUR,'EUR'):'—'}</td><td>${c.profitGBP?money(c.profitGBP,'GBP'):'—'}</td>`;
+    tr.addEventListener('click', e=>{ e.stopPropagation(); openPeriodDealsModal(`${c.contactName} \u2014 Deals`, c.rows, 'saleCompleted'); });
+    body.appendChild(tr);
+  });
+  $('leadsModalOverlay').classList.add('open');
+}
+const PROFIT_BREAKDOWN_MODAL_HEAD_HTML = '<th>Sale Completed</th><th>Deal Reference</th><th>Deal Owner</th><th>Sales (Client Price)</th><th>Cost</th><th>Net Profit</th>';
+// Shows Sales, Cost and Net Profit as three separate columns per deal (Cost = Sales − Net Profit, since the
+// source data only provides Net Profit directly), plus a totals row — so "Net Profit" is never an opaque
+// number with an unexplained "after costs" label.
+function openProfitBreakdownModal(title, deals, currency){
+  const filtered = deals.filter(d=>d.dealCurrency===currency);
+  const sorted = [...filtered].sort((a,b)=>{ const ad=a.saleCompleted?a.saleCompleted.getTime():0, bd=b.saleCompleted?b.saleCompleted.getTime():0; return bd-ad; });
+  const shown = sorted.slice(0, LEADS_MODAL_ROW_LIMIT);
+  $('leadsModalHeadRow').innerHTML = PROFIT_BREAKDOWN_MODAL_HEAD_HTML;
+  $('leadsModalTitle').textContent = title;
+  $('leadsModalCount').textContent = `${sorted.length.toLocaleString()} deal${sorted.length===1?'':'s'}` + (sorted.length>shown.length?` · showing first ${shown.length.toLocaleString()}`:'');
+  const body = $('leadsModalBody'); body.innerHTML='';
+  if(!shown.length){ body.innerHTML = '<tr><td colspan="6" class="empty">No deals for this selection.</td></tr>'; $('leadsModalOverlay').classList.add('open'); return; }
+  let totalSales=0, totalCost=0, totalProfit=0;
+  shown.forEach(r=>{
+    const sales = r.dealValue||0, profit = r.netProfit||0, cost = sales-profit;
+    totalSales+=sales; totalCost+=cost; totalProfit+=profit;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.saleCompleted?r.saleCompleted.toLocaleDateString('en-GB'):'—'}</td><td>${r.dealReference||r.dealId||'—'}</td><td>${r.dealOwner||'—'}</td><td>${money(sales,currency)}</td><td>${money(cost,currency)}</td><td>${money(profit,currency)}</td>`;
+    body.appendChild(tr);
+  });
+  const totalRow = document.createElement('tr');
+  totalRow.className = 'modal-total-row';
+  totalRow.innerHTML = `<td colspan="3">Total${sorted.length>shown.length?' (shown rows)':''}</td><td>${money(totalSales,currency)}</td><td>${money(totalCost,currency)}</td><td>${money(totalProfit,currency)}</td>`;
+  body.appendChild(totalRow);
+  $('leadsModalOverlay').classList.add('open');
+}
 function selected(){
   return {
     year: $('fYear').value, quarter: $('fQuarter').value, month: $('fMonth').value,
@@ -997,6 +1095,31 @@ function baseFilterPass(row, f, skipRepeat){
   if(f.delivered==='DELIVERED' && !row.deliveredDeal) return false;
   if(f.delivered==='NOT_DELIVERED' && row.deliveredDeal) return false;
   return true;
+}
+// Same filter dimensions as baseFilterPass, but the Year/Quarter/Month/From-To period is matched against the
+// deal's own Sale Completed date instead of the contact's Created Time - so "repeat customers this period"
+// reflects actual deal activity in the period, not just contacts created in the period (a customer created
+// years ago who booked several deals this period should still count as a repeat customer for this period).
+function dealActivityFilterPass(row, f){
+  const sd = row.saleCompleted;
+  if(!sd) return false;
+  if(f.year!=='ALL' && sd.getFullYear()!==Number(f.year)) return false;
+  if(f.quarter!=='ALL' && (Math.floor(sd.getMonth()/3)+1)!==Number(f.quarter)) return false;
+  if(f.month!=='ALL' && (sd.getMonth()+1)!==Number(f.month)) return false;
+  if(f.dateFrom){ const d=new Date(f.dateFrom); if(sd<d) return false; }
+  if(f.dateTo){ const d=new Date(f.dateTo); d.setHours(23,59,59,999); if(sd>d) return false; }
+  if(f.leadSource!=='ALL' && row.leadSource!==f.leadSource) return false;
+  if(f.owner!=='ALL' && row.dealOwner!==f.owner) return false;
+  if(f.collectionCountry!=='ALL' && row.leadCollectionCountry!==f.collectionCountry) return false;
+  if(f.deliveryCountry!=='ALL' && row.leadDeliveryCountry!==f.deliveryCountry) return false;
+  if(f.route!=='ALL' && row.leadRoute!==f.route && row.dealRoute!==f.route) return false;
+  if(f.delivered==='DELIVERED' && !row.deliveredDeal) return false;
+  if(f.delivered==='NOT_DELIVERED' && row.deliveredDeal) return false;
+  return true;
+}
+function getPeriodActivityRows(){
+  const f = selected();
+  return allRows.filter(r=>r.bookedDeal && dealActivityFilterPass(r,f));
 }
 function repeatContactSet(rows){
   const dedupedBooked = dedupeDeals(rows.filter(r=>r.bookedDeal));
@@ -1083,10 +1206,39 @@ function periodLabel(){
   if(f.month!=='ALL' && f.year!=='ALL') return `${monthNames[Number(f.month)-1]} ${f.year}`;
   if(f.quarter!=='ALL' && f.year!=='ALL') return `Q${f.quarter} ${f.year}`;
   if(f.year!=='ALL') return `${f.year}`;
+  if(f.month!=='ALL') return `${monthNames[Number(f.month)-1]} (all years)`;
+  if(f.quarter!=='ALL') return `Q${f.quarter} (all years)`;
   return 'All Time';
+}
+// Appends/updates a small orange chip showing the currently selected period on every card header and KPI
+// sub-label, so it's always clear which period's data a given card/table is displaying.
+function updatePeriodChips(){
+  const label = periodLabel();
+  document.querySelectorAll('.card-head').forEach(head=>{
+    let chip = head.querySelector('.period-chip');
+    if(!chip){
+      chip = document.createElement('span');
+      chip.className = 'period-chip';
+      const h3 = head.querySelector('h3');
+      head.insertBefore(chip, h3 ? h3.nextSibling : head.firstChild);
+    }
+    chip.textContent = `\u25CF ${label}`;
+  });
+  document.querySelectorAll('.kpi .sub').forEach(sub=>{
+    let chip = sub.querySelector('.period-chip');
+    if(!chip){
+      chip = document.createElement('span');
+      chip.className = 'period-chip';
+      sub.appendChild(document.createTextNode(' '));
+      sub.appendChild(chip);
+    }
+    chip.textContent = `\u00B7 ${label}`;
+  });
 }
 function renderExecutiveOverview(rows){
   const s = statsForRows(rows);
+  currentCohortRows = rows;
+  currentCohortBookedDeals = dedupeDeals(rows.filter(r=>r.bookedDeal));
   const periodSaleDeals=getPeriodSaleDeals();
   const periodDeliveredDeals=getPeriodDeliveredDeals();
   currentPeriodSaleDeals = periodSaleDeals;
@@ -1100,34 +1252,36 @@ function renderExecutiveOverview(rows){
   // Net Profit / Avg Profit per Delivered Job: profit of deals actually Delivered this period
   const periodDeliveredProfitEUR = sumByCurrency(periodDeliveredDeals,'netProfit','EUR'), periodDeliveredProfitGBP = sumByCurrency(periodDeliveredDeals,'netProfit','GBP');
   const periodDeliveredCountEUR = countByCurrency(periodDeliveredDeals,'EUR'), periodDeliveredCountGBP = countByCurrency(periodDeliveredDeals,'GBP');
+  // Repeat Customers/Rate: keyed off the period's own Sale Completed deals (deal activity), not Contact Created
+  // Time — so a customer created years ago who booked 2+ deals in the selected period still counts as repeat.
+  const periodRepeat = repeatStatsFromDeals(periodSaleDeals);
   $('kTotalLeads').textContent = int(s.totalLeads);
   $('kBookedLeads').textContent = int(s.bookedLeads);
   $('kConversion').textContent = pct(s.conversion);
   $('kBookedCustomers').textContent = int(periodSoldCustomers);
   $('kBookedDeals').textContent = int(periodSaleDeals.length);
   $('kDeliveredDeals').textContent = int(periodDeliveredDeals.length);
-  $('kRepeatCustomers').textContent = int(s.repeatCustomers);
-  $('kRepeatRate').textContent = pct(s.repeatRate);
+  $('kRepeatCustomers').textContent = int(periodRepeat.repeatCustomers);
+  $('kRepeatRate').textContent = pct(periodRepeat.repeatRate);
   $('kAvgBookings').textContent = s.avgBookingsPerCustomer.toFixed(2);
   dualLine('kSales', periodSalesEUR, periodSalesGBP, money);
   dualLine('kProfit', periodDeliveredProfitEUR, periodDeliveredProfitGBP, money);
   dualLine('kAvgDeal', periodSalesCountEUR?periodSalesEUR/periodSalesCountEUR:0, periodSalesCountGBP?periodSalesGBP/periodSalesCountGBP:0, money);
   dualLine('kAvgProfitDelivered', periodDeliveredCountEUR?periodDeliveredProfitEUR/periodDeliveredCountEUR:0, periodDeliveredCountGBP?periodDeliveredProfitGBP/periodDeliveredCountGBP:0, money);
 
-  const period = periodLabel();
-  $('sTotalLeads').textContent = `Contacts created — ${period}`;
-  $('sBookedLeads').textContent = `Total contacts − non-workable dead reasons — ${period}`;
-  $('sConversion').textContent = `Sale Completed Deals (cohort, any date) / Workable Contacts — ${period}`;
-  $('sBookedCustomers').textContent = `Unique contacts with \u22651 Sale Completed deal — ${period}`;
-  $('sBookedDeals').textContent = `Deals Sale Completed — ${period}`;
-  $('sDeliveredDeals').textContent = `Delivered + 50/50 or Full Payment — ${period}`;
-  $('sRepeatCustomers').textContent = `2+ unique booked deals — ${period}`;
-  $('sRepeatRate').textContent = `Repeat / Booked Customers — ${period}`;
-  $('sAvgBookings').textContent = `Sale Completed Deals / Booked Customers — ${period}`;
-  $('sSales').textContent = `Sale Completed · native currency — ${period}`;
-  $('sProfit').textContent = `Delivered jobs (Delivery Date) — ${period}`;
-  $('sAvgDeal').textContent = `Sales / Sale Completed Deals — ${period}`;
-  $('sAvgProfitDelivered').textContent = `Delivered jobs — ${period}`;
+  $('sTotalLeads').textContent = `Contacts created`;
+  $('sBookedLeads').textContent = `Total contacts − non-workable dead reasons`;
+  $('sConversion').textContent = `Sale Completed Deals (cohort, any date) / Workable Contacts`;
+  $('sBookedCustomers').textContent = `Unique contacts with \u22651 Sale Completed deal`;
+  $('sBookedDeals').textContent = `Deals Sale Completed`;
+  $('sDeliveredDeals').textContent = `Delivered + 50/50 or Full Payment`;
+  $('sRepeatCustomers').textContent = `2+ Sale Completed deals in period`;
+  $('sRepeatRate').textContent = `Repeat / Unique Customers Sold`;
+  $('sAvgBookings').textContent = `Sale Completed Deals / Booked Customers`;
+  $('sSales').textContent = `Sale Completed · native currency`;
+  $('sProfit').textContent = `Delivered jobs (Delivery Date)`;
+  $('sAvgDeal').textContent = `Sales / Sale Completed Deals`;
+  $('sAvgProfitDelivered').textContent = `Delivered jobs`;
 
   renderFunnel(rows, s, periodSoldCustomers, periodSaleDeals.length, periodDeliveredDeals.length);
 
@@ -1189,14 +1343,16 @@ function renderFunnel(rows, s, periodSoldCustomers, periodBookedDeals, periodDel
 
   const moneyWrap = $('funnelMoney'); moneyWrap.innerHTML='';
   const boxes = [
-    {label:'Sales EUR', value: money(s.salesEUR,'EUR'), show: currencyVisible('EUR')},
-    {label:'Sales GBP', value: money(s.salesGBP,'GBP'), show: currencyVisible('GBP')},
-    {label:'Profit EUR', value: money(s.profitEUR,'EUR'), show: currencyVisible('EUR')},
-    {label:'Profit GBP', value: money(s.profitGBP,'GBP'), show: currencyVisible('GBP')}
+    {label:'Sales EUR', currency:'EUR', value: money(s.salesEUR,'EUR'), sub:'Income · sum of Client Price (Executed Job Value)', show: currencyVisible('EUR')},
+    {label:'Sales GBP', currency:'GBP', value: money(s.salesGBP,'GBP'), sub:'Income · sum of Client Price (Executed Job Value)', show: currencyVisible('GBP')},
+    {label:'Profit EUR', currency:'EUR', value: money(s.profitEUR,'EUR'), sub:'Net Profit · click for Sales/Cost breakdown', show: currencyVisible('EUR')},
+    {label:'Profit GBP', currency:'GBP', value: money(s.profitGBP,'GBP'), sub:'Net Profit · click for Sales/Cost breakdown', show: currencyVisible('GBP')}
   ];
   boxes.filter(b=>b.show).forEach(b=>{
-    const box = document.createElement('div'); box.className='box';
-    box.innerHTML = `<strong>${b.label}</strong><span>${b.value}</span>`;
+    const box = document.createElement('div'); box.className='box clickable-row';
+    box.title = 'Click to see Sales, Cost & Net Profit per deal';
+    box.innerHTML = `<strong>${b.label}</strong><span>${b.value}</span><div class="box-sub">${b.sub} <span class="period-chip">${period}</span></div>`;
+    box.addEventListener('click', ()=> openProfitBreakdownModal(`${b.label} Breakdown (${period})`, s.bookedDealsRaw||[], b.currency));
     moneyWrap.appendChild(box);
   });
 }
@@ -1207,6 +1363,37 @@ function yearRangeForYTD(year, today){
   return {from,to};
 }
 function isoDate(d){ return d.toISOString().slice(0,10); }
+// Describes the Quarter/Month/From-To slice (year-independent) applied to each Year Comparison column.
+function periodSliceLabel(f){
+  if(f.dateFrom || f.dateTo){
+    const fmt = v => v ? new Date(v).toLocaleDateString('en-GB') : '…';
+    return `${fmt(f.dateFrom)} – ${fmt(f.dateTo)}`;
+  }
+  if(f.month!=='ALL') return monthNames[Number(f.month)-1];
+  if(f.quarter!=='ALL') return `Q${f.quarter}`;
+  return '';
+}
+// Shrinks a year's [from,to] window down to the Quarter/Month/From-To selected in the filter panel (if any),
+// so "Full Year Comparison" respects the chosen period instead of always showing the whole calendar year.
+function narrowRangeToFilters(yearStart, yearEnd, f){
+  const yr = yearStart.getFullYear();
+  let from = yearStart, to = yearEnd;
+  if(f.quarter!=='ALL'){
+    const q = Number(f.quarter);
+    const qStart = new Date(yr,(q-1)*3,1), qEnd = new Date(yr,q*3,0,23,59,59,999);
+    if(qStart>from) from=qStart;
+    if(qEnd<to) to=qEnd;
+  }
+  if(f.month!=='ALL'){
+    const m = Number(f.month);
+    const mStart = new Date(yr,m-1,1), mEnd = new Date(yr,m,0,23,59,59,999);
+    if(mStart>from) from=mStart;
+    if(mEnd<to) to=mEnd;
+  }
+  if(f.dateFrom){ const d=new Date(f.dateFrom); if(d>from) from=d; }
+  if(f.dateTo){ const d=new Date(f.dateTo); d.setHours(23,59,59,999); if(d<to) to=d; }
+  return {from,to};
+}
 // Sale Completed Deals/Sales dated in [from,to] and Delivered Deals/Profit dated in [from,to] - independent of
 // when the contact was created, so a year's sales reflect actual deal activity that calendar year, not just
 // the eventual lifetime total of that year's created-contact cohort (which looks artificially low for recent years).
@@ -1221,8 +1408,10 @@ function renderYearComparison(){
   const years = unique(allRows.map(r=>r.leadYear)).filter(Boolean).sort((a,b)=>a-b);
   const ytd = $('ytdToggle').checked;
   const today = new Date();
-  $('yearCompareTitle').textContent = ytd ? 'YTD Comparable Period' : 'Full Year Comparison';
-  $('ytdNote').textContent = ytd ? `Comparing Jan 1 → ${monthNames[today.getMonth()]} ${today.getDate()} for each year, so partial years are compared fairly.` : (years.length && years[years.length-1]===today.getFullYear() ? `Note: ${today.getFullYear()} is still in progress (partial year) — use YTD mode to compare fairly against prior full years.` : '');
+  const periodNarrowed = !ytd && (f.quarter!=='ALL' || f.month!=='ALL' || f.dateFrom || f.dateTo);
+  const sliceLabel = periodSliceLabel(f);
+  $('yearCompareTitle').textContent = ytd ? 'YTD Comparable Period' : (periodNarrowed ? `Full Year Comparison — ${sliceLabel} of each year` : 'Full Year Comparison');
+  $('ytdNote').textContent = ytd ? `Comparing Jan 1 → ${monthNames[today.getMonth()]} ${today.getDate()} for each year, so partial years are compared fairly.` : (periodNarrowed ? `Showing ${sliceLabel} of each year (per the Quarter/Month/From-To filters above), not the full calendar year.` : (years.length && years[years.length-1]===today.getFullYear() ? `Note: ${today.getFullYear()} is still in progress (partial year) — use YTD mode to compare fairly against prior full years.` : ''));
 
   const metrics = [
     ['Total Contacts','totalLeads','int'],['Workable Contacts','workableContacts','int'],['Sale Completed Rate %','conversion','pct'],
@@ -1241,10 +1430,11 @@ function renderYearComparison(){
       dealFrom = from; dealTo = to;
     } else {
       yearRows = allRows.filter(r=>baseFilterPass(r,{...f,year:String(yr)}));
-      dealFrom = new Date(yr,0,1); dealTo = new Date(yr,11,31,23,59,59,999);
+      ({from:dealFrom,to:dealTo} = narrowRangeToFilters(new Date(yr,0,1), new Date(yr,11,31,23,59,59,999), f));
     }
     const {saleDeals, deliveredDeals} = dealsForDateRange(dealFrom, dealTo);
-    perYearStats[yr] = { ...statsForRows(yearRows), ...statsForDealGroup(saleDeals, deliveredDeals) };
+    const repeatStats = repeatStatsFromDeals(saleDeals);
+    perYearStats[yr] = { ...statsForRows(yearRows), ...statsForDealGroup(saleDeals, deliveredDeals), ...repeatStats };
   });
 
   const head = $('yearCompareHead'); head.innerHTML = '<th>Metric</th>' + years.map(y=>`<th>${y}${ytd?' (YTD)':''}</th>`).join('') + (years.length>=2?'<th>YoY %</th><th>YoY Abs.</th>':'');
@@ -1279,6 +1469,57 @@ function formatMetric(v,type){
   return v;
 }
 
+// Returns only the deals belonging to contacts with 2+ Sale Completed deals inside saleDeals - i.e. the deals
+// that make up a group's "Repeat Customers" count, so clicking that cell shows the actual repeat bookings.
+function repeatDealsFromSaleDeals(saleDeals){
+  const byContact = new Map();
+  saleDeals.forEach(d=>{ if(!d.contactId) return; if(!byContact.has(d.contactId)) byContact.set(d.contactId,[]); byContact.get(d.contactId).push(d); });
+  const out = [];
+  byContact.forEach(list=>{ if(list.length>=2) out.push(...list); });
+  return out;
+}
+// Maps a Lead Source Details column (metric key) to the exact underlying rows that make up its number, so
+// clicking any cell opens a modal listing precisely which contacts/deals are "inside" that digit.
+function drillDownForGroupMetric(group, metric){
+  const EUR = d=>d.dealCurrency==='EUR', GBP = d=>d.dealCurrency==='GBP';
+  const sale = group.saleDealsRaw||[], delivered = group.deliveredDealsRaw||[];
+  switch(metric){
+    case 'totalLeads': return {type:'contacts', rows:group.rows, title:'All Contacts'};
+    case 'bookedLeads': return {type:'contacts', rows:group.rows.filter(r=>r.workable), title:'Workable Contacts'};
+    case 'conversion':
+    case 'bookedDeals': return {type:'deals', rows:sale, sortField:'saleCompleted', title:'Sale Completed Deals'};
+    case 'bookedCustomers': return {type:'customers', rows:sale, title:'Unique Customers Sold'};
+    case 'deliveredDeals':
+    case 'deliveryRate': return {type:'deals', rows:delivered, sortField:'dealDeliveryDate', title:'Delivered Deals'};
+    case 'repeatCustomers':
+    case 'repeatRate': return {type:'customers', rows:repeatDealsFromSaleDeals(sale), title:'Repeat Customers'};
+    case 'salesEUR': case 'salesPerLeadEUR': case 'avgDealEUR': return {type:'deals', rows:sale.filter(EUR), sortField:'saleCompleted', title:'Sale Completed Deals (EUR)'};
+    case 'salesGBP': case 'salesPerLeadGBP': case 'avgDealGBP': return {type:'deals', rows:sale.filter(GBP), sortField:'saleCompleted', title:'Sale Completed Deals (GBP)'};
+    case 'profitEUR': case 'profitPerLeadEUR': case 'avgProfitEUR': return {type:'deals', rows:delivered.filter(EUR), sortField:'dealDeliveryDate', title:'Delivered Deals (EUR)'};
+    case 'profitGBP': case 'profitPerLeadGBP': case 'avgProfitGBP': return {type:'deals', rows:delivered.filter(GBP), sortField:'dealDeliveryDate', title:'Delivered Deals (GBP)'};
+    default: return null;
+  }
+}
+// Builds a <td>, wiring a click handler that opens the exact underlying contacts/deals for that cell's metric
+// (if a non-empty drill-down is available for it), so a user can see precisely what makes up the number shown.
+function leadSourceCell(html, group, metric){
+  const td = document.createElement('td');
+  td.innerHTML = html;
+  const drill = metric ? drillDownForGroupMetric(group, metric) : null;
+  if(drill && drill.rows.length){
+    td.className = 'clickable-row';
+    td.title = 'Click to view the underlying ' + (drill.type==='contacts' ? 'contacts' : drill.type==='customers' ? 'customers' : 'deals');
+    td.addEventListener('click', e=>{
+      e.stopPropagation();
+      const titleText = `Lead Source: ${group.key} — ${drill.title} (${periodLabel()})`;
+      if(drill.type==='contacts') openLeadsModal(titleText, drill.rows);
+      else if(drill.type==='customers') openCustomerDealsModal(titleText, drill.rows);
+      else openPeriodDealsModal(titleText, drill.rows, drill.sortField);
+    });
+  }
+  return td;
+}
+
 function renderLeadSourceSection(rows){
   const cohortGroups = computeGroupStats(rows, r=>r.leadSource);
   let groups = mergeCohortWithPeriodDeals(cohortGroups, d=>normalizeLeadSource(d.rawLeadSource));
@@ -1305,18 +1546,31 @@ function renderLeadSourceSection(rows){
   const tbody = $('leadSourceTable'); tbody.innerHTML='';
   groups.forEach(g=>{
     const tr = document.createElement('tr');
-    tr.className = 'clickable-row';
-    tr.title = 'Click to view all contacts for this source';
-    tr.innerHTML = `<td>${g.key}</td><td>${int(g.totalLeads)}</td><td>${int(g.bookedLeads)}</td><td>${pct(g.conversion)}</td>
-      <td>${int(g.bookedCustomers)}</td><td>${int(g.bookedDeals)}</td><td>${int(g.deliveredDeals)}</td><td>${pct(g.deliveryRate)}</td>
-      <td>${int(g.repeatCustomers)}</td><td>${pct(g.repeatRate)}</td>
-      <td>${currencyVisible('EUR')?money(g.salesEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.salesGBP,'GBP'):'—'}</td>
-      <td>${currencyVisible('EUR')?money(g.profitEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.profitGBP,'GBP'):'—'}</td>
-      <td>${currencyVisible('EUR')?money(g.salesPerLeadEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.salesPerLeadGBP,'GBP'):'—'}</td>
-      <td>${currencyVisible('EUR')?money(g.profitPerLeadEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.profitPerLeadGBP,'GBP'):'—'}</td>
-      <td>${currencyVisible('EUR')?money(g.avgDealEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.avgDealGBP,'GBP'):'—'}</td>
-      <td>${currencyVisible('EUR')?money(g.avgProfitEUR,'EUR'):'—'}</td><td>${currencyVisible('GBP')?money(g.avgProfitGBP,'GBP'):'—'}</td>`;
-    tr.addEventListener('click', ()=> openLeadsModal(`Lead Source: ${g.key}`, g.rows));
+    const cells = [
+      [g.key, 'totalLeads'],
+      [int(g.totalLeads), 'totalLeads'],
+      [int(g.bookedLeads), 'bookedLeads'],
+      [pct(g.conversion), 'conversion'],
+      [int(g.bookedCustomers), 'bookedCustomers'],
+      [int(g.bookedDeals), 'bookedDeals'],
+      [int(g.deliveredDeals), 'deliveredDeals'],
+      [pct(g.deliveryRate), 'deliveryRate'],
+      [int(g.repeatCustomers), 'repeatCustomers'],
+      [pct(g.repeatRate), 'repeatRate'],
+      [currencyVisible('EUR')?money(g.salesEUR,'EUR'):'—', 'salesEUR'],
+      [currencyVisible('GBP')?money(g.salesGBP,'GBP'):'—', 'salesGBP'],
+      [currencyVisible('EUR')?money(g.profitEUR,'EUR'):'—', 'profitEUR'],
+      [currencyVisible('GBP')?money(g.profitGBP,'GBP'):'—', 'profitGBP'],
+      [currencyVisible('EUR')?money(g.salesPerLeadEUR,'EUR'):'—', 'salesPerLeadEUR'],
+      [currencyVisible('GBP')?money(g.salesPerLeadGBP,'GBP'):'—', 'salesPerLeadGBP'],
+      [currencyVisible('EUR')?money(g.profitPerLeadEUR,'EUR'):'—', 'profitPerLeadEUR'],
+      [currencyVisible('GBP')?money(g.profitPerLeadGBP,'GBP'):'—', 'profitPerLeadGBP'],
+      [currencyVisible('EUR')?money(g.avgDealEUR,'EUR'):'—', 'avgDealEUR'],
+      [currencyVisible('GBP')?money(g.avgDealGBP,'GBP'):'—', 'avgDealGBP'],
+      [currencyVisible('EUR')?money(g.avgProfitEUR,'EUR'):'—', 'avgProfitEUR'],
+      [currencyVisible('GBP')?money(g.avgProfitGBP,'GBP'):'—', 'avgProfitGBP']
+    ];
+    cells.forEach(([html,metric])=> tr.appendChild(leadSourceCell(html, g, metric)));
     tbody.appendChild(tr);
   });
 
@@ -1362,10 +1616,9 @@ function renderMarketingSection(leadRows){
   dualLine('mkProfitAfterSpend', profitAfterSpendEUR, profitAfterSpendGBP, money);
   dualLine('mkRoi', roiEUR, roiGBP, v=>pct(v));
 
-  const mkPeriod = periodLabel();
-  $('sMkSpend').textContent = `Leads + Marketing + Google Ads bills — ${mkPeriod}`;
-  $('sMkProfitAfterSpend').textContent = `Delivered jobs' Net Profit − Spend — ${mkPeriod}`;
-  $('sMkRoi').textContent = `(Delivered-job Profit − Spend) / Spend — ${mkPeriod}`;
+  $('sMkSpend').textContent = `Leads + Marketing + Google Ads bills`;
+  $('sMkProfitAfterSpend').textContent = `Delivered jobs' Net Profit − Spend`;
+  $('sMkRoi').textContent = `(Delivered-job Profit − Spend) / Spend`;
 
   const leadGroups = mergeCohortWithPeriodDeals(computeGroupStats(leadRows, r=>r.leadSource), d=>normalizeLeadSource(d.rawLeadSource));
   const spendGroups = computeSpendGroupStats(expenseRows, r=>r.leadSource);
@@ -1518,6 +1771,7 @@ function renderMatrix(ownerRows, owners){
 function renderRepeatSection(rows){
   const bookedRows = rows.filter(r=>r.bookedDeal);
   const dedupedBooked = dedupeDeals(bookedRows);
+  currentRepeatActivityBookedDeals = dedupedBooked;
   const byContact = new Map();
   dedupedBooked.forEach(r=>{
     if(!r.contactId) return;
@@ -1751,10 +2005,11 @@ function renderAll(){
   renderLeadSourceSection(rows);
   renderMarketingSection(rows);
   renderSalespersonSection(rows);
-  renderRepeatSection(rows);
+  renderRepeatSection(getPeriodActivityRows());
   renderCohortSection(rows);
   renderSalesByMonthSection();
   renderGeographySection(rows);
+  updatePeriodChips();
   saveFiltersState();
 }
 
@@ -1795,34 +2050,47 @@ document.addEventListener('DOMContentLoaded', ()=>{
   });
 
   const kpiModalLinks = [
-    ['kBookedDeals', ()=>currentPeriodSaleDeals, 'saleCompleted', 'Sale Completed Deals'],
-    ['kSales', ()=>currentPeriodSaleDeals, 'saleCompleted', 'Booked Sales — Sale Completed Deals'],
-    ['kAvgDeal', ()=>currentPeriodSaleDeals, 'saleCompleted', 'Average Booked Deal — Sale Completed Deals'],
-    ['kDeliveredDeals', ()=>currentPeriodDeliveredDeals, 'dealDeliveryDate', 'Delivered Deals'],
-    ['kProfit', ()=>currentPeriodDeliveredDeals, 'dealDeliveryDate', 'Net Profit — Delivered Deals'],
-    ['kAvgProfitDelivered', ()=>currentPeriodDeliveredDeals, 'dealDeliveryDate', 'Avg Profit / Delivered Job — Delivered Deals']
-  ];
-  kpiModalLinks.forEach(([id, getRows, sortField, title])=>{
-    const card = $(id).closest('.kpi');
-    if(!card) return;
-    card.classList.add('kpi-clickable');
-    card.title = 'Click to view the underlying deals';
-    card.addEventListener('click', ()=> openPeriodDealsModal(`${title} (${periodLabel()})`, getRows(), sortField));
-  });
-
-  const mkModalLinks = [
+    // Executive Overview — Contact-Created-time cohort (numerator for Sale Completed Rate %)
+    ['kTotalLeads', 'contacts', ()=>currentCohortRows, null, 'All Contacts'],
+    ['kBookedLeads', 'contacts', ()=>currentCohortRows.filter(r=>r.workable), null, 'Workable Contacts'],
+    ['kConversion', 'deals', ()=>currentCohortBookedDeals, 'saleCompleted', 'Sale Completed Deals — Cohort (any date)'],
+    // Executive Overview — period-activity (deal's own Sale Completed / Delivery date)
+    ['kBookedCustomers', 'customers', ()=>currentPeriodSaleDeals, null, 'Unique Customers Sold'],
+    ['kBookedDeals', 'deals', ()=>currentPeriodSaleDeals, 'saleCompleted', 'Sale Completed Deals'],
+    ['kSales', 'deals', ()=>currentPeriodSaleDeals, 'saleCompleted', 'Booked Sales — Sale Completed Deals'],
+    ['kAvgDeal', 'deals', ()=>currentPeriodSaleDeals, 'saleCompleted', 'Average Booked Deal — Sale Completed Deals'],
+    ['kAvgBookings', 'deals', ()=>currentPeriodSaleDeals, 'saleCompleted', 'Sale Completed Deals'],
+    ['kDeliveredDeals', 'deals', ()=>currentPeriodDeliveredDeals, 'dealDeliveryDate', 'Delivered Deals'],
+    ['kProfit', 'deals', ()=>currentPeriodDeliveredDeals, 'dealDeliveryDate', 'Net Profit — Delivered Deals'],
+    ['kAvgProfitDelivered', 'deals', ()=>currentPeriodDeliveredDeals, 'dealDeliveryDate', 'Avg Profit / Delivered Job — Delivered Deals'],
+    ['kRepeatCustomers', 'customers', ()=>repeatDealsFromSaleDeals(currentPeriodSaleDeals), null, 'Repeat Customers'],
+    ['kRepeatRate', 'customers', ()=>repeatDealsFromSaleDeals(currentPeriodSaleDeals), null, 'Repeat Customers'],
+    // Marketing Spend & ROI
     ['mkSpend', 'expenses', ()=>currentMarketingExpenseRows, null, 'Total Marketing Spend — Expense Bills'],
     ['mkProfitAfterSpend', 'deals', ()=>currentPeriodDeliveredDeals, 'dealDeliveryDate', 'Net Profit After Spend — Delivered Deals'],
-    ['mkRoi', 'deals', ()=>currentPeriodDeliveredDeals, 'dealDeliveryDate', 'Marketing ROI — Delivered Deals']
+    ['mkRoi', 'deals', ()=>currentPeriodDeliveredDeals, 'dealDeliveryDate', 'Marketing ROI — Delivered Deals'],
+    // Repeat Customer Analysis
+    ['rRepeatCustomers', 'customers', ()=>repeatDealsFromSaleDeals(currentRepeatActivityBookedDeals), null, 'Repeat Customers'],
+    ['rRepeatRate', 'customers', ()=>repeatDealsFromSaleDeals(currentRepeatActivityBookedDeals), null, 'Repeat Customers'],
+    ['rRevenue', 'deals', ()=>repeatDealsFromSaleDeals(currentRepeatActivityBookedDeals), 'saleCompleted', 'Repeat Customer — Sale Completed Deals'],
+    ['rProfit', 'deals', ()=>repeatDealsFromSaleDeals(currentRepeatActivityBookedDeals), 'saleCompleted', 'Repeat Customer — Sale Completed Deals'],
+    ['rAvgBookings', 'customers', ()=>repeatDealsFromSaleDeals(currentRepeatActivityBookedDeals), null, 'Repeat Customers']
   ];
-  mkModalLinks.forEach(([id, kind, getRows, sortField, title])=>{
+  kpiModalLinks.forEach(([id, kind, getRows, sortField, title])=>{
     const card = $(id).closest('.kpi');
     if(!card) return;
     card.classList.add('kpi-clickable');
-    card.title = kind==='expenses' ? 'Click to view the underlying expense bills' : 'Click to view the underlying deals';
+    card.title = kind==='expenses' ? 'Click to view the underlying expense bills'
+      : kind==='contacts' ? 'Click to view the underlying contacts'
+      : kind==='customers' ? 'Click to view the underlying customers'
+      : 'Click to view the underlying deals';
     card.addEventListener('click', ()=>{
-      if(kind==='expenses') openExpensesModal(`${title} (${periodLabel()})`, getRows());
-      else openPeriodDealsModal(`${title} (${periodLabel()})`, getRows(), sortField);
+      const rows = getRows();
+      const titleText = `${title} (${periodLabel()})`;
+      if(kind==='expenses') openExpensesModal(titleText, rows);
+      else if(kind==='contacts') openLeadsModal(titleText, rows);
+      else if(kind==='customers') openCustomerDealsModal(titleText, rows);
+      else openPeriodDealsModal(titleText, rows, sortField);
     });
   });
 
@@ -1988,7 +2256,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('mkSort').addEventListener('change', ()=>renderMarketingSection(getFilteredRows()));
   $('spMetric').addEventListener('change', ()=>renderSalespersonSection(getFilteredRows()));
   $('matrixMetric').addEventListener('change', ()=>renderSalespersonSection(getFilteredRows()));
-  $('repeatOnlyToggle').addEventListener('change', ()=>renderRepeatSection(getFilteredRows()));
+  $('repeatOnlyToggle').addEventListener('change', ()=>renderRepeatSection(getPeriodActivityRows()));
 });
 </script>
 </body>

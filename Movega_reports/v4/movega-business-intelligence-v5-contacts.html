@@ -52,6 +52,11 @@ button:hover{filter:brightness(1.08)}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:18px}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:15px;min-width:0}
 .card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.card-head h3{font-size:14px;margin:0}.card-head span{font-size:11px;color:var(--muted)}
+.period-chip{color:#f59e0b;font-weight:700;white-space:nowrap;margin-left:6px}
+tr.clickable-row{cursor:pointer}
+tr.clickable-row:hover{background:#12233a}
+td.clickable-row{cursor:pointer}
+td.clickable-row:hover{background:#17304d}
 .src-badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:999px;letter-spacing:.02em}
 .src-badge.src-books{background:#0f2748;color:#7dabf5;border:1px solid #1e4a86}
 .src-badge.src-crm{background:#2a1547;color:#d8b4fe;border:1px solid #5b2e93}
@@ -758,6 +763,38 @@ function chartGridColor(){return printMode ? '#d1d5db' : '#21344d'}
 Chart.defaults.color=chartTextColor(); Chart.defaults.borderColor=chartGridColor();
 
 function selected(){return {year:$('yearFilter').value,month:$('monthFilter').value,currency:$('currencyFilter').value,salesperson:$('salespersonFilter').value,lead:$('leadFilter').value}}
+// Describes the selected Year/Month filter, falling back gracefully when only one of the two is set.
+function periodLabel(){
+  const f=selected();
+  if(f.month!=='ALL' && f.year!=='ALL') return `${monthNames[Number(f.month)-1]} ${f.year}`;
+  if(f.year!=='ALL') return `${f.year}`;
+  if(f.month!=='ALL') return `${monthNames[Number(f.month)-1]} (all years)`;
+  return 'All Time';
+}
+// Appends/updates a small orange chip showing the currently selected period on every card header and KPI
+// sub-label, so it's always clear which period's data a given card/table is displaying (same convention as
+// the Contact Conversion report).
+function updatePeriodChips(){
+  const label=periodLabel();
+  document.querySelectorAll('.card-head').forEach(head=>{
+    let chip=head.querySelector('.period-chip');
+    if(!chip){
+      chip=document.createElement('span'); chip.className='period-chip';
+      const h3=head.querySelector('h3');
+      head.insertBefore(chip, h3?h3.nextSibling:head.firstChild);
+    }
+    chip.textContent=`\u25CF ${label}`;
+  });
+  document.querySelectorAll('.kpi .sub').forEach(sub=>{
+    let chip=sub.querySelector('.period-chip');
+    if(!chip){
+      chip=document.createElement('span'); chip.className='period-chip';
+      sub.appendChild(document.createTextNode(' '));
+      sub.appendChild(chip);
+    }
+    chip.textContent=`\u00B7 ${label}`;
+  });
+}
 function labelForSelect(id){
   const el=$(id);
   return el && el.selectedOptions && el.selectedOptions[0] ? el.selectedOptions[0].textContent : 'All';
@@ -1000,21 +1037,58 @@ function expenseListRowHtml(r,targetCurrency){
     <td>${signedMoney(bcy,FX_BASE_CURRENCY)} <span class="fx-total">${FX_BASE_CURRENCY}</span></td>
   </tr>`;
 }
+function contactListRowHtml(r){
+  const created=contactCreatedOf(r);
+  return `<tr><td>${contactNameOf(r)}</td><td>${contactRefOf(r)||contactIdOf(r)||'—'}</td><td>${created?created.toLocaleDateString('en-GB'):'—'}</td><td>${contactLeadSourceOf(r)}</td><td>${contactStatusOf(r)||'—'}</td><td>${deadReasonOf(r)||'—'}</td></tr>`;
+}
+// Groups raw Sale Completed deal rows by the actual Contact behind them (same join used for Unique Customers
+// Sold), so a "customers" drill-down always shows exactly one row per customer, not one row per deal.
+let currentCustomerGroupsCache=[];
+function customerGroupsFromDeals(dealRows){
+  const index=buildContactIndex();
+  const byKey=new Map();
+  dealRows.forEach(d=>{
+    const key=dealCustomerKey(d,index); if(!key) return;
+    if(!byKey.has(key)) byKey.set(key,[]);
+    byKey.get(key).push(d);
+  });
+  return [...byKey.entries()].map(([key,list])=>{
+    const contact=matchDealToContact(list[0],index);
+    const name=contact?contactNameOf(contact):(dealContactRefOf(list[0])||dealContactIdOf(list[0])||key);
+    let latest=null;
+    list.forEach(d=>{ const sd=dealSaleCompletedOf(d); if(sd && (!latest||sd>latest)) latest=sd; });
+    return {key,name,deals:list.length,latest,rows:list};
+  }).sort((a,b)=>(b.latest?b.latest.getTime():0)-(a.latest?a.latest.getTime():0));
+}
 function openDealsModal(title,rows,kind='deal',showExtraServiceProfit=false){
   const overlay=$('dealsModalOverlay'), body=$('dealsModalBody'), heading=$('dealsModalTitle'), count=$('dealsModalCount');
   if(!overlay||!body||!heading) return;
-  heading.textContent=title;
-  count.textContent = rows.length ? `${rows.length.toLocaleString()} ${kind==='invoice'?'invoice(s)':'job(s)'} · FX rate shown per transaction date` : 'No matching records for this selection';
+  heading.textContent=`${title} (${periodLabel()})`;
   const targetCurrency=resolveTargetCurrency();
   if(kind==='invoice'){
+    count.textContent = rows.length ? `${rows.length.toLocaleString()} invoice(s) · FX rate shown per transaction date` : 'No matching records for this selection';
     body.innerHTML = `<table class="deals-modal-table"><thead><tr><th>Invoice</th><th>Date</th><th>Salesperson</th><th>Customer</th><th>Sales</th><th>Outstanding</th><th>FX Rate Used</th></tr></thead><tbody>${
       rows.length ? rows.map(r=>invoiceListRowHtml(r,targetCurrency)).join('') : '<tr><td colspan="7" class="empty">No records</td></tr>'
     }</tbody></table>`;
   } else if(kind==='expense') {
+    count.textContent = rows.length ? `${rows.length.toLocaleString()} bill(s) · FX rate shown per transaction date` : 'No matching records for this selection';
     body.innerHTML = `<table class="deals-modal-table"><thead><tr><th>Bill Number</th><th>Bill Date</th><th>Status</th><th>Vendor</th><th>Expense Item</th><th>Expense FCY</th><th>Expense BCY</th></tr></thead><tbody>${
       rows.length ? rows.map(r=>expenseListRowHtml(r,targetCurrency)).join('') : '<tr><td colspan="7" class="empty">No records</td></tr>'
     }</tbody></table>`;
+  } else if(kind==='contact') {
+    count.textContent = rows.length ? `${rows.length.toLocaleString()} contact(s)` : 'No matching records for this selection';
+    body.innerHTML = `<table class="deals-modal-table"><thead><tr><th>Contact Name</th><th>Reference</th><th>Created</th><th>Lead Source</th><th>Status</th><th>Dead Reason</th></tr></thead><tbody>${
+      rows.length ? rows.map(contactListRowHtml).join('') : '<tr><td colspan="6" class="empty">No records</td></tr>'
+    }</tbody></table>`;
+  } else if(kind==='customer') {
+    const groups=customerGroupsFromDeals(rows);
+    currentCustomerGroupsCache=groups;
+    count.textContent = groups.length ? `${groups.length.toLocaleString()} customer(s) · click a row for their individual deals` : 'No matching records for this selection';
+    body.innerHTML = `<table class="deals-modal-table"><thead><tr><th>Customer</th><th>Deals</th><th>Latest Sale Completed</th><th>Job Value</th><th>Net Profit</th></tr></thead><tbody>${
+      groups.length ? groups.map((g,i)=>`<tr class="clickable-row" data-customer-idx="${i}"><td>${g.name}</td><td>${g.deals.toLocaleString()}</td><td>${g.latest?g.latest.toLocaleDateString('en-GB'):'—'}</td><td>${formatDual(splitMoney(g.rows,executedValueOf,targetCurrency))}</td><td>${formatDual(splitMoney(g.rows,profitOf,targetCurrency))}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">No records</td></tr>'
+    }</tbody></table>`;
   } else {
+    count.textContent = rows.length ? `${rows.length.toLocaleString()} job(s) · FX rate shown per transaction date` : 'No matching records for this selection';
     const extraHeader=showExtraServiceProfit?'<th>Extra Service Budget Profit</th>':'';
     const dealColumnCount=showExtraServiceProfit?11:10;
     body.innerHTML = `<table class="deals-modal-table"><thead><tr><th>Reference</th><th>Delivery Date</th><th>Deal Status</th><th>System Status</th><th>Salesperson</th><th>Route</th><th>Lead Source</th><th>Job Value</th><th>Net Profit</th>${extraHeader}<th>FX Rate Used</th></tr></thead><tbody>${
@@ -1163,8 +1237,11 @@ function renderContactConversion(){
   const cs=filteredContacts();
   const sales=filteredSaleCompletedDeals();
   const total=cs.length;
-  const dead=cs.filter(isDeadContact).length;
-  const nonWorkable=cs.filter(isNonWorkableContact).length;
+  const deadRows=cs.filter(isDeadContact);
+  const nonWorkableRows=cs.filter(isNonWorkableContact);
+  const workableRows=cs.filter(r=>!isNonWorkableContact(r));
+  const dead=deadRows.length;
+  const nonWorkable=nonWorkableRows.length;
   const workable=Math.max(0,total-nonWorkable);
   const saleDeals=new Map(); sales.forEach(d=>{const k=dealReferenceOf(d)||String(val(d,['Deal ID','Id'])||''); if(k&&!saleDeals.has(k)) saleDeals.set(k,d)});
   const saleRows=[...saleDeals.values()];
@@ -1184,6 +1261,16 @@ function renderContactConversion(){
   $('cDeadRate').textContent=pct(total?dead/total*100:0);
   $('cNonWorkableRate').textContent=pct(total?nonWorkable/total*100:0);
   $('cDealsPerCustomer').textContent=soldCustomers?(saleRows.length/soldCustomers).toFixed(2):'0.00';
+  bindKpiCard('cTotalContacts','All Contacts',cs,'contact');
+  bindKpiCard('cNonWorkable','Non-Workable Contacts',nonWorkableRows,'contact');
+  bindKpiCard('cWorkable','Workable Contacts',workableRows,'contact');
+  bindKpiCard('cSaleDeals','Sale Completed Deals',saleRows,'deal');
+  bindKpiCard('cSoldCustomers','Unique Customers Sold',saleRows,'customer');
+  bindKpiCard('cDealRate','Sale Completed Deals',saleRows,'deal');
+  bindKpiCard('cCustomerRate','Unique Customers Sold',saleRows,'customer');
+  bindKpiCard('cDeadRate','Dead Contacts',deadRows,'contact');
+  bindKpiCard('cNonWorkableRate','Non-Workable Contacts',nonWorkableRows,'contact');
+  bindKpiCard('cDealsPerCustomer','Unique Customers Sold',saleRows,'customer');
 
   const contactGroups=groupRows(cs,contactLeadSourceOf);
   const salesGroups=groupRows(saleRows,r=>{
@@ -1192,12 +1279,14 @@ function renderContactConversion(){
   const keys=unique([...Object.keys(contactGroups),...Object.keys(salesGroups)]).sort();
   const sourceRows=keys.map(name=>{
     const crows=contactGroups[name]||[], drows=salesGroups[name]||[];
-    const ctotal=crows.length, cdead=crows.filter(isDeadContact).length, cnw=crows.filter(isNonWorkableContact).length, cwork=Math.max(0,ctotal-cnw);
+    const cdeadRows=crows.filter(isDeadContact), cnwRows=crows.filter(isNonWorkableContact), cworkRows=crows.filter(r=>!isNonWorkableContact(r));
+    const ctotal=crows.length, cnw=cnwRows.length, cwork=Math.max(0,ctotal-cnw);
     const dd=new Map(); drows.forEach(d=>{const k=dealReferenceOf(d)||String(val(d,['Deal ID','Id'])||''); if(k&&!dd.has(k))dd.set(k,d)}); const dealList=[...dd.values()];
     const sk=new Set();dealList.forEach(d=>{const k=dealCustomerKey(d,index);if(k)sk.add(k)});
-    return {name,contacts:ctotal,dead:cdead,nonWorkable:cnw,workable:cwork,deals:dealList.length,customers:sk.size,dealRate:cwork?dealList.length/cwork*100:0,customerRate:cwork?sk.size/cwork*100:0};
+    return {name,contacts:ctotal,dead:cdeadRows.length,nonWorkable:cnw,workable:cwork,deals:dealList.length,customers:sk.size,dealRate:cwork?dealList.length/cwork*100:0,customerRate:cwork?sk.size/cwork*100:0,
+      contactsRaw:crows,deadRaw:cdeadRows,nonWorkableRaw:cnwRows,workableRaw:cworkRows,dealsRaw:dealList};
   }).sort((a,b)=>b.deals-a.deals);
-  fillTable('contactSourceTable',sourceRows,r=>`<td>${r.name}</td><td>${r.contacts.toLocaleString()}</td><td>${r.dead.toLocaleString()}</td><td>${r.nonWorkable.toLocaleString()}</td><td>${r.workable.toLocaleString()}</td><td>${r.deals.toLocaleString()}</td><td>${r.customers.toLocaleString()}</td><td>${pct(r.dealRate)}</td><td>${pct(r.customerRate)}</td>`);
+  renderContactSourceTable(sourceRows);
   const top=sourceRows.slice(0,15),col=colors();
   chartBar('contactSourceChart',top.map(r=>r.name),[{label:'Sale Completed Deals',data:top.map(r=>r.deals),backgroundColor:col.purple},{label:'Unique Customers Sold',data:top.map(r=>r.customers),backgroundColor:col.blue}],true);
 
@@ -1228,6 +1317,54 @@ function renderContactConversion(){
   if(!hasContactLink)notes.push('<span class="bad">Deals export has no Contact ID/Contact Reference. Cohort matching is falling back to Deal Reference ↔ Contact Reference and can miss upgrades.</span>');
   notes.push(`Sale Completed source: QT_DEAL_FINANCIALS → Sale Completed. Deals are deduplicated by Deal Reference/Deal ID. Unique customers use actual Contact ID. Contact/deal join audit: ${matched.toLocaleString()} of ${saleRows.length.toLocaleString()} Sale Completed deals matched to a Contact.`);
   $('contactAudit').innerHTML=notes.join(' · ');
+}
+// Maps a Contact Source Conversion column to the exact underlying contacts/deals/customers behind its number,
+// so clicking any cell opens a modal listing precisely what's "inside" that digit (same rule as the Contact
+// Conversion report's Lead Source Details table).
+function contactSourceDrillDown(row,metric){
+  switch(metric){
+    case 'contacts': return {kind:'contact', rows:row.contactsRaw, title:'All Contacts'};
+    case 'dead': return {kind:'contact', rows:row.deadRaw, title:'Dead Contacts'};
+    case 'nonWorkable': return {kind:'contact', rows:row.nonWorkableRaw, title:'Non-Workable Contacts'};
+    case 'workable': return {kind:'contact', rows:row.workableRaw, title:'Workable Contacts'};
+    case 'deals': case 'dealRate': return {kind:'deal', rows:row.dealsRaw, title:'Sale Completed Deals'};
+    case 'customers': case 'customerRate': return {kind:'customer', rows:row.dealsRaw, title:'Unique Customers Sold'};
+    default: return null;
+  }
+}
+function contactSourceCell(html,row,metric){
+  const td=document.createElement('td');
+  td.innerHTML=html;
+  const drill=metric?contactSourceDrillDown(row,metric):null;
+  if(drill && drill.rows.length){
+    td.className='clickable-row';
+    td.title='Click to view the underlying '+(drill.kind==='contact'?'contacts':drill.kind==='customer'?'customers':'deals');
+    td.addEventListener('click',e=>{
+      e.stopPropagation();
+      openDealsModal(`Lead Source: ${row.name} — ${drill.title}`, drill.rows, drill.kind);
+    });
+  }
+  return td;
+}
+function renderContactSourceTable(sourceRows){
+  const tbody=$('contactSourceTable'); tbody.innerHTML='';
+  if(!sourceRows.length){ tbody.innerHTML='<tr><td colspan="9" class="empty">No data for selected filters</td></tr>'; return; }
+  sourceRows.forEach(row=>{
+    const tr=document.createElement('tr');
+    const cells=[
+      [row.name,'contacts'],
+      [row.contacts.toLocaleString(),'contacts'],
+      [row.dead.toLocaleString(),'dead'],
+      [row.nonWorkable.toLocaleString(),'nonWorkable'],
+      [row.workable.toLocaleString(),'workable'],
+      [row.deals.toLocaleString(),'deals'],
+      [row.customers.toLocaleString(),'customers'],
+      [pct(row.dealRate),'dealRate'],
+      [pct(row.customerRate),'customerRate']
+    ];
+    cells.forEach(([html,metric])=>tr.appendChild(contactSourceCell(html,row,metric)));
+    tbody.appendChild(tr);
+  });
 }
 
 function renderKPIs(){
@@ -1447,6 +1584,7 @@ function renderAll(){
   updatePrintSummary();
   renderKPIs();renderContactConversion();renderTrends();renderMonthlyStatsTable();renderSalespeople();renderLeadSources();renderRoutes();renderCustomers();renderReceivables();renderLosses();renderExpenses();updateFxAudit();
   renderPrintReport();
+  updatePeriodChips();
   saveFiltersState();
 }
 
@@ -1584,6 +1722,12 @@ window.addEventListener('afterprint',()=>{
 });
 $('dealsModalClose').addEventListener('click',closeDealsModal);
 $('dealsModalOverlay').addEventListener('click',e=>{ if(e.target.id==='dealsModalOverlay') closeDealsModal(); });
+$('dealsModalBody').addEventListener('click',e=>{
+  const tr=e.target.closest('tr[data-customer-idx]');
+  if(!tr) return;
+  const g=currentCustomerGroupsCache[Number(tr.dataset.customerIdx)];
+  if(g) openDealsModal(`Customer: ${g.name} — Deals`, g.rows, 'deal');
+});
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDealsModal(); });
 lucide.createIcons();
 </script>
