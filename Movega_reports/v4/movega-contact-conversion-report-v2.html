@@ -27,6 +27,7 @@ body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);c
 .top h2{margin:0 0 5px;font-size:23px}.top p{margin:0;color:var(--muted);font-size:13px}
 .badge-live{font-size:11px;padding:5px 9px;border-radius:999px;background:#10311f;color:#86efac;border:1px solid #205a36}
 .badge-files{font-size:11px;padding:5px 9px;border-radius:999px;background:#0f2748;color:#7dabf5;border:1px solid #1e4a86;font-weight:650}
+.badge-period{font-size:11px;padding:5px 9px;border-radius:999px;background:#2a1547;color:#d8b4fe;border:1px solid #5b2e93}
 .upload-panel,.filter-panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
 .upload-grid{display:grid;grid-template-columns:1fr 1fr auto auto;gap:10px;align-items:end}
 label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px}
@@ -139,6 +140,7 @@ td.clickable-row:hover{background:#17304d}
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <span class="badge-files" title="Download these from Zoho and upload below">FILES: Contacts.xlsx (required) · QT_DEAL_FINANCIALS.xlsx (recommended) · QT_EXPENSES.xlsx (optional)</span>
       <span class="badge-live">LOCAL · YOUR DATA STAYS IN BROWSER</span>
+      <span id="dataPeriodBadge" class="badge-period" style="display:none" title="Earliest to latest Contact Created Time across uploaded Contacts.xlsx"></span>
     </div>
   </div>
 
@@ -550,6 +552,29 @@ function parseDateCell(v){
   if(v instanceof Date && !isNaN(v)) return v;
   const d = new Date(v);
   return isNaN(d) ? null : d;
+}
+function formatPeriodDate(d){
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+// uses Contact Created Time only, so the badge reflects the CRM contact-creation window (not future delivery/booking dates)
+function computeDataPeriod(){
+  const dates=[];
+  allContactRows.forEach(r=>{if(r.contactCreated&&!isNaN(r.contactCreated))dates.push(r.contactCreated)});
+  if(!dates.length) return null;
+  let earliest=dates[0],latest=dates[0];
+  dates.forEach(d=>{if(d<earliest)earliest=d;if(d>latest)latest=d});
+  return {earliest,latest};
+}
+function updateDataPeriodBadge(){
+  const badge=$('dataPeriodBadge');
+  if(!badge) return;
+  const period=computeDataPeriod();
+  if(!period){badge.style.display='none';badge.textContent='';return}
+  const sameDay=period.earliest.toDateString()===period.latest.toDateString();
+  badge.textContent=sameDay
+    ? `CONTACTS CREATED: ${formatPeriodDate(period.latest)}`
+    : `CONTACTS CREATED: ${formatPeriodDate(period.earliest)} → ${formatPeriodDate(period.latest)}`;
+  badge.style.display='inline-flex';
 }
 function normalizeLeadSource(v){
   const raw = str(v);
@@ -1872,6 +1897,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
       showProgress(85,'Rendering charts & tables…'); await nextFrame();
       renderAll();
+      updateDataPeriodBadge();
       showProgress(100,'Done');
 
       const saleCompletedCount = dedupeDeals(allRows.filter(r=>r.bookedDeal)).length;
@@ -1899,6 +1925,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     $('expensesFile').value = '';
     $('status').textContent = 'Upload Contacts.xlsx and QT_DEAL_FINANCIALS.xlsx to begin.';
     $('expenseStatus').textContent = 'Optional: upload QT_EXPENSES.xlsx to see Marketing Spend & ROI.';
+    updateDataPeriodBadge();
     hideProgress();
     Object.keys(charts).forEach(destroyChart);
     document.querySelectorAll('table tbody').forEach(tb=>tb.innerHTML='');
@@ -1919,6 +1946,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
         $('expenseStatus').innerHTML = `<span class="ok">Loaded ${allExpenseRows.length.toLocaleString()} marketing/lead bills.</span>`;
       }
       if(allRows.length) renderMarketingSection(getFilteredRows());
+      updateDataPeriodBadge();
     }catch(err){
       console.error(err);
       $('expenseStatus').innerHTML = `<span class="error">Failed to read file: ${err.message}</span>`;

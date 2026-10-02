@@ -26,6 +26,7 @@ body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);c
 .top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:16px}
 .top h2{margin:0 0 5px;font-size:25px}.top p{margin:0;color:var(--muted);font-size:13px}
 .badge-live{font-size:11px;padding:5px 9px;border-radius:999px;background:#10311f;color:#86efac;border:1px solid #205a36}
+.badge-period{font-size:11px;padding:5px 9px;border-radius:999px;background:#2a1547;color:#d8b4fe;border:1px solid #5b2e93}
 .badge-files{font-size:11px;padding:5px 9px;border-radius:999px;background:#0f2748;color:#7dabf5;border:1px solid #1e4a86;font-weight:650}
 .upload-panel,.filter-panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
 .upload-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:10px;align-items:end}
@@ -158,6 +159,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;b
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <span class="badge-files" title="Download these from Zoho and upload below">FILES NEEDED: Contacts.xlsx · QT_INVOICE_REVENUE.xlsx · QT_DEAL_FINANCIALS.xlsx · QT_EXPENSES.xlsx</span>
       <span class="badge-live">LOCAL · YOUR DATA STAYS IN BROWSER</span>
+      <span id="dataPeriodBadge" class="badge-period" style="display:none" title="Earliest to latest Contact Created Time across uploaded Contacts.xlsx"></span>
       <button id="exportPdfBtn" type="button" class="no-print">Export PDF</button>
     </div>
   </div>
@@ -614,6 +616,29 @@ function dateVal(v){
   }
   const d=new Date(s);
   return isNaN(d)?null:d;
+}
+function formatPeriodDate(d){
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+// uses Contact Created Time only, so the badge reflects the CRM contact-creation window (not future delivery/booking dates)
+function computeDataPeriod(){
+  const dates=[];
+  contacts.forEach(r=>{const d=contactCreatedOf(r);if(d&&!isNaN(d))dates.push(d)});
+  if(!dates.length) return null;
+  let earliest=dates[0],latest=dates[0];
+  dates.forEach(d=>{if(d<earliest)earliest=d;if(d>latest)latest=d});
+  return {earliest,latest};
+}
+function updateDataPeriodBadge(){
+  const badge=$('dataPeriodBadge');
+  if(!badge) return;
+  const period=computeDataPeriod();
+  if(!period){badge.style.display='none';badge.textContent='';return}
+  const sameDay=toDateKey(period.earliest)===toDateKey(period.latest);
+  badge.textContent=sameDay
+    ? `CONTACTS CREATED: ${formatPeriodDate(period.latest)}`
+    : `CONTACTS CREATED: ${formatPeriodDate(period.earliest)} → ${formatPeriodDate(period.latest)}`;
+  badge.style.display='inline-flex';
 }
 function dealDateValue(row){
   return val(row,['Delivery Date','Move Date','Pickup Date','Collection Date','Scheduled Date','Expected Delivery Date','Payment Date','Paid Date','Closing Date','Created Time','Created Date']);
@@ -1438,6 +1463,7 @@ function clearDashboard(){
   $('managementPrintReport').innerHTML='';
   $('status').className='status';
   $('status').textContent='Dashboard cleared. Upload all four files to begin again.';
+  updateDataPeriodBadge();
   hideProgress();
   $('yearFilter').value='ALL';
   $('monthFilter').value='ALL';
@@ -1481,7 +1507,7 @@ async function generate(){
     await nextFrame();
     const historicalOk=await loadExchangeRates();
     showProgress(75,'Rendering dashboard…'); await nextFrame();
-    updateFilters(); renderAll();
+    updateFilters(); renderAll(); updateDataPeriodBadge();
     showProgress(100,'Done');
     const paidFutureCount=deals.filter(isPaidFutureDeal).length;
     const saleCompletedCount=deals.filter(isSaleCompletedDeal).length;
