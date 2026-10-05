@@ -191,6 +191,7 @@ td.clickable-row:hover{background:#17304d}
     <div class="kpis">
       <div class="kpi"><div class="label">Total Contacts</div><div id="kTotalLeads" class="value">—</div><div class="sub" id="sTotalLeads">Contacts created</div></div>
       <div class="kpi"><div class="label">Workable Contacts</div><div id="kBookedLeads" class="value">—</div><div class="sub" id="sBookedLeads">Total contacts − non-workable dead reasons</div></div>
+      <div class="kpi"><div class="label">UK → UK Contacts</div><div id="kUkToUk" class="value">—</div><div class="sub" id="sUkToUk">Both countries UK; linked deals must also be UK → UK</div></div>
       <div class="kpi"><div class="label">Sale Completed Rate</div><div id="kConversion" class="value">—</div><div class="sub" id="sConversion">Sale Completed Deals / Workable Contacts</div></div>
       <div class="kpi"><div class="label">Unique Customers Sold</div><div id="kBookedCustomers" class="value">—</div><div class="sub" id="sBookedCustomers">Unique contacts with ≥1 Sale Completed deal</div></div>
       <div class="kpi"><div class="label">Sale Completed Deals</div><div id="kBookedDeals" class="value">—</div><div class="sub" id="sBookedDeals">Deals Sale Completed (matches Zoho pivot)</div></div>
@@ -469,7 +470,7 @@ td.clickable-row:hover{background:#17304d}
     <div class="leads-modal-body">
       <div class="table-wrap" style="max-height:65vh">
         <table>
-          <thead><tr id="leadsModalHeadRow"><th>Contact Created</th><th>Contact Name</th><th>Reference</th><th>Deal Reference</th><th>Deal Owner</th><th>Status</th><th>Currency</th><th>Deal Value</th><th>Net Profit</th></tr></thead>
+          <thead><tr id="leadsModalHeadRow"><th>Contact Created</th><th>Contact Name</th><th>Lead Source</th><th>Collection Country</th><th>Delivery Country</th><th>Reference</th><th>Deal Reference</th><th>Deal Owner</th><th>Status</th><th>Currency</th><th>Deal Value</th><th>Net Profit</th></tr></thead>
           <tbody id="leadsModalBody"></tbody>
         </table>
       </div>
@@ -623,6 +624,12 @@ const NON_WORKABLE_REASONS = new Set([
 ]);
 function field(r,names){ for(const n of names){ if(Object.prototype.hasOwnProperty.call(r,n) && r[n]!==null && r[n]!==undefined && r[n]!=='') return r[n]; } return null; }
 function contactKeyFrom(c){ return c.contactReference || c.contactId || `${c.contactName}|${c.contactCreated?c.contactCreated.toISOString():''}`; }
+// Match complete country names, not text that merely contains a UK name.
+const UK_COUNTRY_RE = /^(?:uk|united\s*kingdoms?|great britain|britain|england|scotland|(?:north )?wales|northern ireland|united kingdom \(england, scotland, wales, northern ireland\)|verenigd koninkrijk \(engeland, schotland, wales, noord-ierland\)|vereinigtes königreich \(england, schottland, wales, nordirland\))$/i;
+function isUKCountry(v){
+  const country = str(v).replace(/^[_.\s]+|[.\\\]\s]+$/g,'').replace(/\s+/g,' ');
+  return UK_COUNTRY_RE.test(country) || /^u\.k\.*$/i.test(country);
+}
 function normalizeContactRow(r){
   const contactCreated = parseCrmDateTime(field(r,['Created Time','Contact Created Time']));
   const contactStatus = str(field(r,['Status','Contact Status']));
@@ -708,7 +715,12 @@ function buildContactDealRows(contacts,deals){
   });
   const soldContacts = new Set(rows.filter(r=>r.bookedDeal).map(r=>r.contactId).filter(Boolean));
   const deliveredContacts = new Set(rows.filter(r=>r.deliveredDeal).map(r=>r.contactId).filter(Boolean));
-  rows.forEach(r=>{ r.contactSold=soldContacts.has(r.contactId); r.contactDelivered=deliveredContacts.has(r.contactId); });
+  rows.forEach(r=>{
+    r.contactSold=soldContacts.has(r.contactId);
+    r.contactDelivered=deliveredContacts.has(r.contactId);
+    r.ukToUk=isUKCountry(r.leadCollectionCountry) && isUKCountry(r.leadDeliveryCountry)
+      && (!(r.dealReference || r.dealId) || (isUKCountry(r.dealCollectionCountry) && isUKCountry(r.dealDeliveryCountry)));
+  });
   return rows;
 }
 
@@ -777,6 +789,7 @@ function statsForRows(rows){
   const totalLeads = rows.length;
   const nonWorkableContacts = rows.filter(r=>r.nonWorkable).length;
   const workableContacts = Math.max(0,totalLeads-nonWorkableContacts);
+  const ukToUkContacts = rows.filter(r=>r.ukToUk).length;
   const bookedRows = rows.filter(r=>r.bookedDeal); // Sale Completed deals
   const bookedLeads = workableContacts; // legacy field used by existing UI card/table; now Workable Contacts
   const bookedCustomers = uniqueByKey(bookedRows, contactKey).length;
@@ -810,7 +823,7 @@ function statsForRows(rows){
   const deliveredProfitGBP = sumByCurrency(dedupedDelivered,'netProfit','GBP');
 
   return {
-    totalLeads, totalContacts:totalLeads, nonWorkableContacts, workableContacts,
+    totalLeads, totalContacts:totalLeads, nonWorkableContacts, workableContacts, ukToUkContacts,
     bookedLeads, conversion, customerConversion, bookedCustomers, bookedDeals, deliveredDeals, deliveryRate,
     repeatCustomers, repeatRate, salesEUR, salesGBP, profitEUR, profitGBP,
     avgDealEUR:cEUR?salesEUR/cEUR:0, avgDealGBP:cGBP?salesGBP/cGBP:0,
@@ -940,7 +953,7 @@ function getFilteredExpenseRows(){
 
 function escapeAttr(v){ return String(v).replace(/"/g,'&quot;'); }
 const LEADS_MODAL_ROW_LIMIT = 2000;
-const LEADS_MODAL_HEAD_HTML = '<th>Contact Created</th><th>Contact Name</th><th>CRM Reference</th><th>Deal Reference</th><th>Deal Owner</th><th>Status</th><th>Currency</th><th>Deal Value</th><th>Net Profit</th>';
+const LEADS_MODAL_HEAD_HTML = '<th>Contact Created</th><th>Contact Name</th><th>Lead Source</th><th title="Deal country when linked to a deal; otherwise contact country">Collection Country</th><th title="Deal country when linked to a deal; otherwise contact country">Delivery Country</th><th>CRM Reference</th><th>Deal Reference</th><th>Deal Owner</th><th>Status</th><th>Currency</th><th>Deal Value</th><th>Net Profit</th>';
 const EXPENSES_MODAL_HEAD_HTML = '<th>Bill Date</th><th>Vendor</th><th>Expense Item</th><th>Mapped Lead Source</th><th>Currency</th><th>Amount</th>';
 function openLeadsModal(title, rows){
   $('leadsModalHeadRow').innerHTML = LEADS_MODAL_HEAD_HTML;
@@ -950,13 +963,17 @@ function openLeadsModal(title, rows){
   $('leadsModalTitle').textContent = title;
   $('leadsModalCount').textContent = `${sorted.length.toLocaleString()} row${sorted.length===1?'':'s'}` + (sorted.length>shown.length?` · showing first ${shown.length.toLocaleString()}`:'');
   const body = $('leadsModalBody'); body.innerHTML='';
-  if(!shown.length){ body.innerHTML = '<tr><td colspan="9" class="empty">No leads for this selection.</td></tr>'; }
+  if(!shown.length){ body.innerHTML = '<tr><td colspan="12" class="empty">No leads for this selection.</td></tr>'; }
   shown.forEach(r=>{
     const statusLabel = r.deliveredDeal ? 'Delivered' : r.bookedDeal ? 'Booked' : (r.dealReference ? 'Not booked' : 'No deal');
     const pillClass = r.deliveredDeal ? 'pill' : r.bookedDeal ? 'pill warn' : 'pill muted';
     const currency = r.dealCurrency==='GBP' ? 'GBP' : 'EUR';
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.leadCreated?r.leadCreated.toLocaleDateString('en-GB'):'—'}</td><td>${r.contactName||'—'}</td><td>${r.contactReference||'—'}</td><td>${r.dealReference||'—'}</td><td>${r.dealOwner||'—'}</td><td><span class="${pillClass}">${statusLabel}</span></td><td>${r.dealCurrency||'—'}</td><td>${r.dealValue?money(r.dealValue,currency):'—'}</td><td>${r.netProfit?money(r.netProfit,currency):'—'}</td>`;
+    tr.innerHTML = `<td>${r.leadCreated?r.leadCreated.toLocaleDateString('en-GB'):'—'}</td><td>${r.contactName||'—'}</td><td></td><td></td><td></td><td>${r.contactReference||'—'}</td><td>${r.dealReference||'—'}</td><td>${r.dealOwner||'—'}</td><td><span class="${pillClass}">${statusLabel}</span></td><td>${r.dealCurrency||'—'}</td><td>${r.dealValue?money(r.dealValue,currency):'—'}</td><td>${r.netProfit?money(r.netProfit,currency):'—'}</td>`;
+    tr.cells[2].textContent = r.leadSource || '—';
+    const hasDeal = !!(r.dealReference || r.dealId);
+    tr.cells[3].textContent = (hasDeal ? r.dealCollectionCountry : r.leadCollectionCountry) || '—';
+    tr.cells[4].textContent = (hasDeal ? r.dealDeliveryCountry : r.leadDeliveryCountry) || '—';
     body.appendChild(tr);
   });
   $('leadsModalOverlay').classList.add('open');
@@ -1042,10 +1059,10 @@ function openCustomerDealsModal(title, deals){
   });
   $('leadsModalOverlay').classList.add('open');
 }
-const PROFIT_BREAKDOWN_MODAL_HEAD_HTML = '<th>Sale Completed</th><th>Deal Reference</th><th>Deal Owner</th><th>Sales (Client Price)</th><th>Cost</th><th>Net Profit</th>';
-// Shows Sales, Cost and Net Profit as three separate columns per deal (Cost = Sales − Net Profit, since the
-// source data only provides Net Profit directly), plus a totals row — so "Net Profit" is never an opaque
-// number with an unexplained "after costs" label.
+const PROFIT_BREAKDOWN_MODAL_HEAD_HTML = '<th>Sale Completed</th><th>Deal Reference</th><th>Deal Owner</th><th>Sales (Client Price)</th><th>Net Profit</th>';
+// Shows each deal's Sales and Net Profit as-is from the source data (no invented "Cost" column — the
+// source data only provides Net Profit directly, not an itemized expense figure per deal), plus a
+// totals row summing both columns.
 function openProfitBreakdownModal(title, deals, currency){
   const filtered = deals.filter(d=>d.dealCurrency===currency);
   const sorted = [...filtered].sort((a,b)=>{ const ad=a.saleCompleted?a.saleCompleted.getTime():0, bd=b.saleCompleted?b.saleCompleted.getTime():0; return bd-ad; });
@@ -1054,18 +1071,18 @@ function openProfitBreakdownModal(title, deals, currency){
   $('leadsModalTitle').textContent = title;
   $('leadsModalCount').textContent = `${sorted.length.toLocaleString()} deal${sorted.length===1?'':'s'}` + (sorted.length>shown.length?` · showing first ${shown.length.toLocaleString()}`:'');
   const body = $('leadsModalBody'); body.innerHTML='';
-  if(!shown.length){ body.innerHTML = '<tr><td colspan="6" class="empty">No deals for this selection.</td></tr>'; $('leadsModalOverlay').classList.add('open'); return; }
-  let totalSales=0, totalCost=0, totalProfit=0;
+  if(!shown.length){ body.innerHTML = '<tr><td colspan="5" class="empty">No deals for this selection.</td></tr>'; $('leadsModalOverlay').classList.add('open'); return; }
+  let totalSales=0, totalProfit=0;
   shown.forEach(r=>{
-    const sales = r.dealValue||0, profit = r.netProfit||0, cost = sales-profit;
-    totalSales+=sales; totalCost+=cost; totalProfit+=profit;
+    const sales = r.dealValue||0, profit = r.netProfit||0;
+    totalSales+=sales; totalProfit+=profit;
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.saleCompleted?r.saleCompleted.toLocaleDateString('en-GB'):'—'}</td><td>${r.dealReference||r.dealId||'—'}</td><td>${r.dealOwner||'—'}</td><td>${money(sales,currency)}</td><td>${money(cost,currency)}</td><td>${money(profit,currency)}</td>`;
+    tr.innerHTML = `<td>${r.saleCompleted?r.saleCompleted.toLocaleDateString('en-GB'):'—'}</td><td>${r.dealReference||r.dealId||'—'}</td><td>${r.dealOwner||'—'}</td><td>${money(sales,currency)}</td><td>${money(profit,currency)}</td>`;
     body.appendChild(tr);
   });
   const totalRow = document.createElement('tr');
   totalRow.className = 'modal-total-row';
-  totalRow.innerHTML = `<td colspan="3">Total${sorted.length>shown.length?' (shown rows)':''}</td><td>${money(totalSales,currency)}</td><td>${money(totalCost,currency)}</td><td>${money(totalProfit,currency)}</td>`;
+  totalRow.innerHTML = `<td colspan="3">Total${sorted.length>shown.length?' (shown rows)':''}</td><td>${money(totalSales,currency)}</td><td>${money(totalProfit,currency)}</td>`;
   body.appendChild(totalRow);
   $('leadsModalOverlay').classList.add('open');
 }
@@ -1257,6 +1274,7 @@ function renderExecutiveOverview(rows){
   const periodRepeat = repeatStatsFromDeals(periodSaleDeals);
   $('kTotalLeads').textContent = int(s.totalLeads);
   $('kBookedLeads').textContent = int(s.bookedLeads);
+  $('kUkToUk').textContent = int(s.ukToUkContacts);
   $('kConversion').textContent = pct(s.conversion);
   $('kBookedCustomers').textContent = int(periodSoldCustomers);
   $('kBookedDeals').textContent = int(periodSaleDeals.length);
@@ -2053,6 +2071,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     // Executive Overview — Contact-Created-time cohort (numerator for Sale Completed Rate %)
     ['kTotalLeads', 'contacts', ()=>currentCohortRows, null, 'All Contacts'],
     ['kBookedLeads', 'contacts', ()=>currentCohortRows.filter(r=>r.workable), null, 'Workable Contacts'],
+    ['kUkToUk', 'contacts', ()=>currentCohortRows.filter(r=>r.ukToUk), null, 'Contacts Created — United Kingdom \u2192 United Kingdom'],
     ['kConversion', 'deals', ()=>currentCohortBookedDeals, 'saleCompleted', 'Sale Completed Deals — Cohort (any date)'],
     // Executive Overview — period-activity (deal's own Sale Completed / Delivery date)
     ['kBookedCustomers', 'customers', ()=>currentPeriodSaleDeals, null, 'Unique Customers Sold'],

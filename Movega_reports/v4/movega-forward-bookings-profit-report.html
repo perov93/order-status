@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Movega BI - Historical Forward Bookings &amp; Profit</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+:root{
+  --bg:#08111f;--panel:#0f1b2d;--panel2:#132238;--border:#22344c;--text:#eef4fb;--muted:#91a1b7;
+  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--purple:#a855f7;--cyan:#06b6d4;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.app{display:flex;min-height:100vh}
+.sidebar{width:230px;background:#0b1626;border-right:1px solid var(--border);padding:22px 16px;position:fixed;inset:0 auto 0 0;overflow:auto;display:flex;flex-direction:column}
+.brand{display:flex;flex-direction:column;align-items:center;margin-bottom:26px}
+.logo{width:100%;max-width:150px;height:auto;object-fit:contain;display:block}
+.nav a{display:flex;align-items:center;gap:10px;color:#c7d2e2;text-decoration:none;padding:9px 11px;border-radius:9px;margin:3px 0;font-size:13px}
+.nav a svg{width:16px;height:16px;stroke-width:1.8;flex:0 0 auto}.nav a.active svg{color:#60a5fa}
+.nav a:hover,.nav a.active{background:#15253c;color:#fff}.nav-title{font-size:10px;color:#65758b;letter-spacing:.13em;margin:18px 10px 6px}
+.sidebar-footer{margin-top:auto;padding:16px 10px 2px;border-top:1px solid var(--border);color:#65758b;font-size:10px;letter-spacing:.04em}
+.main{margin-left:230px;width:calc(100% - 230px);padding:20px}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:14px;flex-wrap:wrap}
+.top h2{margin:0 0 5px;font-size:23px}.top p{margin:0;color:var(--muted);font-size:13px}
+.badge-live{font-size:11px;padding:5px 9px;border-radius:999px;background:#10311f;color:#86efac;border:1px solid #205a36}
+.badge-files{font-size:11px;padding:5px 9px;border-radius:999px;background:#0f2748;color:#7dabf5;border:1px solid #1e4a86;font-weight:650}
+.badge-period{font-size:11px;padding:5px 9px;border-radius:999px;background:#2a1547;color:#d8b4fe;border:1px solid #5b2e93}
+.upload-panel,.filter-panel,.control-panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
+.upload-grid{display:grid;grid-template-columns:1.3fr auto auto auto;gap:10px;align-items:end}
+label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px}
+input[type=file],input[type=date],input[type=text],select,button{width:100%;background:#0b1728;color:var(--text);border:1px solid #2a3d57;border-radius:9px;padding:9px 11px;font-size:12.5px}
+button{width:auto;cursor:pointer;background:#1d4ed8;border-color:#2563eb;font-weight:700;padding:10px 15px}
+button:hover{filter:brightness(1.08)}
+button.ghost{background:#0f172a;border-color:#334155}
+.status{font-size:12px;color:var(--muted);margin-top:9px}.error{color:#fca5a5}.ok{color:#86efac}
+.progress-wrap{display:none;margin-top:9px}
+.progress-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.progress-track{width:100%;height:7px;background:#16233a;border-radius:999px;overflow:hidden;border:1px solid var(--border)}
+.progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#3b82f6);border-radius:999px;transition:width .3s ease}
+.control-grid{display:grid;grid-template-columns:200px 220px auto 1fr;gap:12px;align-items:end}
+.kpis{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:16px}
+.kpis-secondary{gap:12px;margin-top:-4px}
+.kpis-secondary .kpi{padding:12px 14px;flex:1 1 170px;opacity:.9}
+.kpis-secondary .value{font-size:16px}
+.subgroup-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;min-width:0;flex:1 1 190px}
+.kpi-clickable{cursor:pointer;transition:border-color .15s,background .15s}
+.kpi-clickable:hover{border-color:#3b82f6;background:#0f2238}
+.kpi .label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.kpi .value{font-size:20px;font-weight:800;margin:6px 0;line-height:1.3}
+.kpi .value .line2{display:block;font-size:13px;font-weight:700;color:#7fe0c4;margin-top:1px}
+.kpi .sub{font-size:10.5px;color:var(--muted)}
+.kpi .yoy{display:flex;flex-wrap:wrap;gap:7px;margin-top:7px;padding-top:7px;border-top:1px solid #1d2e44;font-size:10px}
+.kpi .yoy:empty{display:none;margin:0;padding:0;border:0}
+.yoy-badge{font-weight:700;white-space:nowrap;cursor:help}
+.yoy-badge.good{color:#4ade80}.yoy-badge.bad{color:#f87171}.yoy-badge.neutral{color:#aab8ca}
+.month-kpi{flex:1 1 155px;padding:13px}
+.month-kpi .value{font-size:18px;margin:4px 0 8px}
+.month-kpi .value .unit{font-size:10.5px;font-weight:600;color:var(--muted);margin-left:3px}
+.month-kpi .sub{display:flex;justify-content:space-between;gap:6px;margin-top:3px}
+.month-kpi .sub .sub-tag{color:#65758b}
+.month-kpi.current-month{border-color:#3b82f6}
+.group-title{font-size:13px;color:#7dabf5;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:4px 0 10px}
+.section{scroll-margin-top:12px;margin-bottom:22px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;min-width:0;margin-bottom:16px}
+.card:last-child{margin-bottom:0}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.card-head h3{font-size:13.5px;margin:0}.card-head span{font-size:11px;color:var(--muted)}
+.period-chip{color:#f59e0b;font-weight:700;white-space:nowrap;margin-left:6px}
+.chart{height:270px}.chart.small{height:230px}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th,td{padding:8px 7px;border-bottom:1px solid #1d2e44;text-align:right;white-space:nowrap}
+th{color:#92a3ba;font-weight:650;position:sticky;top:0;background:var(--panel)}
+th:first-child,td:first-child{text-align:left}
+.table-wrap{overflow:auto;max-height:420px}
+.section-title{font-size:17px;margin:4px 0 10px;display:flex;align-items:center;gap:10px}
+.section-sub{font-size:12px;color:var(--muted);margin:-6px 0 12px}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;background:#163323;color:#86efac}
+.pill.warn{background:#3a2a10;color:#fbbf24}
+.pill.muted{background:#1c2a3d;color:#9fb0c5}
+.good{color:#4ade80}.bad{color:#f87171}.neutral{color:#aab8ca}
+tr.clickable-row{cursor:pointer}
+tr.clickable-row:hover{background:#12233a}
+.leads-modal-overlay{display:none;position:fixed;inset:0;background:rgba(4,10,20,0.72);z-index:1000;align-items:center;justify-content:center;padding:24px}
+.leads-modal-overlay.open{display:flex}
+.leads-modal{background:var(--panel);border:1px solid var(--border);border-radius:14px;width:min(1250px,96vw);max-height:86vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.leads-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.leads-modal-head h3{margin:0 0 4px;font-size:15px}
+.leads-modal-head span{font-size:12px;color:var(--muted)}
+.leads-modal-close{background:#0b1728;border:1px solid #2a3d57;color:var(--text);border-radius:8px;width:32px;height:32px;font-size:16px;line-height:1;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:0}
+.leads-modal-close:hover{border-color:#3b82f6}
+.leads-modal-body{overflow:auto;padding:14px 20px 20px}
+#backToTopBtn{position:fixed;bottom:26px;right:26px;z-index:40;width:44px;height:44px;border-radius:50%;background:#1d4ed8;border:1px solid #2563eb;color:#fff;font-size:18px;line-height:1;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+#backToTopBtn.show{display:flex}
+#backToTopBtn:hover{filter:brightness(1.1)}
+.disclaimer{font-size:11px;color:var(--muted);background:#0f2748;border:1px solid #1e4a86;border-radius:10px;padding:9px 12px;margin-bottom:14px}
+@media(max-width:1250px){.grid2,.grid3{grid-template-columns:1fr}.control-grid{grid-template-columns:1fr 1fr}.upload-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.sidebar{display:none}.main{margin-left:0;width:100%;padding:12px}.control-grid{grid-template-columns:1fr}.upload-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><img class="logo" src="white_movega_logo.png" alt="Movega logo"></div>
+  <div class="nav-title">FORWARD BOOKINGS</div>
+  <nav class="nav">
+    <a class="active" href="#overview"><i data-lucide="layout-dashboard"></i>Overview</a>
+    <a href="#buckets"><i data-lucide="calendar-clock"></i>Forward Booking Buckets</a>
+    <a href="#trend"><i data-lucide="trending-up"></i>Loading Month Trend</a>
+    <a href="#owners"><i data-lucide="users-round"></i>By Deal Owner</a>
+    <a href="#compare"><i data-lucide="git-compare"></i>Comparison</a>
+    <a href="#detail"><i data-lucide="table"></i>Detailed List</a>
+  </nav>
+  <div class="sidebar-footer">Author: Movega BI</div>
+</aside>
+
+<main class="main">
+  <div class="top">
+    <div><h2>Historical Forward Bookings &amp; Profit</h2><p>Pick any "As Of Date" to reconstruct exactly what the future order book looked like on that day: already booked by then, but not loaded yet.</p></div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <span class="badge-files" title="Download this from Zoho Analytics and upload below">FILE: QT_DEAL_FINANCIALS.xlsx (required)</span>
+      <span class="badge-live">LOCAL · YOUR DATA STAYS IN BROWSER</span>
+      <span id="dealCreatedBadge" class="badge-period" style="display:none"></span>
+    </div>
+  </div>
+
+  <div class="upload-panel">
+    <div class="upload-grid">
+      <div><label>Zoho Analytics — QT_DEAL_FINANCIALS.xlsx</label><input id="dealsFile" type="file" accept=".xlsx,.xls"></div>
+      <button id="generateBtn" type="button">Generate Report</button>
+      <button id="autoLocateBtn" type="button" class="ghost">📁 Auto-Locate in Folder</button>
+      <button id="clearBtn" type="button" class="ghost">Clear</button>
+    </div>
+    <input id="autoLocateInput" type="file" webkitdirectory directory multiple style="display:none">
+    <div id="status" class="status">Upload QT_DEAL_FINANCIALS.xlsx to begin (or use Auto-Locate if it's in this folder).</div>
+    <div id="genProgress" class="progress-wrap">
+      <div class="progress-label" id="genProgressLabel">Reading file…</div>
+      <div class="progress-track"><div class="progress-fill" id="genProgressFill"></div></div>
+    </div>
+  </div>
+
+  <div class="control-panel">
+    <div class="control-grid">
+      <div><label>As Of Date</label><input id="asOfDate" type="date"></div>
+      <div><label>Compare Against</label><select id="compareMode"><option value="today">Today (Live Pipeline)</option><option value="lastyear">Same Date Last Year</option></select></div>
+      <div><button id="todayBtn" type="button" class="ghost">Set As Of = Today</button></div>
+      <div id="asOfSummary" class="section-sub" style="margin:0;align-self:center">Upload data to begin.</div>
+    </div>
+  </div>
+
+  <div class="disclaimer">💷💶 Currency note: EUR and GBP (and any other currency present) are always shown <strong>separately</strong>, never blended into one sum — so totals are never distorted by exchange rates. Where a card has two amounts stacked, the <strong>top line is EUR</strong> and the <strong>smaller line below is GBP</strong>. All deal counts use distinct <strong>Reference</strong>.</div>
+
+  <section id="overview" class="section">
+    <h3 class="section-title">Overview</h3>
+    <div class="section-sub" id="filterSummary">Upload data to see results.</div>
+
+    <div class="group-title">Future Bookings — Secured, Not Yet Loaded</div>
+    <div class="section-sub" style="margin:-6px 0 10px">Deals already booked (Sale Completed) on or before the As Of Date, whose loading date is still on or after it.</div>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Future Bookings</div><div id="kFutureCount" class="value">—</div><div class="sub">Distinct Reference</div><div class="yoy" id="kFutureCountYoy"></div></div>
+      <div class="kpi"><div class="label">Future Sales Value</div><div id="kFutureValue" class="value">—</div><div class="sub">Executed Job Value</div><div class="yoy" id="kFutureValueYoy"></div></div>
+      <div class="kpi"><div class="label">Expected NET Profit</div><div id="kFutureProfit" class="value">—</div><div class="sub">NET Profit</div><div class="yoy" id="kFutureProfitYoy"></div></div>
+      <div class="kpi"><div class="label">Expected Margin %</div><div id="kFutureMargin" class="value">—</div><div class="sub">NET Profit / Sales Value</div><div class="yoy" id="kFutureMarginYoy"></div></div>
+    </div>
+    <div class="subgroup-label">Per-Booking Averages</div>
+    <div class="kpis kpis-secondary">
+      <div class="kpi"><div class="label">Average Job Value</div><div id="kAvgJobValue" class="value">—</div><div class="sub">Per future booking</div><div class="yoy" id="kAvgJobValueYoy"></div></div>
+      <div class="kpi"><div class="label">Average Profit / Job</div><div id="kAvgProfitJob" class="value">—</div><div class="sub">Per future booking</div><div class="yoy" id="kAvgProfitJobYoy"></div></div>
+      <div class="kpi"><div class="label">Avg Days Booked Ahead</div><div id="kAvgDaysAhead" class="value">—</div><div class="sub">Loading Date − As Of Date</div><div class="yoy" id="kAvgDaysAheadYoy"></div></div>
+    </div>
+
+    <div class="group-title">Future Loadings by Month</div>
+    <div class="section-sub" style="margin:-6px 0 10px">Already-secured future bookings, broken down by the month they're due to load. Click a card to see the underlying deals.</div>
+    <div class="kpis" id="futureMonthCards"></div>
+
+    <div class="group-title" id="nextMonthTitle">Bookings For Next Calendar Month</div>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Bookings</div><div id="kNextMonthCount" class="value">—</div><div class="sub" id="nextMonthSub">Already booked, loading date in that month</div><div class="yoy" id="kNextMonthCountYoy"></div></div>
+      <div class="kpi"><div class="label">Sales Value</div><div id="kNextMonthValue" class="value">—</div><div class="sub">Executed Job Value</div><div class="yoy" id="kNextMonthValueYoy"></div></div>
+      <div class="kpi"><div class="label">NET Profit</div><div id="kNextMonthProfit" class="value">—</div><div class="sub">NET Profit</div><div class="yoy" id="kNextMonthProfitYoy"></div></div>
+    </div>
+
+    <div id="actualMonthBlock" style="display:none">
+      <div class="group-title" id="actualMonthTitle">Actual Loadings</div>
+      <div class="kpis">
+        <div class="kpi"><div class="label">Actual Loadings</div><div id="kActualCount" class="value">—</div><div class="sub" id="actualMonthSub">Booked deals (Sale Completed) with loading date in that month, as of today</div><div class="yoy" id="kActualCountYoy"></div></div>
+        <div class="kpi"><div class="label">Actual Sales Value</div><div id="kActualValue" class="value">—</div><div class="sub">Executed Job Value</div><div class="yoy" id="kActualValueYoy"></div></div>
+        <div class="kpi"><div class="label">Actual NET Profit</div><div id="kActualProfit" class="value">—</div><div class="sub">NET Profit</div><div class="yoy" id="kActualProfitYoy"></div></div>
+        <div class="kpi"><div class="label">Added After Snapshot</div><div id="kActualDelta" class="value">—</div><div class="sub">Actual − Predicted on As Of Date</div></div>
+      </div>
+    </div>
+
+    <div class="group-title" id="loadedYearTitle">Already Loaded This Year</div>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Jobs Loaded</div><div id="kCollectedCount" class="value">—</div><div class="sub">Distinct Reference</div><div class="yoy" id="kCollectedCountYoy"></div></div>
+      <div class="kpi"><div class="label">Sales Value</div><div id="kCollectedValue" class="value">—</div><div class="sub">Executed Job Value</div><div class="yoy" id="kCollectedValueYoy"></div></div>
+      <div class="kpi"><div class="label">NET Profit</div><div id="kCollectedProfit" class="value">—</div><div class="sub">NET Profit</div><div class="yoy" id="kCollectedProfitYoy"></div></div>
+    </div>
+
+    <div class="group-title" id="deliveredYearTitle">Already Delivered This Year</div>
+    <div class="kpis">
+      <div class="kpi"><div class="label">Jobs Delivered</div><div id="kDeliveredCount" class="value">—</div><div class="sub">Distinct Reference</div><div class="yoy" id="kDeliveredCountYoy"></div></div>
+      <div class="kpi"><div class="label">Sales Value</div><div id="kDeliveredValue" class="value">—</div><div class="sub">Executed Job Value</div><div class="yoy" id="kDeliveredValueYoy"></div></div>
+      <div class="kpi"><div class="label">NET Profit</div><div id="kDeliveredProfit" class="value">—</div><div class="sub">NET Profit</div><div class="yoy" id="kDeliveredProfitYoy"></div></div>
+    </div>
+  </section>
+
+  <section id="buckets" class="section">
+    <h3 class="section-title">Forward Booking Buckets</h3>
+    <div class="section-sub">Days Ahead = Loading Date − As Of Date. Click a bar to see the underlying deals.</div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head"><h3>Future Bookings by Bucket</h3></div>
+        <div class="chart"><canvas id="bucketCountChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Expected NET Profit by Bucket</h3></div>
+        <div class="chart"><canvas id="bucketProfitChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="trend" class="section">
+    <h3 class="section-title">Loading Month Trend</h3>
+    <div class="section-sub">When is the already-secured future work actually scheduled to happen? Click a bar to drill down.</div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head"><h3>Future Bookings by Loading Month</h3></div>
+        <div class="chart"><canvas id="monthCountChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Future Sales Value by Loading Month</h3></div>
+        <div class="chart"><canvas id="monthValueChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="owners" class="section">
+    <h3 class="section-title">Future Bookings by Deal Owner</h3>
+    <div class="card">
+      <div class="card-head"><h3>Top 15 Owners (by Future Bookings)</h3><span>Click a bar to drill down</span></div>
+      <div class="chart" style="height:360px"><canvas id="ownerChart"></canvas></div>
+    </div>
+  </section>
+
+  <section id="compare" class="section">
+    <h3 class="section-title">Historical Comparison</h3>
+    <div class="section-sub" id="cmpSub">Upload data to see results.</div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metric</th><th id="cmpCurHead">As Of Date</th><th id="cmpPriorHead">Compare Date</th><th>Diff</th><th>% Change</th></tr></thead>
+          <tbody id="cmpTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="detail" class="section">
+    <h3 class="section-title">Detailed Future Bookings</h3>
+    <div class="card">
+      <div class="card-head"><h3>Every Future Booking Deal as of the Selected Date</h3><span id="detailCount"></span></div>
+      <div class="table-wrap" style="max-height:520px">
+        <table>
+          <thead><tr>
+            <th>Reference</th><th>Deal CRM ID</th><th>Sale Completed (Booked)</th><th>Loading Date</th><th>Delivery Date</th>
+            <th>Days Ahead</th><th>Bucket</th><th>Currency</th><th>Client Price</th><th>NET Profit</th><th>Margin %</th>
+            <th>Deal Owner</th><th>Status</th><th>System Status</th>
+          </tr></thead>
+          <tbody id="detailTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div id="modalOverlay" class="leads-modal-overlay">
+  <div class="leads-modal">
+    <div class="leads-modal-head">
+      <div><h3 id="modalTitle">Deals</h3><span id="modalCount"></span></div>
+      <button type="button" class="leads-modal-close" id="modalClose" aria-label="Close">✕</button>
+    </div>
+    <div class="leads-modal-body">
+      <div class="table-wrap" style="max-height:65vh">
+        <table>
+          <thead><tr>
+            <th>Reference</th><th>Deal CRM ID</th><th>Sale Completed (Booked)</th><th>Loading Date</th><th>Delivery Date</th>
+            <th>Days Ahead</th><th>Bucket</th><th>Currency</th><th>Client Price</th><th>NET Profit</th><th>Margin %</th>
+            <th>Deal Owner</th><th>Status</th><th>System Status</th>
+          </tr></thead>
+          <tbody id="modalBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<button id="backToTopBtn" type="button" title="Back to top" aria-label="Back to top">↑</button>
+
+<script>
+const $ = id => document.getElementById(id);
+let allDeals = [];
+let charts = {};
+let currentSnap = null;
+let currentCmpSnap = null;
+const MODAL_ROW_LIMIT = 1000;
+const PALETTE = ['#3b82f6','#22c55e','#f59e0b','#a855f7','#06b6d4','#ef4444'];
+
+/* ---------------- generic helpers ---------------- */
+function str(v){ return (v===null||v===undefined) ? '' : String(v).trim(); }
+function num(v){
+  if(v===null||v===undefined||v==='') return 0;
+  if(typeof v==='number' && Number.isFinite(v)) return v;
+  const x = parseFloat(String(v).replace(/[,\s€£$]/g,''));
+  return Number.isFinite(x) ? x : 0;
+}
+function field(r,names){ for(const n of names){ if(Object.prototype.hasOwnProperty.call(r,n) && r[n]!==null && r[n]!==undefined && r[n]!=='') return r[n]; } return null; }
+function parseDateCell(v){
+  if(!v) return null;
+  if(v instanceof Date && !isNaN(v)) return v;
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
+}
+// <input type=date> gives 'YYYY-MM-DD'; parsing that with `new Date(str)` treats it as UTC midnight,
+// which can shift a day in non-UTC timezones. Building the Date from parts keeps everything on local midnight,
+// matching how SheetJS (cellDates:true) constructs the Collection/Sale Completed Date objects below.
+function parseDateInput(value){
+  if(!value) return null;
+  const [y,m,d] = value.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function toInputValue(date){
+  if(!date) return '';
+  const y=date.getFullYear(), m=String(date.getMonth()+1).padStart(2,'0'), d=String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+function startOfDay(date){ const d=new Date(date); d.setHours(0,0,0,0); return d; }
+function addYears(date, delta){ return new Date(date.getFullYear()+delta, date.getMonth(), date.getDate()); }
+function daysBetween(a,b){ return Math.round((a-b)/86400000); }
+function fmtDate(d){ return d ? d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—'; }
+function unique(arr){ return [...new Set(arr)]; }
+function int(v){ return Math.round(v||0).toLocaleString(); }
+function money(v, currency){
+  const symbols = {GBP:'£', EUR:'€', BGN:'лв'};
+  const sym = symbols[currency] || ((currency||'')+' ');
+  const sign = v<0 ? '-' : '';
+  return sign + sym + Math.abs(Math.round(v||0)).toLocaleString();
+}
+function currencySort(a,b){
+  const order=['EUR','GBP'];
+  const ia=order.indexOf(a), ib=order.indexOf(b);
+  if(ia===-1 && ib===-1) return a.localeCompare(b);
+  if(ia===-1) return 1; if(ib===-1) return -1; return ia-ib;
+}
+function groupBy(arr, keyFn){
+  const map = new Map();
+  arr.forEach(x=>{ const k=keyFn(x); if(!map.has(k)) map.set(k,[]); map.get(k).push(x); });
+  return map;
+}
+function uniqueByRef(arr){
+  const seen = new Set();
+  return arr.filter(d=>{ if(seen.has(d.reference)) return false; seen.add(d.reference); return true; });
+}
+function sumByCurrency(arr, fld){
+  const out = {};
+  arr.forEach(d=>{ out[d.currency] = (out[d.currency]||0) + (d[fld]||0); });
+  return out;
+}
+function countByCurrencyArr(arr){
+  const out = {};
+  arr.forEach(d=>{ out[d.currency] = (out[d.currency]||0) + 1; });
+  return out;
+}
+function avgPerCurrency(sumsObj, arr){
+  const counts = countByCurrencyArr(arr);
+  const out = {};
+  Object.keys(sumsObj).forEach(k=>{ out[k] = counts[k] ? sumsObj[k]/counts[k] : 0; });
+  return out;
+}
+// Renders one value per currency stacked vertically (line1 = EUR, line2 = GBP, ...), never blended into one sum.
+function currencyLines(sumsObj, formatter){
+  const keys = Object.keys(sumsObj).filter(k=>sumsObj[k]).sort(currencySort);
+  if(!keys.length) return '—';
+  return keys.map((k,i)=> i===0 ? formatter(sumsObj[k],k) : `<span class="line2">${formatter(sumsObj[k],k)}</span>`).join('');
+}
+// Compact single-line "€X · £Y" rendering, used where vertical stacking would take up too much room (e.g. small month cards).
+function compactMoneyHtml(sumsObj){
+  const keys = Object.keys(sumsObj).filter(k=>sumsObj[k]).sort(currencySort);
+  if(!keys.length) return '—';
+  return keys.map(k=>money(sumsObj[k],k)).join(' &nbsp;·&nbsp; ');
+}
+function marginLine(valueSums, profitSums){
+  const keys = Object.keys(valueSums).filter(k=>valueSums[k]).sort(currencySort);
+  if(!keys.length) return '—';
+  return keys.map(k=>{
+    const m = valueSums[k] ? (profitSums[k]||0)/valueSums[k]*100 : 0;
+    return `${k} ${m.toFixed(1)}%`;
+  }).join(' &nbsp;·&nbsp; ');
+}
+function marginByCurrency(valueSums, profitSums){
+  const out = {};
+  Object.keys(valueSums).forEach(k=>{ if(valueSums[k]) out[k] = (profitSums[k]||0)/valueSums[k]*100; });
+  return out;
+}
+
+/* ---------------- "vs Last Year" badges shown on every KPI card ----------------
+   Always compares the current snapshot against the SAME historical snapshot logic run on
+   (As Of Date - 1 year), independent of the "Compare Against" dropdown (which only drives the
+   separate Historical Comparison table). Full prior-year value is in the badge's title tooltip. */
+function yoyArrow(diff){ return diff>0?'▲':diff<0?'▼':'▬'; }
+function yoyClass(diff){ return diff>0?'good':diff<0?'bad':'neutral'; }
+function yoyCountHtml(cur, prev, lyAsOf){
+  if(!prev){ if(!cur) return ''; return `<span class="yoy-badge neutral" title="Same date last year (${fmtDate(lyAsOf)}): 0">New vs LY</span>`; }
+  const diff = cur-prev, pct = diff/prev*100;
+  return `<span class="yoy-badge ${yoyClass(diff)}" title="Same date last year (${fmtDate(lyAsOf)}): ${int(prev)}">${yoyArrow(diff)} ${pct>=0?'+':''}${pct.toFixed(0)}% vs LY</span>`;
+}
+function yoyMoneyHtml(curSums, prevSums, lyAsOf){
+  const keys = unique([...Object.keys(curSums||{}), ...Object.keys(prevSums||{})]).filter(k=>(curSums&&curSums[k])||(prevSums&&prevSums[k])).sort(currencySort);
+  return keys.map(k=>{
+    const cur=(curSums&&curSums[k])||0, prev=(prevSums&&prevSums[k])||0;
+    if(!prev) return cur ? `<span class="yoy-badge neutral" title="Same date last year (${fmtDate(lyAsOf)}): ${k} 0">${k} New</span>` : '';
+    const diff = cur-prev, pct = diff/Math.abs(prev)*100;
+    return `<span class="yoy-badge ${yoyClass(diff)}" title="Same date last year (${fmtDate(lyAsOf)}): ${money(prev,k)}">${k} ${yoyArrow(diff)} ${pct>=0?'+':''}${pct.toFixed(0)}%</span>`;
+  }).filter(Boolean).join('');
+}
+function yoyMarginHtml(curMarginByCur, lyMarginByCur, lyAsOf){
+  const keys = unique([...Object.keys(curMarginByCur), ...Object.keys(lyMarginByCur)]).sort(currencySort);
+  return keys.map(k=>{
+    if(!(k in curMarginByCur)) return '';
+    const cur = curMarginByCur[k], prev = lyMarginByCur[k];
+    if(prev==null) return `<span class="yoy-badge neutral" title="No data last year (${fmtDate(lyAsOf)})">${k} New</span>`;
+    const diff = cur-prev;
+    return `<span class="yoy-badge ${yoyClass(diff)}" title="Same date last year (${fmtDate(lyAsOf)}): ${k} ${prev.toFixed(1)}%">${k} ${yoyArrow(diff)} ${diff>=0?'+':''}${diff.toFixed(1)}pts</span>`;
+  }).filter(Boolean).join('');
+}
+function yoyDaysHtml(cur, prev, lyAsOf){
+  if(cur==null || prev==null) return '';
+  const diff = Math.round(cur-prev);
+  return `<span class="yoy-badge ${yoyClass(diff)}" title="Same date last year (${fmtDate(lyAsOf)}): ${Math.round(prev)} days">${yoyArrow(diff)} ${diff>=0?'+':''}${diff}d vs LY</span>`;
+}
+function showProgress(pct,label){
+  const wrap=$('genProgress'); if(!wrap) return;
+  wrap.style.display='block';
+  $('genProgressFill').style.width=pct+'%';
+  $('genProgressLabel').textContent=label;
+}
+function hideProgress(){ const wrap=$('genProgress'); if(wrap) wrap.style.display='none'; }
+function nextFrame(){ return new Promise(r=>setTimeout(r,0)); }
+function readWorkbook(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      try{
+        const wb = XLSX.read(e.target.result,{type:'array',cellDates:true});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        resolve(XLSX.utils.sheet_to_json(ws,{defval:null,raw:true}));
+      }catch(err){ reject(err); }
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+/* ---------------- Deal normalization (QT_DEAL_FINANCIALS.xlsx) ---------------- */
+function normalizeDealRow(r){
+  return {
+    dealId: str(field(r,['Deal ID','Id'])),
+    reference: str(field(r,['Reference','Deal Reference'])),
+    createdTime: parseDateCell(field(r,['Created Time','Deal Created Time'])),
+    saleCompleted: parseDateCell(field(r,['Sale Completed','Sale Completed Date'])),
+    collectionDate: parseDateCell(field(r,['Collection Date','Collection Date(s)'])),
+    deliveryDate: parseDateCell(field(r,['Delivery Date','Delivery Date(s)'])),
+    currency: str(field(r,['Currency'])).toUpperCase() || 'GBP',
+    jobValue: num(field(r,['Executed Job Value','Client Price'])),
+    netProfit: num(field(r,['Net Profit'])),
+    owner: str(field(r,['Salesperson','Deal Owner','Deal Owner Name'])) || 'Unassigned',
+    status: str(field(r,['Deal Status','Status'])),
+    systemStatus: str(field(r,['System Status'])),
+    paymentStatus: str(field(r,['Payment Status'])),
+    route: str(field(r,['Route']))
+  };
+}
+
+/* ---------------- IMPORTANT LOGIC: reconstructing the order book "as of" a historical date ----------------
+   Future Booking  : Sale Completed <= As Of Date  AND  Collection Date >= As Of Date
+   Collected so far: Collection Date <  As Of Date
+   Delivered so far : Delivery Date <= As Of Date
+   (Collection Date is deliberately the dividing line between "future" and "collected so far" so a deal
+   is never counted in both groups at once - a job loading exactly on the As Of Date is still "future".)
+*/
+function isFutureBooking(d, asOf){ return !!(d.saleCompleted && d.collectionDate && d.saleCompleted <= asOf && d.collectionDate >= asOf); }
+// Scoped to the As Of Date's calendar year (Jan 1 of that year through the As Of Date itself) rather than
+// all-time, so the KPI reads as "this year's progress so far", not a lifetime cumulative total.
+function isCollectedByDate(d, asOf){ return !!(d.collectionDate && d.collectionDate.getFullYear()===asOf.getFullYear() && d.collectionDate < asOf); }
+function isDeliveredByDate(d, asOf){ return !!(d.deliveryDate && d.deliveryDate.getFullYear()===asOf.getFullYear() && d.deliveryDate <= asOf); }
+function daysAheadFor(d, asOf){ return daysBetween(startOfDay(d.collectionDate), asOf); }
+function bucketFor(days){
+  if(days<=7) return '1. 0-7 Days';
+  if(days<=14) return '2. 8-14 Days';
+  if(days<=30) return '3. 15-30 Days';
+  if(days<=60) return '4. 31-60 Days';
+  if(days<=90) return '5. 61-90 Days';
+  return '6. 90+ Days';
+}
+const BUCKET_ORDER = ['1. 0-7 Days','2. 8-14 Days','3. 15-30 Days','4. 31-60 Days','5. 61-90 Days','6. 90+ Days'];
+function bucketLabel(b){ return b.replace(/^\d+\.\s*/,''); }
+function collectionYM(d){ return `${d.collectionDate.getFullYear()}-${String(d.collectionDate.getMonth()+1).padStart(2,'0')}`; }
+function monthLabelFromYM(ym){
+  const [y,m] = ym.split('-').map(Number);
+  return new Date(y, m-1, 1).toLocaleDateString('en-GB',{month:'short',year:'numeric'});
+}
+function lastYearYM(ym){
+  const [y,m] = ym.split('-').map(Number);
+  return `${y-1}-${String(m).padStart(2,'0')}`;
+}
+
+function computeSnapshot(deals, asOf){
+  return {
+    asOf,
+    future: deals.filter(d=>isFutureBooking(d,asOf)),
+    collected: deals.filter(d=>isCollectedByDate(d,asOf)),
+    delivered: deals.filter(d=>isDeliveredByDate(d,asOf))
+  };
+}
+function avgDaysAhead(snap){
+  const arr = uniqueByRef(snap.future);
+  if(!arr.length) return null;
+  return arr.reduce((s,d)=>s+daysAheadFor(d,snap.asOf),0)/arr.length;
+}
+// "Next Calendar Month" preview: checked on the 1st of a month, it shows THAT month (the whole month is
+// still ahead of you); checked any other day, it shows the following month - matching the real workflow of
+// glancing at the order book at the start of every month to see how much of the upcoming month is already booked.
+function nextMonthWindow(asOf){
+  const y = asOf.getFullYear(), m = asOf.getMonth(), day = asOf.getDate();
+  const offset = day===1 ? 0 : 1;
+  const start = new Date(y, m+offset, 1);
+  const end = new Date(y, m+offset+1, 1);
+  return {start, end};
+}
+function nextMonthLabel(asOf){
+  const {start} = nextMonthWindow(asOf);
+  return start.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+}
+function nextMonthBookings(snap){
+  const {start, end} = nextMonthWindow(snap.asOf);
+  return uniqueByRef(snap.future).filter(d=> d.collectionDate && d.collectionDate>=start && d.collectionDate<end);
+}
+function realToday(){ return startOfDay(new Date()); }
+// "Actual" = every BOOKED deal (Sale Completed set, on/before today) whose loading date falls in the target
+// month - i.e. what really happened/will happen, as known TODAY, vs. what was predicted on the historical
+// As Of Date snapshot. Only meaningful once the target month has actually started.
+function actualMonthDeals(start, end){
+  const today = realToday();
+  return uniqueByRef(allDeals.filter(d=> d.saleCompleted && d.saleCompleted<=today && d.collectionDate && d.collectionDate>=start && d.collectionDate<end));
+}
+
+/* ---------------- drill-down modal ("View Underlying Data") ---------------- */
+function dealModalRowHtml(d, asOf){
+  const days = (asOf && d.collectionDate) ? daysBetween(startOfDay(d.collectionDate), asOf) : '';
+  const bucket = days!==''? bucketLabel(bucketFor(days)) : '';
+  const margin = d.jobValue ? (d.netProfit/d.jobValue*100).toFixed(1)+'%' : '—';
+  return `<td>${d.reference||'—'}</td><td>${d.dealId||'—'}</td><td>${fmtDate(d.saleCompleted)}</td><td>${fmtDate(d.collectionDate)}</td><td>${fmtDate(d.deliveryDate)}</td><td>${days}</td><td>${bucket}</td><td>${d.currency||'—'}</td><td>${money(d.jobValue,d.currency)}</td><td>${money(d.netProfit,d.currency)}</td><td>${margin}</td><td>${d.owner||'—'}</td><td>${d.status||'—'}</td><td>${d.systemStatus||'—'}</td>`;
+}
+function openDealsModal(title, deals, asOf){
+  const unique_ = uniqueByRef(deals);
+  const sorted = unique_.slice().sort((a,b)=>(a.collectionDate?a.collectionDate.getTime():0)-(b.collectionDate?b.collectionDate.getTime():0));
+  const shown = sorted.slice(0, MODAL_ROW_LIMIT);
+  $('modalTitle').textContent = title;
+  $('modalCount').textContent = `${sorted.length.toLocaleString()} deal${sorted.length===1?'':'s'}` + (sorted.length>shown.length?` · showing first ${shown.length.toLocaleString()}`:'');
+  const body = $('modalBody'); body.innerHTML='';
+  if(!shown.length){ body.innerHTML = '<tr><td colspan="14" class="empty">No deals for this selection.</td></tr>'; }
+  shown.forEach(d=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = dealModalRowHtml(d, asOf);
+    body.appendChild(tr);
+  });
+  $('modalOverlay').classList.add('open');
+}
+function closeDealsModal(){ $('modalOverlay').classList.remove('open'); }
+
+/* ---------------- Future Loadings by Month (one card per loading month) ---------------- */
+function renderFutureMonthCards(snap, lySnap){
+  const future = uniqueByRef(snap.future);
+  const byMonth = groupBy(future, collectionYM);
+  const lyByMonth = groupBy(uniqueByRef(lySnap.future), collectionYM);
+  const months = [...byMonth.keys()].sort();
+  const curYM = `${snap.asOf.getFullYear()}-${String(snap.asOf.getMonth()+1).padStart(2,'0')}`;
+  const wrap = $('futureMonthCards');
+  wrap.innerHTML = months.map(ym=>{
+    const deals = byMonth.get(ym);
+    const valueSums = sumByCurrency(deals,'jobValue');
+    const profitSums = sumByCurrency(deals,'netProfit');
+    const lyDeals = lyByMonth.get(lastYearYM(ym)) || [];
+    const yoy = yoyCountHtml(deals.length, lyDeals.length, lySnap.asOf);
+    const isCurrent = ym===curYM;
+    return `<div class="kpi kpi-clickable month-kpi${isCurrent?' current-month':''}" data-ym="${ym}">
+      <div class="label">${monthLabelFromYM(ym)}${isCurrent?' (current)':''}</div>
+      <div class="value">${int(deals.length)}<span class="unit">bookings</span></div>
+      <div class="sub"><span class="sub-tag">Revenue</span><span>${compactMoneyHtml(valueSums)}</span></div>
+      <div class="sub"><span class="sub-tag">NET Profit</span><span>${compactMoneyHtml(profitSums)}</span></div>
+      <div class="yoy">${yoy}</div>
+    </div>`;
+  }).join('') || '<div class="empty">No future bookings for this As Of Date.</div>';
+  wrap.querySelectorAll('.month-kpi').forEach(card=>{
+    const ym = card.dataset.ym;
+    card.title = 'Click to view the underlying deals';
+    card.onclick = ()=> openDealsModal(`Future Bookings — Loading ${monthLabelFromYM(ym)} — As Of ${fmtDate(snap.asOf)}`, byMonth.get(ym), snap.asOf);
+  });
+}
+
+/* ---------------- KPI rendering ---------------- */
+function renderKpis(snap, lySnap){
+  const future = uniqueByRef(snap.future);
+  const collected = uniqueByRef(snap.collected);
+  const delivered = uniqueByRef(snap.delivered);
+  const lyAsOf = lySnap.asOf;
+  const lyFuture = uniqueByRef(lySnap.future);
+  const lyCollected = uniqueByRef(lySnap.collected);
+  const lyDelivered = uniqueByRef(lySnap.delivered);
+
+  $('kFutureCount').textContent = int(future.length);
+  $('kFutureCountYoy').innerHTML = yoyCountHtml(future.length, lyFuture.length, lyAsOf);
+  const futValueSums = sumByCurrency(future,'jobValue');
+  const futProfitSums = sumByCurrency(future,'netProfit');
+  const lyFutValueSums = sumByCurrency(lyFuture,'jobValue');
+  const lyFutProfitSums = sumByCurrency(lyFuture,'netProfit');
+  $('kFutureValue').innerHTML = currencyLines(futValueSums, money);
+  $('kFutureValueYoy').innerHTML = yoyMoneyHtml(futValueSums, lyFutValueSums, lyAsOf);
+  $('kFutureProfit').innerHTML = currencyLines(futProfitSums, money);
+  $('kFutureProfitYoy').innerHTML = yoyMoneyHtml(futProfitSums, lyFutProfitSums, lyAsOf);
+  $('kFutureMargin').innerHTML = marginLine(futValueSums, futProfitSums);
+  $('kFutureMarginYoy').innerHTML = yoyMarginHtml(marginByCurrency(futValueSums, futProfitSums), marginByCurrency(lyFutValueSums, lyFutProfitSums), lyAsOf);
+  const avgJobValueSums = avgPerCurrency(futValueSums, future), lyAvgJobValueSums = avgPerCurrency(lyFutValueSums, lyFuture);
+  const avgProfitJobSums = avgPerCurrency(futProfitSums, future), lyAvgProfitJobSums = avgPerCurrency(lyFutProfitSums, lyFuture);
+  $('kAvgJobValue').innerHTML = currencyLines(avgJobValueSums, money);
+  $('kAvgJobValueYoy').innerHTML = yoyMoneyHtml(avgJobValueSums, lyAvgJobValueSums, lyAsOf);
+  $('kAvgProfitJob').innerHTML = currencyLines(avgProfitJobSums, money);
+  $('kAvgProfitJobYoy').innerHTML = yoyMoneyHtml(avgProfitJobSums, lyAvgProfitJobSums, lyAsOf);
+  const avgDays = avgDaysAhead(snap), lyAvgDays = avgDaysAhead(lySnap);
+  $('kAvgDaysAhead').textContent = avgDays!=null ? Math.round(avgDays)+' days' : '—';
+  $('kAvgDaysAheadYoy').innerHTML = yoyDaysHtml(avgDays, lyAvgDays, lyAsOf);
+
+  const nmBookings = nextMonthBookings(snap);
+  const lyNmBookings = nextMonthBookings(lySnap);
+  const nmLabel = nextMonthLabel(snap.asOf);
+  $('nextMonthTitle').textContent = `Bookings For ${nmLabel}`;
+  $('nextMonthSub').textContent = `Already booked as of ${fmtDate(snap.asOf)}, loading date in ${nmLabel}`;
+  $('kNextMonthCount').textContent = int(nmBookings.length);
+  $('kNextMonthCountYoy').innerHTML = yoyCountHtml(nmBookings.length, lyNmBookings.length, lyAsOf);
+  const nmValueSums = sumByCurrency(nmBookings,'jobValue');
+  const nmProfitSums = sumByCurrency(nmBookings,'netProfit');
+  const lyNmValueSums = sumByCurrency(lyNmBookings,'jobValue');
+  const lyNmProfitSums = sumByCurrency(lyNmBookings,'netProfit');
+  $('kNextMonthValue').innerHTML = currencyLines(nmValueSums, money);
+  $('kNextMonthValueYoy').innerHTML = yoyMoneyHtml(nmValueSums, lyNmValueSums, lyAsOf);
+  $('kNextMonthProfit').innerHTML = currencyLines(nmProfitSums, money);
+  $('kNextMonthProfitYoy').innerHTML = yoyMoneyHtml(nmProfitSums, lyNmProfitSums, lyAsOf);
+  [$('kNextMonthCount'),$('kNextMonthValue'),$('kNextMonthProfit')].forEach(el=>{
+    const card = el.closest('.kpi');
+    card.classList.add('kpi-clickable');
+    card.title = 'Click to view the underlying deals';
+    card.onclick = ()=> openDealsModal(`Bookings For ${nmLabel} — As Of ${fmtDate(snap.asOf)}`, nmBookings, snap.asOf);
+  });
+
+  // "Actual" loadings for that same target month, using TODAY's real data (not the historical As Of snapshot) -
+  // only shown once that month has actually begun, so we're comparing a real outcome against the old prediction.
+  const {start: nmStart, end: nmEnd} = nextMonthWindow(snap.asOf);
+  const today = realToday();
+  const actualBlock = $('actualMonthBlock');
+  if(nmStart < today){
+    const isFinal = nmEnd <= today;
+    const actualDeals = actualMonthDeals(nmStart, nmEnd);
+    const actualValueSums = sumByCurrency(actualDeals,'jobValue');
+    const actualProfitSums = sumByCurrency(actualDeals,'netProfit');
+    const delta = actualDeals.length - nmBookings.length;
+    // Same calendar month one year earlier is always fully in the past, so its "actual" figure is final.
+    const {start: lyNmStart, end: lyNmEnd} = nextMonthWindow(lyAsOf);
+    const lyActualDeals = actualMonthDeals(lyNmStart, lyNmEnd);
+    const lyActualValueSums = sumByCurrency(lyActualDeals,'jobValue');
+    const lyActualProfitSums = sumByCurrency(lyActualDeals,'netProfit');
+    $('actualMonthTitle').textContent = `Actual Loadings — ${nmLabel} (${isFinal?'Final':'In Progress'})`;
+    $('actualMonthSub').textContent = `Booked deals (Sale Completed) with loading date in ${nmLabel}, as known today (${fmtDate(today)})`;
+    $('kActualCount').textContent = int(actualDeals.length);
+    $('kActualCountYoy').innerHTML = yoyCountHtml(actualDeals.length, lyActualDeals.length, lyAsOf);
+    $('kActualValue').innerHTML = currencyLines(actualValueSums, money);
+    $('kActualValueYoy').innerHTML = yoyMoneyHtml(actualValueSums, lyActualValueSums, lyAsOf);
+    $('kActualProfit').innerHTML = currencyLines(actualProfitSums, money);
+    $('kActualProfitYoy').innerHTML = yoyMoneyHtml(actualProfitSums, lyActualProfitSums, lyAsOf);
+    const deltaSign = delta>0?'+':'';
+    $('kActualDelta').textContent = `${deltaSign}${delta} bookings`;
+    $('kActualDelta').className = 'value ' + (delta>0?'good':delta<0?'bad':'neutral');
+    [$('kActualCount'),$('kActualValue'),$('kActualProfit'),$('kActualDelta')].forEach(el=>{
+      const card = el.closest('.kpi');
+      card.classList.add('kpi-clickable');
+      card.title = 'Click to view the underlying deals';
+      card.onclick = ()=> openDealsModal(`Actual Loadings — ${nmLabel}`, actualDeals, today);
+    });
+    actualBlock.style.display = '';
+  } else {
+    actualBlock.style.display = 'none';
+  }
+
+  const yr = snap.asOf.getFullYear();
+  $('loadedYearTitle').textContent = `Already Loaded in ${yr} (01 Jan ${yr} → As Of Date)`;
+  $('kCollectedCount').textContent = int(collected.length);
+  $('kCollectedCountYoy').innerHTML = yoyCountHtml(collected.length, lyCollected.length, lyAsOf);
+  const collectedValueSums = sumByCurrency(collected,'jobValue'), lyCollectedValueSums = sumByCurrency(lyCollected,'jobValue');
+  const collectedProfitSums = sumByCurrency(collected,'netProfit'), lyCollectedProfitSums = sumByCurrency(lyCollected,'netProfit');
+  $('kCollectedValue').innerHTML = currencyLines(collectedValueSums, money);
+  $('kCollectedValueYoy').innerHTML = yoyMoneyHtml(collectedValueSums, lyCollectedValueSums, lyAsOf);
+  $('kCollectedProfit').innerHTML = currencyLines(collectedProfitSums, money);
+  $('kCollectedProfitYoy').innerHTML = yoyMoneyHtml(collectedProfitSums, lyCollectedProfitSums, lyAsOf);
+
+  $('deliveredYearTitle').textContent = `Already Delivered in ${yr} (01 Jan ${yr} → As Of Date)`;
+  $('kDeliveredCount').textContent = int(delivered.length);
+  $('kDeliveredCountYoy').innerHTML = yoyCountHtml(delivered.length, lyDelivered.length, lyAsOf);
+  const deliveredValueSums = sumByCurrency(delivered,'jobValue'), lyDeliveredValueSums = sumByCurrency(lyDelivered,'jobValue');
+  const deliveredProfitSums = sumByCurrency(delivered,'netProfit'), lyDeliveredProfitSums = sumByCurrency(lyDelivered,'netProfit');
+  $('kDeliveredValue').innerHTML = currencyLines(deliveredValueSums, money);
+  $('kDeliveredValueYoy').innerHTML = yoyMoneyHtml(deliveredValueSums, lyDeliveredValueSums, lyAsOf);
+  $('kDeliveredProfit').innerHTML = currencyLines(deliveredProfitSums, money);
+  $('kDeliveredProfitYoy').innerHTML = yoyMoneyHtml(deliveredProfitSums, lyDeliveredProfitSums, lyAsOf);
+
+  [['kFutureCount',future],['kCollectedCount',collected],['kDeliveredCount',delivered]].forEach(([id,rows])=>{
+    const card = $(id).closest('.kpi');
+    if(!card || card.dataset.wired) return;
+    card.dataset.wired='1';
+    card.classList.add('kpi-clickable');
+    card.title = 'Click to view the underlying deals';
+  });
+  $('kFutureCount').closest('.kpi').onclick = ()=> openDealsModal(`Future Bookings — As Of ${fmtDate(snap.asOf)}`, future, snap.asOf);
+  $('kFutureValue').closest('.kpi').onclick = ()=> openDealsModal(`Future Bookings — As Of ${fmtDate(snap.asOf)}`, future, snap.asOf);
+  $('kFutureProfit').closest('.kpi').onclick = ()=> openDealsModal(`Future Bookings — As Of ${fmtDate(snap.asOf)}`, future, snap.asOf);
+  $('kCollectedCount').closest('.kpi').onclick = ()=> openDealsModal(`Already Loaded in ${yr} — As Of ${fmtDate(snap.asOf)}`, collected, snap.asOf);
+  $('kCollectedValue').closest('.kpi').onclick = ()=> openDealsModal(`Already Loaded in ${yr} — As Of ${fmtDate(snap.asOf)}`, collected, snap.asOf);
+  $('kCollectedProfit').closest('.kpi').onclick = ()=> openDealsModal(`Already Loaded in ${yr} — As Of ${fmtDate(snap.asOf)}`, collected, snap.asOf);
+  $('kDeliveredCount').closest('.kpi').onclick = ()=> openDealsModal(`Already Delivered in ${yr} — As Of ${fmtDate(snap.asOf)}`, delivered, snap.asOf);
+  $('kDeliveredValue').closest('.kpi').onclick = ()=> openDealsModal(`Already Delivered in ${yr} — As Of ${fmtDate(snap.asOf)}`, delivered, snap.asOf);
+  $('kDeliveredProfit').closest('.kpi').onclick = ()=> openDealsModal(`Already Delivered in ${yr} — As Of ${fmtDate(snap.asOf)}`, delivered, snap.asOf);
+  [$('kFutureValue'),$('kFutureProfit'),$('kCollectedValue'),$('kCollectedProfit'),$('kDeliveredValue'),$('kDeliveredProfit')].forEach(el=>{
+    el.closest('.kpi').classList.add('kpi-clickable');
+  });
+}
+
+/* ---------------- Comparison ---------------- */
+function diffRow(label, curVal, cmpVal, formatter){
+  curVal = curVal||0; cmpVal = cmpVal||0;
+  const diff = curVal - cmpVal;
+  let pctFmt;
+  if(cmpVal === 0){ pctFmt = curVal===0 ? '—' : 'New'; }
+  else { const pct = diff/Math.abs(cmpVal)*100; pctFmt = (pct>=0?'+':'')+pct.toFixed(1)+'%'; }
+  const sign = diff>0?'+':'';
+  return { label, curFmt: formatter(curVal), cmpFmt: formatter(cmpVal), diff, diffFmt: sign+formatter(diff), pctFmt };
+}
+function renderComparison(snap, cmp, mode, asOf, compareDate){
+  $('cmpCurHead').textContent = `As Of ${fmtDate(asOf)}`;
+  $('cmpPriorHead').textContent = (mode==='today'?'Today (Live) — ':'Same Date Last Year — ') + fmtDate(compareDate);
+  $('cmpSub').textContent = `Comparing the reconstructed order book on ${fmtDate(asOf)} against ${mode==='today'?'the live pipeline today':'the same calendar date one year earlier'} (${fmtDate(compareDate)}).`;
+
+  const future = uniqueByRef(snap.future), cmpFuture = uniqueByRef(cmp.future);
+  const collected = uniqueByRef(snap.collected), cmpCollected = uniqueByRef(cmp.collected);
+  const delivered = uniqueByRef(snap.delivered), cmpDelivered = uniqueByRef(cmp.delivered);
+  const currencies = unique(allDeals.map(d=>d.currency)).sort(currencySort);
+
+  const rows = [];
+  rows.push(diffRow('Future Bookings (count)', future.length, cmpFuture.length, int));
+  const fv=sumByCurrency(future,'jobValue'), cfv=sumByCurrency(cmpFuture,'jobValue');
+  const fp=sumByCurrency(future,'netProfit'), cfp=sumByCurrency(cmpFuture,'netProfit');
+  currencies.forEach(cur=> rows.push(diffRow(`Future Sales Value (${cur})`, fv[cur]||0, cfv[cur]||0, v=>money(v,cur))));
+  currencies.forEach(cur=> rows.push(diffRow(`Future NET Profit (${cur})`, fp[cur]||0, cfp[cur]||0, v=>money(v,cur))));
+  rows.push(diffRow('Avg Days Booked Ahead', avgDaysAhead(snap), avgDaysAhead(cmp), v=> v!=null? Math.round(v)+' d':'—'));
+
+  const nmCur = nextMonthBookings(snap), nmCmp = nextMonthBookings(cmp);
+  rows.push(diffRow(`Bookings For ${nextMonthLabel(asOf)} (vs ${nextMonthLabel(compareDate)})`, nmCur.length, nmCmp.length, int));
+  const nmv=sumByCurrency(nmCur,'jobValue'), nmcv=sumByCurrency(nmCmp,'jobValue');
+  const nmp=sumByCurrency(nmCur,'netProfit'), nmcp=sumByCurrency(nmCmp,'netProfit');
+  currencies.forEach(cur=> rows.push(diffRow(`Next Month Sales Value (${cur})`, nmv[cur]||0, nmcv[cur]||0, v=>money(v,cur))));
+  currencies.forEach(cur=> rows.push(diffRow(`Next Month NET Profit (${cur})`, nmp[cur]||0, nmcp[cur]||0, v=>money(v,cur))));
+
+  rows.push(diffRow('Loaded YTD (count)', collected.length, cmpCollected.length, int));
+  const cv=sumByCurrency(collected,'jobValue'), ccv=sumByCurrency(cmpCollected,'jobValue');
+  const cp=sumByCurrency(collected,'netProfit'), ccp=sumByCurrency(cmpCollected,'netProfit');
+  currencies.forEach(cur=> rows.push(diffRow(`Loaded YTD Sales Value (${cur})`, cv[cur]||0, ccv[cur]||0, v=>money(v,cur))));
+  currencies.forEach(cur=> rows.push(diffRow(`Loaded YTD NET Profit (${cur})`, cp[cur]||0, ccp[cur]||0, v=>money(v,cur))));
+
+  rows.push(diffRow('Delivered YTD (count)', delivered.length, cmpDelivered.length, int));
+  const dv=sumByCurrency(delivered,'jobValue'), cdv=sumByCurrency(cmpDelivered,'jobValue');
+  const dp=sumByCurrency(delivered,'netProfit'), cdp=sumByCurrency(cmpDelivered,'netProfit');
+  currencies.forEach(cur=> rows.push(diffRow(`Delivered YTD Sales Value (${cur})`, dv[cur]||0, cdv[cur]||0, v=>money(v,cur))));
+  currencies.forEach(cur=> rows.push(diffRow(`Delivered YTD NET Profit (${cur})`, dp[cur]||0, cdp[cur]||0, v=>money(v,cur))));
+
+  const tbody = $('cmpTableBody'); tbody.innerHTML='';
+  rows.forEach(r=>{
+    const deltaClass = r.diff>0?'good':r.diff<0?'bad':'neutral';
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td>${r.label}</td><td>${r.curFmt}</td><td>${r.cmpFmt}</td><td class="${deltaClass}">${r.diffFmt}</td><td class="${deltaClass}">${r.pctFmt}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ---------------- Charts ---------------- */
+function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+Chart.defaults.color = '#9fb0c5'; Chart.defaults.borderColor = '#21344d';
+
+function renderBucketCharts(snap){
+  const future = uniqueByRef(snap.future);
+  const byBucket = groupBy(future, d=>bucketFor(daysAheadFor(d,snap.asOf)));
+  const labels = BUCKET_ORDER.map(bucketLabel);
+  const counts = BUCKET_ORDER.map(b=> (byBucket.get(b)||[]).length);
+
+  destroyChart('bucketCountChart');
+  charts['bucketCountChart'] = new Chart($('bucketCountChart').getContext('2d'), {
+    type:'bar',
+    data:{labels, datasets:[{data:counts, backgroundColor:'#3b82f6', borderRadius:4}]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false}}, y:{grid:{color:'#21344d'}}},
+      onClick:(evt,els)=>{ if(els.length){ const b=BUCKET_ORDER[els[0].index]; openDealsModal(`Future Bookings — ${bucketLabel(b)}`, byBucket.get(b)||[], snap.asOf); } }
+    }
+  });
+
+  const currencies = unique(future.map(d=>d.currency)).sort(currencySort);
+  const profitDatasets = currencies.map((cur,i)=>({
+    label: cur,
+    data: BUCKET_ORDER.map(b=> (byBucket.get(b)||[]).filter(d=>d.currency===cur).reduce((s,d)=>s+d.netProfit,0)),
+    backgroundColor: PALETTE[i%PALETTE.length]
+  }));
+  destroyChart('bucketProfitChart');
+  charts['bucketProfitChart'] = new Chart($('bucketProfitChart').getContext('2d'), {
+    type:'bar',
+    data:{labels, datasets:profitDatasets},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{boxWidth:12}}},
+      scales:{x:{grid:{display:false}}, y:{grid:{color:'#21344d'}}},
+      onClick:(evt,els)=>{ if(els.length){ const b=BUCKET_ORDER[els[0].index]; openDealsModal(`Expected NET Profit — ${bucketLabel(b)}`, byBucket.get(b)||[], snap.asOf); } }
+    }
+  });
+}
+
+function renderMonthCharts(snap){
+  const future = uniqueByRef(snap.future);
+  const byMonth = groupBy(future, collectionYM);
+  const months = [...byMonth.keys()].sort();
+  const counts = months.map(m=>byMonth.get(m).length);
+
+  destroyChart('monthCountChart');
+  charts['monthCountChart'] = new Chart($('monthCountChart').getContext('2d'), {
+    type:'bar',
+    data:{labels:months, datasets:[{data:counts, backgroundColor:'#22c55e', borderRadius:4}]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false}}, y:{grid:{color:'#21344d'}}},
+      onClick:(evt,els)=>{ if(els.length){ const m=months[els[0].index]; openDealsModal(`Future Bookings — Collection ${m}`, byMonth.get(m)||[], snap.asOf); } }
+    }
+  });
+
+  const currencies = unique(future.map(d=>d.currency)).sort(currencySort);
+  const valueDatasets = currencies.map((cur,i)=>({
+    label: cur,
+    data: months.map(m=> byMonth.get(m).filter(d=>d.currency===cur).reduce((s,d)=>s+d.jobValue,0)),
+    backgroundColor: PALETTE[i%PALETTE.length]
+  }));
+  destroyChart('monthValueChart');
+  charts['monthValueChart'] = new Chart($('monthValueChart').getContext('2d'), {
+    type:'bar',
+    data:{labels:months, datasets:valueDatasets},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{boxWidth:12}}},
+      scales:{x:{grid:{display:false}}, y:{grid:{color:'#21344d'}}},
+      onClick:(evt,els)=>{ if(els.length){ const m=months[els[0].index]; openDealsModal(`Future Sales Value — Collection ${m}`, byMonth.get(m)||[], snap.asOf); } }
+    }
+  });
+}
+
+function renderOwnerChart(snap){
+  const future = uniqueByRef(snap.future);
+  const byOwner = groupBy(future, d=>d.owner||'Unassigned');
+  const entries = [...byOwner.entries()].sort((a,b)=>b[1].length-a[1].length).slice(0,15);
+  const labels = entries.map(e=>e[0]);
+  const counts = entries.map(e=>e[1].length);
+
+  destroyChart('ownerChart');
+  charts['ownerChart'] = new Chart($('ownerChart').getContext('2d'), {
+    type:'bar',
+    data:{labels, datasets:[{data:counts, backgroundColor:'#06b6d4', borderRadius:4}]},
+    options:{indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'#21344d'}}, y:{grid:{display:false}}},
+      onClick:(evt,els)=>{ if(els.length){ openDealsModal(`Future Bookings — ${labels[els[0].index]}`, entries[els[0].index][1], snap.asOf); } }
+    }
+  });
+}
+
+/* ---------------- Detailed table ---------------- */
+function renderDetailedTable(snap){
+  const future = uniqueByRef(snap.future).slice().sort((a,b)=>(a.collectionDate?a.collectionDate.getTime():0)-(b.collectionDate?b.collectionDate.getTime():0));
+  const cap = 1000;
+  const shown = future.slice(0,cap);
+  $('detailCount').textContent = `${future.length.toLocaleString()} future booking${future.length===1?'':'s'}` + (future.length>cap?` · showing first ${cap.toLocaleString()}`:'');
+  const tbody = $('detailTableBody'); tbody.innerHTML='';
+  if(!shown.length){ tbody.innerHTML = '<tr><td colspan="14" class="empty">No future bookings as of this date.</td></tr>'; return; }
+  shown.forEach(d=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = dealModalRowHtml(d, snap.asOf);
+    tbody.appendChild(tr);
+  });
+}
+
+/* ---------------- main orchestration ---------------- */
+function computeDealCreatedPeriod(){
+  const created = allDeals.map(d=>d.createdTime).filter(Boolean);
+  if(!created.length) return null;
+  let earliest=created[0], latest=created[0];
+  created.forEach(d=>{ if(d<earliest) earliest=d; if(d>latest) latest=d; });
+  return {earliest, latest};
+}
+function updateDealCreatedBadge(){
+  const badge = $('dealCreatedBadge');
+  const period = computeDealCreatedPeriod();
+  if(!period){ badge.style.display='none'; return; }
+  badge.textContent = `DEALS CREATED: ${fmtDate(period.earliest)} → ${fmtDate(period.latest)}`;
+  badge.style.display='inline-flex';
+}
+function renderAll(){
+  if(!allDeals.length) return;
+  const asOf = parseDateInput($('asOfDate').value) || startOfDay(new Date());
+  const mode = $('compareMode').value;
+  const compareDate = mode==='today' ? startOfDay(new Date()) : addYears(asOf,-1);
+
+  const snap = computeSnapshot(allDeals, asOf);
+  const cmp = computeSnapshot(allDeals, compareDate);
+  // Always computed regardless of the "Compare Against" dropdown - feeds the per-card "vs LY" badges.
+  const lySnap = mode==='lastyear' ? cmp : computeSnapshot(allDeals, addYears(asOf,-1));
+  currentSnap = snap; currentCmpSnap = cmp;
+
+  $('filterSummary').textContent = `Order book reconstructed as of ${fmtDate(asOf)} — Booked (Sale Completed) ≤ ${fmtDate(asOf)} AND Loading Date ≥ ${fmtDate(asOf)}.`;
+  $('asOfSummary').textContent = `As Of ${fmtDate(asOf)} · comparing against ${mode==='today'?'Today':'same date last year'} (${fmtDate(compareDate)})`;
+
+  renderKpis(snap, lySnap);
+  renderFutureMonthCards(snap, lySnap);
+  renderComparison(snap, cmp, mode, asOf, compareDate);
+  renderBucketCharts(snap);
+  renderMonthCharts(snap);
+  renderOwnerChart(snap);
+  renderDetailedTable(snap);
+  updatePeriodChips(asOf);
+}
+
+// Orange "period chip" on every card title and once per KPI group-title, showing the As Of Date the numbers
+// refer to. Previously this was repeated on every single KPI tile (7+ times per screen) which was noisy -
+// it's now shown once per group heading instead, since the As Of Date is already stated once above in the
+// control panel and overview summary.
+function updatePeriodChips(asOf){
+  const label = `As Of ${fmtDate(asOf)}`;
+  document.querySelectorAll('.card-head').forEach(head=>{
+    let chip = head.querySelector('.period-chip');
+    if(!chip){
+      chip = document.createElement('span');
+      chip.className = 'period-chip';
+      const h3 = head.querySelector('h3');
+      head.insertBefore(chip, h3 ? h3.nextSibling : head.firstChild);
+    }
+    chip.textContent = `\u25CF ${label}`;
+  });
+  document.querySelectorAll('.group-title').forEach(gt=>{
+    let chip = gt.querySelector('.period-chip');
+    if(!chip){
+      chip = document.createElement('span');
+      chip.className = 'period-chip';
+      gt.appendChild(document.createTextNode(' '));
+      gt.appendChild(chip);
+    }
+    chip.textContent = `\u00B7 ${label}`;
+  });
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  if(window.lucide) lucide.createIcons();
+
+  const backToTopBtn = $('backToTopBtn');
+  window.addEventListener('scroll', ()=> backToTopBtn.classList.toggle('show', window.scrollY>400));
+  backToTopBtn.addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
+
+  $('modalClose').addEventListener('click', closeDealsModal);
+  $('modalOverlay').addEventListener('click', e=>{ if(e.target.id==='modalOverlay') closeDealsModal(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeDealsModal(); });
+
+  document.querySelectorAll('.nav a').forEach(a=>{
+    a.addEventListener('click', ()=>{
+      document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+      a.classList.add('active');
+    });
+  });
+
+  $('todayBtn').addEventListener('click', ()=>{
+    $('asOfDate').value = toInputValue(startOfDay(new Date()));
+    renderAll();
+  });
+  $('asOfDate').addEventListener('change', renderAll);
+  $('compareMode').addEventListener('change', renderAll);
+
+  function normalizeFilename(name){ return name.toLowerCase().replace(/\s*\(\d+\)(?=\.[^.]+$)/,''); }
+  function findFileInList(fileList, targetName){
+    const target = targetName.toLowerCase();
+    for(const f of fileList){
+      const rel = f.webkitRelativePath || f.name;
+      const depth = rel.split('/').length;
+      if(depth<=2 && normalizeFilename(f.name)===target) return f;
+    }
+    return null;
+  }
+  function setFileInput(inputEl, file){
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    inputEl.files = dt.files;
+  }
+  $('autoLocateBtn').addEventListener('click', ()=> $('autoLocateInput').click());
+  $('autoLocateInput').addEventListener('change', async ()=>{
+    const files = [...$('autoLocateInput').files];
+    if(!files.length) return;
+    $('status').textContent = `Scanning folder (${files.length.toLocaleString()} files found)…`;
+    const deals = findFileInList(files, 'qt_deal_financials.xlsx');
+    if(!deals){
+      $('status').innerHTML = '<span class="error">Could not find QT_DEAL_FINANCIALS.xlsx in that folder. Please select it manually.</span>';
+      return;
+    }
+    setFileInput($('dealsFile'), deals);
+    $('status').innerHTML = `<span class="ok">Found ${deals.name}. Generating report…</span>`;
+    $('generateBtn').click();
+  });
+
+  $('generateBtn').addEventListener('click', async ()=>{
+    const dealsFile = $('dealsFile').files[0];
+    if(!dealsFile){ $('status').innerHTML = '<span class="error">Please choose QT_DEAL_FINANCIALS.xlsx first.</span>'; return; }
+    showProgress(10,'Reading QT_DEAL_FINANCIALS workbook…');
+    $('status').textContent = 'Reading workbook…';
+    try{
+      await nextFrame();
+      const raw = await readWorkbook(dealsFile);
+      showProgress(45,'Normalizing deal rows…'); await nextFrame();
+      allDeals = raw.map(normalizeDealRow).filter(d=>d.reference);
+      if(!allDeals.length) throw new Error('No valid deals found. Expected columns include Reference, Sale Completed, Collection Date, Executed Job Value and Net Profit.');
+
+      showProgress(70,'Setting default As Of Date…'); await nextFrame();
+      if(!$('asOfDate').value) $('asOfDate').value = toInputValue(startOfDay(new Date()));
+
+      showProgress(88,'Rendering dashboard…'); await nextFrame();
+      renderAll();
+      updateDealCreatedBadge();
+      showProgress(100,'Done');
+
+      const withSale = allDeals.filter(d=>d.saleCompleted).length;
+      const withCollection = allDeals.filter(d=>d.collectionDate).length;
+      $('status').innerHTML = `<span class="ok">Loaded ${allDeals.length.toLocaleString()} deals · ${withSale.toLocaleString()} with Sale Completed · ${withCollection.toLocaleString()} with Collection Date.</span>`;
+      setTimeout(hideProgress, 600);
+    }catch(err){
+      console.error(err);
+      $('status').innerHTML = `<span class="error">Failed to build report: ${err.message}</span>`;
+      hideProgress();
+    }
+  });
+
+  $('clearBtn').addEventListener('click', ()=>{
+    allDeals = [];
+    currentSnap = null; currentCmpSnap = null;
+    $('dealsFile').value = '';
+    $('asOfDate').value = '';
+    $('status').textContent = 'Upload QT_DEAL_FINANCIALS.xlsx to begin (or use Auto-Locate if it\'s in this folder).';
+    $('filterSummary').textContent = 'Upload data to see results.';
+    $('asOfSummary').textContent = 'Upload data to begin.';
+    $('cmpSub').textContent = 'Upload data to see results.';
+    updateDealCreatedBadge();
+    hideProgress();
+    Object.keys(charts).forEach(destroyChart);
+    document.querySelectorAll('table tbody').forEach(tb=>tb.innerHTML='');
+    document.querySelectorAll('.kpi .value').forEach(v=>v.innerHTML='—');
+  });
+});
+</script>
+
+</body>
+</html>
