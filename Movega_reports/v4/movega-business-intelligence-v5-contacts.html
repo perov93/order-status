@@ -592,6 +592,13 @@ function matchDealToContact(d,index){
   const ref=dealContactRefOf(d); if(ref&&index.byRef.has(ref)) return index.byRef.get(ref);
   return null;
 }
+// Resolves the customer name behind a deal row via the Contact ID/Reference join, falling back to
+// whatever contact reference is on the deal itself when no matching contact record is found.
+function dealCustomerNameOf(r,contactIndex){
+  const contact=matchDealToContact(r,contactIndex);
+  if(contact) return contactNameOf(contact);
+  return dealContactRefOf(r)||dealContactIdOf(r)||'—';
+}
 
 function num(v){
   if(v===null||v===undefined||v==='') return 0;
@@ -988,13 +995,14 @@ function fxRateInfoForRow(row){
   }
   return '—';
 }
-function dealListRowHtml(r,targetCurrency,showExtraServiceProfit=false){
+function dealListRowHtml(r,targetCurrency,showExtraServiceProfit=false,contactIndex=null){
   const currency=currencyOf(r);
   const converted = targetCurrency && currency && currency!==targetCurrency ? convertForRow(netProfitAfterFeesOf(r),r,targetCurrency) : null;
   const extraServiceProfit = extraServiceBudgetProfitOf(r);
   const extraConverted = targetCurrency && currency && currency!==targetCurrency ? convertForRow(extraServiceProfit,r,targetCurrency) : null;
   return `<tr>
     <td>${refOf(r)||'—'}</td>
+    <td>${contactIndex?dealCustomerNameOf(r,contactIndex):'—'}</td>
     <td>${deliveryDateOf(r)}</td>
     <td>${dealStatusOf(r)||'—'}</td>
     <td>${systemStatusOf(r)||'—'}</td>
@@ -1090,9 +1098,10 @@ function openDealsModal(title,rows,kind='deal',showExtraServiceProfit=false){
   } else {
     count.textContent = rows.length ? `${rows.length.toLocaleString()} job(s) · FX rate shown per transaction date` : 'No matching records for this selection';
     const extraHeader=showExtraServiceProfit?'<th>Extra Service Budget Profit</th>':'';
-    const dealColumnCount=showExtraServiceProfit?11:10;
-    body.innerHTML = `<table class="deals-modal-table"><thead><tr><th>Reference</th><th>Delivery Date</th><th>Deal Status</th><th>System Status</th><th>Salesperson</th><th>Route</th><th>Lead Source</th><th>Job Value</th><th>Net Profit</th>${extraHeader}<th>FX Rate Used</th></tr></thead><tbody>${
-      rows.length ? rows.map(r=>dealListRowHtml(r,targetCurrency,showExtraServiceProfit)).join('') : `<tr><td colspan="${dealColumnCount}" class="empty">No records</td></tr>`
+    const dealColumnCount=showExtraServiceProfit?12:11;
+    const contactIndex=buildContactIndex();
+    body.innerHTML = `<table class="deals-modal-table"><thead><tr><th>Reference</th><th>Customer</th><th>Delivery Date</th><th>Deal Status</th><th>System Status</th><th>Salesperson</th><th>Route</th><th>Lead Provider</th><th>Job Value</th><th>Net Profit</th>${extraHeader}<th>FX Rate Used</th></tr></thead><tbody>${
+      rows.length ? rows.map(r=>dealListRowHtml(r,targetCurrency,showExtraServiceProfit,contactIndex)).join('') : `<tr><td colspan="${dealColumnCount}" class="empty">No records</td></tr>`
     }</tbody></table>`;
   }
   overlay.classList.add('open');
