@@ -90,7 +90,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;b
 .deals-modal-table th,.deals-modal-table td{padding:8px;border-bottom:1px solid #1d2e44;text-align:right;white-space:nowrap}
 .deals-modal-table th:first-child,.deals-modal-table td:first-child{text-align:left}
 .deals-modal-table th{color:#92a3ba;font-weight:650;position:sticky;top:0;background:var(--panel)}
-.back-to-top{position:fixed;right:28px;bottom:28px;width:46px;height:46px;border-radius:50%;background:#1d4ed8;border:1px solid #2563eb;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:0;visibility:hidden;transform:translateY(12px);transition:opacity .2s ease,transform .2s ease,visibility .2s ease;z-index:500}
+.back-to-top{position:fixed;right:28px;top:20px;width:46px;height:46px;border-radius:50%;background:#1d4ed8;border:1px solid #2563eb;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:0;visibility:hidden;transform:translateY(-12px);transition:opacity .2s ease,transform .2s ease,visibility .2s ease;z-index:500}
 .back-to-top.visible{opacity:1;visibility:visible;transform:translateY(0)}
 .back-to-top:hover{background:#2563eb}
 .back-to-top svg{width:20px;height:20px;stroke-width:2.2}
@@ -207,7 +207,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;b
     <div class="filters">
       <div><label>Year</label><select id="yearFilter"><option value="ALL">All Years</option></select></div>
       <div><label>Month</label><select id="monthFilter"><option value="ALL">All Months</option></select></div>
-      <div><label>Currency / Conversion</label><select id="currencyFilter"><option value="ALL">Both EUR + GBP · native</option></select></div>
+      <div><label>Currency / Conversion</label><select id="currencyFilter"><option value="ALL">Both EUR + GBP · totals in EUR</option></select></div>
       <div><label>Salesperson</label><select id="salespersonFilter"><option value="ALL">All Salespeople</option></select></div>
       <div><label>Lead Source</label><select id="leadFilter"><option value="ALL">All Lead Sources</option></select></div>
     </div>
@@ -319,6 +319,11 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;b
       <div class="card"><div class="card-head"><h3>Profit by Lead Source</h3><span class="src-badge src-crm">CRM Delivered Deals</span></div><div class="chart"><canvas id="leadChart"></canvas></div></div>
       <div class="card"><div class="card-head"><h3>Lead Source Details</h3><span>Profit-focused</span></div><div class="table-wrap"><table><thead><tr><th>Lead Source</th><th>Jobs</th><th>Profit</th><th>Avg Profit</th><th>Loss Jobs</th></tr></thead><tbody id="leadTable"></tbody></table></div></div>
     </div>
+    <div class="card">
+      <div class="card-head"><h3>Monthly Delivered Deals by Lead Source</h3><span>CRM delivered deals only</span></div>
+      <p class="legend-note">Grouped by delivery month. Net profit is after transaction fees, converted per deal to EUR by default (or the selected currency). Sources are ranked highest to lowest by summed profit within each month. Click a row for its deals. P&amp;L deal exclusions do not affect this comparison.</p>
+      <div class="table-wrap"><table><thead><tr><th>Delivery month</th><th>Lead source</th><th>Delivered deals</th><th id="monthlyLeadProfitHeader">Net profit sum (EUR)</th><th id="monthlyLeadAvgHeader">Avg profit / deal (EUR)</th><th>Loss deals</th><th>Monthly rank</th></tr></thead><tbody id="monthlyLeadTable"></tbody></table></div>
+    </div>
   </section>
 
   <section id="routes" class="section">
@@ -355,8 +360,15 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;b
 
   <section id="expenses" class="section">
     <h3 class="section-title">Expenses</h3>
+    <div class="card">
+      <div class="card-head"><h3>Select Expense Categories</h3><span>Selection applies to expense totals, bill details, charts, and P&amp;L</span></div>
+      <div class="pl-controls"><span class="pl-actions"><button type="button" id="expenseSelectAll" class="pl-link-btn">Select all</button><button type="button" id="expenseSelectNone" class="pl-link-btn">Clear all</button></span><label><input type="checkbox" id="expenseCompareYear"> Compare selected year with previous year (EUR)</label></div>
+      <div id="expenseCategoryOptions" class="sub"></div>
+      <p class="legend-note">Choose a Year above. Comparison uses the selected month, or the full year when All Months is selected. The same categories are included in both years.</p>
+      <div id="expenseYearComparison" hidden></div>
+    </div>
     <div class="kpis">
-      <div class="kpi"><div class="label"><span class="src-badge src-books">Expenses</span> Total Expenses</div><div id="kExpenses" class="value">—</div><div class="sub"><span class="neutral">Filtered expense bills</span></div></div>
+      <div class="kpi"><div class="label"><span class="src-badge src-books">Expenses</span> Total Expenses</div><div id="kExpenses" class="value">—</div><div id="kExpensesSub" class="sub"><span class="neutral">EUR total · GBP Zoho Books base amount</span></div></div>
       <div class="kpi"><div class="label">Expense Bills</div><div id="kExpenseBills" class="value">—</div><div class="sub"><span class="neutral">Number of bills</span></div></div>
       <div class="kpi"><div class="label"><span class="src-badge src-both">Profit − Expenses</span> Net Result</div><div id="kNetResult" class="value">—</div><div id="kNetResultSub" class="sub"></div></div>
       <div class="kpi"><div class="label">Expense Ratio</div><div id="kExpenseRatio" class="value">—</div><div class="sub"><span class="neutral">Total Expenses ÷ CRM Executed Profit</span></div></div>
@@ -367,8 +379,14 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;b
     </div>
     <div class="card"><div class="card-head"><h3>Expenses by Vendor</h3><span>Selected period</span></div><div class="table-wrap"><table><thead><tr><th>Vendor</th><th>Expense Item(s)</th><th>Bills</th><th>Expense</th></tr></thead><tbody id="expenseVendorTable"></tbody></table></div></div>
     <div class="card"><div class="card-head"><h3>Profit &amp; Loss Summary</h3><span>CRM Executed Profit − Total Expenses · selected period</span></div>
-      <div class="pl-controls"><span class="pl-hint">Untick an expense item to exclude it from Total Expenses and Net Result below</span><span class="pl-actions"><button type="button" id="plSelectAll" class="pl-link-btn">Select all</button><button type="button" id="plSelectNone" class="pl-link-btn">Clear all</button></span></div>
-      <div class="table-wrap"><table><thead><tr><th>Line</th><th>Amount</th></tr></thead><tbody id="plSummaryTable"></tbody></table></div>
+      <div class="pl-controls"><span class="pl-hint">P&amp;L and expense totals are shown in EUR by default. FCY is the original bill currency; Zoho’s recorded BCY is GBP and is shown separately. Untick an item to exclude it. Click an item to inspect each bill and its rates.</span><span class="pl-actions"><button type="button" id="plSelectAll" class="pl-link-btn">Select all</button><button type="button" id="plSelectNone" class="pl-link-btn">Clear all</button></span></div>
+      <details>
+        <summary class="expense-item-link">Select delivered deals for P&amp;L profit</summary>
+        <p class="legend-note">All delivered deals are included initially. Untick a deal to exclude its profit from this P&amp;L and Net Result only. Expense selection is separate; excluding a deal does not remove its expenses. Selections remain when filters change and reset when spreadsheets are loaded again.</p>
+        <div class="pl-controls"><span id="plDealSelectionCount"></span><span class="pl-actions"><button type="button" id="plDealsSelectAll" class="pl-link-btn">Select all visible deals</button><button type="button" id="plDealsSelectNone" class="pl-link-btn">Clear all visible deals</button></span></div>
+        <div class="table-wrap"><table><thead><tr><th>Include</th><th>Reference</th><th>Customer / Contact</th><th>Delivery date</th><th>Salesperson</th><th>Currency</th><th>Net Profit (original)</th><th id="plDealProfitHeader">Profit used (EUR)</th></tr></thead><tbody id="plDealSelectionTable"></tbody></table></div>
+      </details>
+      <div class="table-wrap"><table><thead><tr><th>Line</th><th>Original bill amount(s) (FCY, incl. tax)</th><th>Zoho Books base amount (GBP, BCY)</th><th id="plAmountHeader">P&amp;L amount (EUR)</th></tr></thead><tbody id="plSummaryTable"></tbody></table></div>
     </div>
   </section>
 </main>
@@ -388,14 +406,14 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;b
 <script>
 const $ = id => document.getElementById(id);
 let contacts = [], invoices = [], deals = [], expenses = [], charts = {}, printCharts = {}, printMode = false;
-// Expense item names unticked by the user in the Profit & Loss Summary card (excluded from Total
-// Expenses / Net Result there); plCache holds the last renderExpenses() inputs so toggling a
-// checkbox can recompute just the P&L card without rerunning every chart/table in the section.
+// Category selection is shared by expense views and P&L; plCache retains the bill drilldown.
 let plExcludedExpenseItems = new Set();
+let plExcludedDeals = new Set();
+let plDealRows = [];
 let plCache = null;
 const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const STORAGE_KEY = 'movega_dashboard_filters';
-const FX_BASE_CURRENCY = 'EUR';
+const FX_BASE_CURRENCY = 'GBP';
 let fxRates = { EUR: 1, GBP: 0.85 };
 let historicalFxRates = {};
 let fxAuditState = { source:'Frankfurter', latestDate:null, minDate:null, maxDate:null, historical:false, fallback:false };
@@ -825,7 +843,8 @@ function expenseAmountOf(r){
   const inclFcy=val(r,['Expense Incl Tax FCY']);
   if(inclFcy!==null) return num(inclFcy);
   const fcy=val(r,['Expense FCY']);
-  return fcy!==null ? num(fcy) : num(val(r,['Expense BCY']));
+  if(fcy===null) throw new Error(`Expense ${val(r,['Bill Number','Bill ID'])||'(unknown bill)'} has no original FCY amount`);
+  return num(fcy);
 }
 function expenseFcyOf(r){
   const inclFcy=val(r,['Expense Incl Tax FCY']);
@@ -834,6 +853,38 @@ function expenseFcyOf(r){
 function expenseBcyOf(r){
   const inclBcy=val(r,['Expense Incl Tax BCY']);
   return inclBcy!==null ? num(inclBcy) : num(val(r,['Expense BCY']));
+}
+function expenseBaseAmountInCurrency(row,targetCurrency){
+  return expenseAmountOf(row)*expenseConversionRate(row,targetCurrency).rate;
+}
+function expenseConversionRate(row,targetCurrency){
+  const source=currencyOf(row);
+  const bill=val(row,['Bill Number','Bill ID'])||'(unknown bill)';
+  if(!source) throw new Error(`Expense ${bill} has no source currency`);
+  if(source===targetCurrency) return {rate:1,label:`1 ${source} = 1 ${targetCurrency} (no conversion)`};
+  function eurRate(currency){
+    if(currency==='EUR') return {rate:1,basis:'EUR'};
+    const historical=currency==='GBP'?historicalRateForRow(row):historicalExtraRateForRow(row,currency);
+    const latest=currency==='GBP'?fxRates.GBP:fxRatesExtra[currency];
+    const rate=historical||latest;
+    if(!Number.isFinite(rate)||rate<=0) throw new Error(`No ${currency} exchange rate available for expense ${bill}`);
+    return {rate,basis:historical?'historical / nearest prior bill-date rate':'latest / fallback rate (estimate)'};
+  }
+  const from=eurRate(source),to=eurRate(targetCurrency);
+  const rate=to.rate/from.rate;
+  const basis=source==='EUR'?to.basis:targetCurrency==='EUR'?from.basis:`${from.basis}; ${to.basis}`;
+  return {rate,label:`1 ${source} = ${rate.toFixed(6)} ${targetCurrency} (${basis})`};
+}
+function sumExpenseBaseInCurrency(rows,targetCurrency){
+  return rows.reduce((sum,row)=>sum+expenseBaseAmountInCurrency(row,targetCurrency),0);
+}
+function expenseAccountingRate(row){
+  const source=currencyOf(row);
+  const fcy=expenseAmountOf(row), bcy=expenseBcyOf(row);
+  if(!source) return 'Source currency unavailable';
+  if(source===FX_BASE_CURRENCY) return `1 ${source} = 1 ${FX_BASE_CURRENCY} (Zoho Books base currency)`;
+  if(!fcy) return 'Zoho rate unavailable';
+  return `1 ${source} = ${(bcy/fcy).toFixed(6)} ${FX_BASE_CURRENCY} (Zoho Books BCY ÷ FCY)`;
 }
 function expenseTaxFcyOf(r){return num(val(r,['Tax FCY']))}
 function expenseTaxBcyOf(r){return num(val(r,['Tax BCY']))}
@@ -948,7 +999,7 @@ function passCommon(row,type){
   const f=selected(), y=yearOf(row,type), m=monthOf(row,type), c=currencyOf(row), s=salespersonOf(row);
   if(f.year!=='ALL' && y!==Number(f.year)) return false;
   if(f.month!=='ALL' && m!==Number(f.month)) return false;
-  if(!currencyMatches(c,f.currency)) return false;
+  if(type!=='expense'&&!currencyMatches(c,f.currency)) return false;
   if(f.salesperson!=='ALL' && s!==f.salesperson) return false;
   if(type==='deal' && f.lead!=='ALL' && leadOf(row)!==f.lead) return false;
   return true;
@@ -1039,7 +1090,7 @@ function compFor(rows,type,valueFn){
   const yr=f.year==='ALL' ? (years[0] || null) : Number(f.year);
   if(!yr) return {mom:null,yoy:null,momLabel:null,yoyLabel:null};
 
-  const matchesFilters=(r,y)=>yearOf(r,type)===y&&currencyMatches(currencyOf(r),f.currency)&&(f.salesperson==='ALL'||salespersonOf(r)===f.salesperson)&&(type!=='deal'||f.lead==='ALL'||leadOf(r)===f.lead);
+  const matchesFilters=(r,y)=>yearOf(r,type)===y&&(type==='expense'||currencyMatches(currencyOf(r),f.currency))&&(f.salesperson==='ALL'||salespersonOf(r)===f.salesperson)&&(type!=='deal'||f.lead==='ALL'||leadOf(r)===f.lead);
   if(f.month==='ALL'){
     const cur=rows.filter(r=>matchesFilters(r,yr)).reduce((s,r)=>s+valueFn(r),0);
     const previousYear=rows.filter(r=>matchesFilters(r,yr-1)).reduce((s,r)=>s+valueFn(r),0);
@@ -1050,7 +1101,7 @@ function compFor(rows,type,valueFn){
   const mo=f.month==='ALL' ? (monthsForYear[monthsForYear.length-1] || null) : Number(f.month);
   if(!mo) return {mom:null,yoy:null,momLabel:null,yoyLabel:null};
 
-  const match=(r,y,m)=>yearOf(r,type)===y&&monthOf(r,type)===m&&currencyMatches(currencyOf(r),f.currency)&&(f.salesperson==='ALL'||salespersonOf(r)===f.salesperson)&&(type!=='deal'||f.lead==='ALL'||leadOf(r)===f.lead);
+  const match=(r,y,m)=>yearOf(r,type)===y&&monthOf(r,type)===m&&(type==='expense'||currencyMatches(currencyOf(r),f.currency))&&(f.salesperson==='ALL'||salespersonOf(r)===f.salesperson)&&(type!=='deal'||f.lead==='ALL'||leadOf(r)===f.lead);
   const cur=rows.filter(r=>match(r,yr,mo)).reduce((s,r)=>s+valueFn(r),0);
 
   let py=yr, pm=mo-1;
@@ -1161,20 +1212,31 @@ function invoiceListRowHtml(r,targetCurrency){
   </tr>`;
 }
 function expenseListRowHtml(r,targetCurrency){
-  const currency=currencyOf(r), fcy=expenseFcyOf(r), bcy=expenseBcyOf(r), taxFcy=expenseTaxFcyOf(r);
-  const converted=targetCurrency&&currency&&currency!==targetCurrency?convertForRow(fcy,r,targetCurrency):null;
+  const currency=currencyOf(r), amount=expenseAmountOf(r), bcy=expenseBcyOf(r), taxFcy=expenseTaxFcyOf(r);
+  const reportCurrency=targetCurrency||'EUR';
+  const converted=expenseBaseAmountInCurrency(r,reportCurrency);
   const billDate=dateVal(val(r,['Bill Date']));
   const dateText=billDate?billDate.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
+  const reportRate=expenseConversionRate(r,reportCurrency).label;
   return `<tr>
     <td>${String(val(r,['Bill Number','Bill ID'])||'—')}</td>
     <td>${dateText}</td>
     <td>${String(val(r,['Bill Status'])||'—')}</td>
     <td>${vendorOf(r)}</td>
     <td>${expenseItemOf(r)}</td>
-    <td>${signedMoney(taxFcy,currency||'EUR')}</td>
-    <td>${signedMoney(fcy,currency||'EUR')} <span class="fx-total">${currency||'Unknown'}</span>${converted!==null?` <span class="fx-total">≈ ${signedMoney(converted,targetCurrency)}</span>`:''}</td>
-    <td>${signedMoney(bcy,FX_BASE_CURRENCY)} <span class="fx-total">${FX_BASE_CURRENCY}</span></td>
+    <td>${expenseDisplayMoney(taxFcy,currency)}</td>
+    <td>${expenseDisplayMoney(amount,currency)}</td>
+    <td>${expenseDisplayMoney(bcy,FX_BASE_CURRENCY)}</td>
+    <td>${expenseAccountingRate(r)}</td>
+    <td>${reportRate}</td>
+    <td>${expenseDisplayMoney(converted,reportCurrency)}</td>
   </tr>`;
+}
+function expenseDisplayMoney(value,currency){
+  if(!currency) return `${Math.abs(value).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} (currency missing)`;
+  const formatted=Math.abs(value).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const symbol=currency==='EUR'?'€':currency==='GBP'?'£':`${currency} `;
+  return `${value<0?'-':''}${symbol}${formatted} ${currency}`;
 }
 function contactListRowHtml(r){
   const created=contactCreatedOf(r);
@@ -1211,8 +1273,8 @@ function openDealsModal(title,rows,kind='deal',showExtraServiceProfit=false){
     }</tbody></table>`;
   } else if(kind==='expense') {
     count.textContent = rows.length ? `${rows.length.toLocaleString()} bill(s) · amounts include VAT/tax where the export provides it · FX rate shown per transaction date` : 'No matching records for this selection';
-    body.innerHTML = `<table class="deals-modal-table"><thead><tr><th>Bill Number</th><th>Bill Date</th><th>Status</th><th>Vendor</th><th>Expense Item</th><th>Tax FCY</th><th>Expense FCY (incl. tax)</th><th>Expense BCY (incl. tax)</th></tr></thead><tbody>${
-      rows.length ? rows.map(r=>expenseListRowHtml(r,targetCurrency)).join('') : '<tr><td colspan="8" class="empty">No records</td></tr>'
+    body.innerHTML = `<table class="deals-modal-table"><thead><tr><th>Bill Number</th><th>Bill Date</th><th>Status</th><th>Vendor</th><th>Expense Item</th><th>Tax FCY</th><th>Original amount (FCY; currency shown)</th><th>Base amount (BCY; GBP)</th><th>Zoho rate (FCY → GBP; reference only)</th><th>Applied rate (FCY → ${targetCurrency||'EUR'})</th><th>Converted amount (${targetCurrency||'EUR'})</th></tr></thead><tbody>${
+      rows.length ? rows.map(r=>expenseListRowHtml(r,targetCurrency)).join('') : '<tr><td colspan="11" class="empty">No records</td></tr>'
     }</tbody></table>`;
   } else if(kind==='contact') {
     count.textContent = rows.length ? `${rows.length.toLocaleString()} contact(s)` : 'No matching records for this selection';
@@ -1357,7 +1419,7 @@ function updateFilters(){
   $('yearFilter').innerHTML='<option value="ALL">All Years</option>'+years.map(y=>`<option value="${y}">${y}</option>`).join('');
   $('monthFilter').innerHTML='<option value="ALL">All Months</option>'+monthNames.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
   const currencies=unique([...invoices.map(currencyOf),...deals.map(currencyOf),...expenses.map(currencyOf)]).filter(c=>['EUR','GBP'].includes(c)).sort();
-  $('currencyFilter').innerHTML='<option value="ALL">Both EUR + GBP · native</option>'+currencies.map(c=>`<option value="${c}">${c} · historical FX by date</option>`).join('');
+  $('currencyFilter').innerHTML='<option value="ALL">Both EUR + GBP · totals in EUR</option>'+currencies.map(c=>`<option value="${c}">${c} · historical FX by date</option>`).join('');
   const people=unique([...invoices.map(salespersonOf),...deals.map(salespersonOf)]).filter(x=>x!=='Unassigned').sort();
   $('salespersonFilter').innerHTML='<option value="ALL">All Salespeople</option>'+people.map(x=>`<option value="${x}">${x}</option>`).join('');
   const leads=unique([...contacts.map(contactLeadSourceOf),...deals.map(leadOf)]).sort();
@@ -1556,6 +1618,29 @@ function renderKPIs(){
   bindKpiCard('kFutureJobs','Future Deliveries — Not Yet Delivered',futureDeals,'deal');
   bindKpiCard('kFutureProfit','Forecast Profit — Upcoming Bookings',futureDeals,'deal');
 }
+function setExpenseComparison(elementId,comparison){
+  const element=$(elementId);
+  const entries=[
+    [comparison.momLabel||'vs previous month',comparison.mom,comparison.previous],
+    [comparison.yoyLabel||'vs previous year',comparison.yoy,comparison.lastYear]
+  ];
+  entries.forEach(([label,change,baseline])=>{
+    if(change===null) return;
+    const favorable=change<=0;
+    const badge=document.createElement('span');
+    badge.className=favorable?'good':'bad';
+    badge.style.display='inline-block';
+    badge.style.marginRight='8px';
+    badge.style.fontSize='11px';
+    badge.style.fontWeight='700';
+    badge.style.padding='3px 7px';
+    badge.style.borderRadius='999px';
+    badge.style.background=favorable?'rgba(34,197,94,0.14)':'rgba(239,68,68,0.12)';
+    badge.style.border=favorable?'1px solid rgba(34,197,94,0.35)':'1px solid rgba(239,68,68,0.35)';
+    badge.textContent=`${change>=0?'▲':'▼'} ${Math.abs(change).toFixed(1)}% (${signedMoney(comparison.current,'EUR')} vs ${signedMoney(baseline,'EUR')}) ${label}`;
+    element.appendChild(badge);
+  });
+}
 function bindKpiCard(valueId,title,rows,kind){
   const card=$(valueId) && $(valueId).closest('.kpi');
   if(!card) return;
@@ -1662,7 +1747,7 @@ function renderSalespeople(){
   fillTable('salespersonTable',rows.slice(0,20),r=>`<td><span class="animal-icon" title="${r.name}&#39;s animal">${animalForSalesperson(r.name)}</span>${r.name}</td><td>${formatDual(r.sales)}</td><td>${r.jobs}</td><td>${formatDual(r.profit)}</td><td>${formatDual(r.avg)}</td><td>${r.lossJobs}</td>`);
 }
 function renderLeadSources(){
-  const dls=filteredDeals(); const groups={}; const targetCurrency = resolveTargetCurrency();
+  const dls=filteredDeals().filter(isDeliveredDeal); const groups={}; const targetCurrency = resolveTargetCurrency();
   dls.forEach(r=>{
     const k=leadOf(r);
     if(!groups[k]) groups[k]={name:k,jobs:0,profit:{EUR:0,GBP:0,combinedEUR:0},lossJobs:0};
@@ -1671,9 +1756,48 @@ function renderLeadSources(){
     if(profitOf(r)<0) groups[k].lossJobs++;
   });
   const c=targetCurrency || 'EUR';
-  const rows=Object.values(groups).map(r=>({...r,sort:r.profit[c]||0})).sort((a,b)=>b.sort-a.sort), top=rows.slice(0,12), col=colors();
-  chartBar('leadChart',top.map(r=>r.name),[{label:'Profit '+c,data:top.map(r=>r.profit[c]||0),backgroundColor:col.green}],true,{title:'Profit by Lead Source',kind:'deal',rowsFor:(label)=>dls.filter(r=>leadOf(r)===label)});
+  const rows=Object.values(groups).map(r=>({...r,sort:targetCurrency?r.profit[c]:r.profit.combinedEUR})).sort((a,b)=>b.sort-a.sort), top=rows.slice(0,12), col=colors();
+  chartBar('leadChart',top.map(r=>r.name),[{label:'Profit '+c,data:top.map(r=>r.sort),backgroundColor:col.green}],true,{title:'Profit by Lead Source',kind:'deal',rowsFor:(label)=>dls.filter(r=>leadOf(r)===label)});
   fillTable('leadTable',rows.slice(0,20),r=>`<td>${r.name}</td><td>${r.jobs}</td><td>${formatDual(r.profit)}</td><td>${formatDual({EUR:r.jobs?r.profit.EUR/r.jobs:0,GBP:r.jobs?r.profit.GBP/r.jobs:0,combinedEUR:r.jobs?r.profit.combinedEUR/r.jobs:0})}</td><td>${r.lossJobs}</td>`);
+  renderMonthlyLeadSources(dls,c);
+}
+function renderMonthlyLeadSources(rows,currency){
+  $('monthlyLeadProfitHeader').textContent=`Net profit sum after fees (${currency})`;
+  $('monthlyLeadAvgHeader').textContent=`Avg profit / deal (${currency})`;
+  const tbody=$('monthlyLeadTable');
+  tbody.replaceChildren();
+  const months=new Map();
+  rows.forEach(row=>{
+    const date=dateVal(dealDateValue(row));
+    if(!date) return;
+    const key=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+    if(!months.has(key)) months.set(key,new Map());
+    const sources=months.get(key), source=leadOf(row);
+    if(!sources.has(source)) sources.set(source,[]);
+    sources.get(source).push(row);
+  });
+  if(!months.size){
+    const tr=document.createElement('tr'),td=document.createElement('td');
+    td.colSpan=7;td.className='empty';td.textContent='No dated delivered deals for selected filters';
+    tr.appendChild(td);tbody.appendChild(tr);
+    return;
+  }
+  [...months.entries()].sort(([a],[b])=>a.localeCompare(b)).forEach(([month,sources])=>{
+    const ranked=[...sources.entries()].map(([name,deals])=>({
+      name,deals,profit:sumConverted(deals,netProfitAfterFeesOf,currency)
+    })).sort((a,b)=>b.profit-a.profit||a.name.localeCompare(b.name));
+    const best=ranked[0].profit, worst=ranked[ranked.length-1].profit;
+    ranked.forEach((source,index)=>{
+      const tr=document.createElement('tr');
+      tr.className='clickable-row';
+      tr.title='Click to view delivered deals';
+      const rating=ranked.length===1?'Only source':best===worst?'Tied':source.profit===best?'Best':source.profit===worst?'Worst':'';
+      const values=[month,source.name,source.deals.length.toLocaleString(),signedMoney(source.profit,currency),signedMoney(source.profit/source.deals.length,currency),source.deals.filter(row=>netProfitAfterFeesOf(row)<0).length.toLocaleString(),`${index+1} / ${ranked.length}${rating?` · ${rating}`:''}`];
+      values.forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.appendChild(td);});
+      tr.addEventListener('click',()=>openDealsModal(`Delivered deals — ${source.name} — ${month}`,source.deals,'deal'));
+      tbody.appendChild(tr);
+    });
+  });
 }
 function renderRoutes(){
   const dls=filteredDeals(); const groups={}; const targetCurrency = resolveTargetCurrency();
@@ -1711,15 +1835,20 @@ function renderLosses(){
   fillTable('lossTable',top,r=>`<td>${refOf(r)||'—'}</td><td>${deliveryDateOf(r)}</td><td>${salespersonOf(r)}</td><td>${routeOf(r)}</td><td class="bad">${signedMoney(targetCurrency ? convertForRow(profitOf(r),r,targetCurrency) : profitOf(r), targetCurrency || currencyOf(r))}</td>`);
 }
 function renderExpenses(){
-  const f=selected(), rows=filteredExpenses(), targetCurrency=resolveTargetCurrency(), year=currentChartYear(), col=colors();
-  $('kExpenses').innerHTML=formatDual(splitMoney(rows,expenseAmountOf,targetCurrency));
+  renderExpenseCategoryControls();
+  const f=selected(), allRows=filteredExpenses(), rows=allRows.filter(expenseCategoryIncluded), targetCurrency=resolveTargetCurrency(), reportCurrency=targetCurrency||'EUR', year=currentChartYear(), col=colors();
+  const expenseTotalEur=sumExpenseBaseInCurrency(rows,'EUR');
+  const expenseTotalGbp=rows.reduce((sum,row)=>sum+expenseBcyOf(row),0);
+  $('kExpenses').innerHTML=`${signedMoney(expenseTotalEur,'EUR')} · ${signedMoney(expenseTotalGbp,'GBP')}`;
+  $('kExpensesSub').innerHTML='<span class="neutral">EUR total from each bill’s original currency · GBP BCY reference only</span>';
+  setExpenseComparison('kExpensesSub',compFor(expenses.filter(expenseCategoryIncluded),'expense',row=>expenseBaseAmountInCurrency(row,'EUR')));
   $('kExpenseBills').textContent=rows.length.toLocaleString();
-  const expenseCurrencies=f.currency==='ALL'?['EUR','GBP']:[f.currency];
-  const expenseDatasets=expenseCurrencies.map((currency,index)=>({label:`Expenses ${currency}`,data:groupMonthly(rows.filter(r=>currencyOf(r)===currency),'expense',expenseAmountOf,year),backgroundColor:index?col.purple:col.red}));
-  chartBar('expensesMonthlyChart',monthNames,expenseDatasets,false,{title:'Expenses by Month',kind:'expense',datasetTitles:expenseDatasets.map(dataset=>dataset.label),rowsFor:(label,index,datasetIndex)=>{const currency=expenseCurrencies[datasetIndex];return rows.filter(r=>currencyOf(r)===currency&&yearOf(r,'expense')===year&&monthOf(r,'expense')===index+1)}});
+  bindKpiCard('kExpenses','Total Expenses — Bill Details',rows,'expense');
+  const expenseDatasets=[{label:`Selected expenses ${reportCurrency}`,data:groupMonthly(rows,'expense',row=>expenseBaseAmountInCurrency(row,reportCurrency),year),backgroundColor:col.red}];
+  chartBar('expensesMonthlyChart',monthNames,expenseDatasets,false,{title:'Expenses by Month',kind:'expense',datasetTitles:expenseDatasets.map(dataset=>dataset.label),rowsFor:(label,index)=>rows.filter(r=>yearOf(r,'expense')===year&&monthOf(r,'expense')===index+1)});
   const groups=groupRows(rows,expenseItemOf);
-  const itemRows=Object.entries(groups).map(([name,itemRows])=>({name,count:itemRows.length,total:splitMoney(itemRows,expenseAmountOf,targetCurrency),sort:sumConverted(itemRows,expenseAmountOf,'EUR')})).sort((a,b)=>b.sort-a.sort);
-  fillTable('expenseItemTable',itemRows,r=>`<td><button type="button" class="expense-item-link" data-expense-item="${encodeURIComponent(r.name)}">${r.name}</button></td><td>${r.count.toLocaleString()}</td><td>${formatDual(r.total)}</td>`);
+  const itemRows=Object.entries(groups).map(([name,itemRows])=>({name,count:itemRows.length,total:sumExpenseBaseInCurrency(itemRows,reportCurrency),sort:sumExpenseBaseInCurrency(itemRows,'EUR')})).sort((a,b)=>b.sort-a.sort);
+  fillTable('expenseItemTable',itemRows,r=>`<td><button type="button" class="expense-item-link" data-expense-item="${encodeURIComponent(r.name)}">${r.name}</button></td><td>${r.count.toLocaleString()}</td><td>${signedMoney(r.total,reportCurrency)}</td>`);
   $('expenseItemTable').onclick=event=>{
     const item=event.target.closest('[data-expense-item]');
     if(!item) return;
@@ -1731,18 +1860,86 @@ function renderExpenses(){
     name,
     items:[...new Set(vRows.map(expenseItemOf))].sort().join(', '),
     count:vRows.length,
-    total:splitMoney(vRows,expenseAmountOf,targetCurrency),
-    sort:sumConverted(vRows,expenseAmountOf,'EUR')
+    total:sumExpenseBaseInCurrency(vRows,reportCurrency),
+    sort:sumExpenseBaseInCurrency(vRows,'EUR')
   })).sort((a,b)=>b.sort-a.sort);
-  fillTable('expenseVendorTable',vendorRows,r=>`<td><button type="button" class="expense-item-link" data-expense-vendor="${encodeURIComponent(r.name)}">${r.name}</button></td><td>${r.items||'—'}</td><td>${r.count.toLocaleString()}</td><td>${formatDual(r.total)}</td>`);
+  fillTable('expenseVendorTable',vendorRows,r=>`<td><button type="button" class="expense-item-link" data-expense-vendor="${encodeURIComponent(r.name)}">${r.name}</button></td><td>${r.items||'—'}</td><td>${r.count.toLocaleString()}</td><td>${signedMoney(r.total,reportCurrency)}</td>`);
   $('expenseVendorTable').onclick=event=>{
     const item=event.target.closest('[data-expense-vendor]');
     if(!item) return;
     const name=decodeURIComponent(item.dataset.expenseVendor);
     openDealsModal(`Expenses — ${name}`,vendorGroups[name]||[],'expense');
   };
-  renderProfitLoss(groups,itemRows,targetCurrency);
+  const plGroups=groupRows(allRows,expenseItemOf);
+  const plItems=Object.entries(plGroups).map(([name,bills])=>({name,sort:sumExpenseBaseInCurrency(bills,'EUR')})).sort((a,b)=>b.sort-a.sort);
+  renderProfitLoss(plGroups,plItems,targetCurrency);
 }
+function expenseCategoryIncluded(row){
+  return !plExcludedExpenseItems.has(expenseItemOf(row));
+}
+function renderExpenseCategoryControls(){
+  const options=$('expenseCategoryOptions');
+  options.innerHTML='';
+  unique(expenses.map(expenseItemOf)).sort().forEach(name=>{
+    const label=document.createElement('label');
+    label.style.display='inline-block';
+    label.style.marginRight='16px';
+    const checkbox=document.createElement('input');
+    checkbox.type='checkbox';
+    checkbox.className='pl-item-checkbox';
+    checkbox.dataset.expenseCategory=name;
+    checkbox.checked=!plExcludedExpenseItems.has(name);
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(name));
+    options.appendChild(label);
+  });
+  renderExpenseYearComparison();
+}
+function renderExpenseYearComparison(){
+  const container=$('expenseYearComparison'), f=selected();
+  container.hidden=!$('expenseCompareYear').checked;
+  if(container.hidden) return;
+  if(f.year==='ALL'){
+    container.textContent='Select a specific Year above to compare it with the previous year.';
+    return;
+  }
+  const year=Number(f.year), priorYear=year-1;
+  const matches=(row,y)=>expenseCategoryIncluded(row)&&yearOf(row,'expense')===y
+    &&(f.month==='ALL'||monthOf(row,'expense')===Number(f.month))
+    &&(f.salesperson==='ALL'||salespersonOf(row)===f.salesperson);
+  const current=expenses.filter(row=>matches(row,year)), prior=expenses.filter(row=>matches(row,priorYear));
+  const names=unique([...current,...prior].map(expenseItemOf)).sort();
+  const body=names.map(name=>{
+    const nowRows=current.filter(row=>expenseItemOf(row)===name), beforeRows=prior.filter(row=>expenseItemOf(row)===name);
+    return [name,sumExpenseBaseInCurrency(nowRows,'EUR'),sumExpenseBaseInCurrency(beforeRows,'EUR'),nowRows.length,beforeRows.length];
+  });
+  body.push(['Total selected expenses',sumExpenseBaseInCurrency(current,'EUR'),sumExpenseBaseInCurrency(prior,'EUR'),current.length,prior.length]);
+  const table=document.createElement('table'), head=table.createTHead().insertRow();
+  ['Expense category',`${year} EUR`,`${priorYear} EUR`,'Change EUR','Change %'].forEach(text=>{
+    const cell=document.createElement('th');cell.textContent=text;head.appendChild(cell);
+  });
+  const tbody=table.createTBody();
+  body.forEach(([name,now,before,nowCount,beforeCount])=>{
+    const row=tbody.insertRow();
+    const values=[name,nowCount?expenseDisplayMoney(now,'EUR'):'No bills',beforeCount?expenseDisplayMoney(before,'EUR'):'No bills',expenseDisplayMoney(now-before,'EUR'),beforeCount&&before!==0?`${((now-before)/Math.abs(before)*100).toFixed(1)}%`:'N/A'];
+    values.forEach(text=>{row.insertCell().textContent=text;});
+  });
+  container.replaceChildren(table);
+}
+$('expenseCategoryOptions').onchange=event=>{
+  const checkbox=event.target.closest('[data-expense-category]');
+  if(!checkbox) return;
+  const name=checkbox.dataset.expenseCategory;
+  if(checkbox.checked) plExcludedExpenseItems.delete(name); else plExcludedExpenseItems.add(name);
+  renderExpenses();updatePeriodChips();
+};
+$('expenseSelectAll').onclick=()=>{
+  plExcludedExpenseItems.clear();renderExpenses();updatePeriodChips();
+};
+$('expenseSelectNone').onclick=()=>{
+  expenses.forEach(row=>plExcludedExpenseItems.add(expenseItemOf(row)));renderExpenses();updatePeriodChips();
+};
+$('expenseCompareYear').onchange=renderExpenseYearComparison;
 // Profit & Loss summary: CRM Executed Profit for the period, less the ticked expense items, down to
 // a single bottom-line Net Result. All lines are converted into one reporting currency (the selected
 // Currency/Conversion filter, or EUR by default) so the total is a true, unambiguous bottom line.
@@ -1751,38 +1948,99 @@ function renderExpenses(){
 function renderProfitLoss(groups,itemRows,targetCurrency){
   plCache={groups,itemRows,targetCurrency};
   const reportCurrency=targetCurrency||'EUR';
+  $('plAmountHeader').textContent=`P&L amount (${reportCurrency})`;
   const deliveredDealsForPL=filteredDeals().filter(isDeliveredDeal);
-  const profitTotal=sumConverted(deliveredDealsForPL,profitOf,reportCurrency);
+  const selectedDeals=deliveredDealsForPL.filter(row=>!plExcludedDeals.has(row));
+  const excludedDealCount=deliveredDealsForPL.length-selectedDeals.length;
+  renderPlDealSelection(deliveredDealsForPL,reportCurrency);
+  const profitTotal=sumConverted(selectedDeals,profitOf,reportCurrency);
   const includedItems=itemRows.filter(item=>!plExcludedExpenseItems.has(item.name));
-  const expenseTotal=includedItems.reduce((sum,item)=>sum+sumConverted(groups[item.name]||[],expenseAmountOf,reportCurrency),0);
+  const expenseTotal=includedItems.reduce((sum,item)=>sum+sumExpenseBaseInCurrency(groups[item.name]||[],reportCurrency),0);
   const netResult=profitTotal-expenseTotal;
   const excludedCount=itemRows.filter(item=>plExcludedExpenseItems.has(item.name)).length;
   $('kNetResult').innerHTML=`<span class="${netResult<0?'bad':'good'}">${signedMoney(netResult,reportCurrency)}</span>`;
-  $('kNetResultSub').innerHTML=`<span class="neutral">${signedMoney(profitTotal,reportCurrency)} profit − ${signedMoney(expenseTotal,reportCurrency)} expenses${targetCurrency?'':' · all currencies converted to EUR'}${excludedCount?` · ${excludedCount} item(s) excluded`:''}</span>`;
+  $('kNetResultSub').innerHTML=`<span class="neutral">${signedMoney(profitTotal,reportCurrency)} profit − ${signedMoney(expenseTotal,reportCurrency)} expenses${targetCurrency?'':` · P&L in EUR; expenses converted from Zoho GBP BCY`}${excludedCount?` · ${excludedCount} item(s) excluded`:''}${excludedDealCount?` · ${excludedDealCount} deal(s) excluded`:''}</span>`;
   $('kExpenseRatio').textContent=profitTotal?pct((expenseTotal/profitTotal)*100):'—';
   const plRows=[];
-  plRows.push(`<tr class="pl-section"><td colspan="2">Revenue / Profit</td></tr>`);
-  plRows.push(`<tr><td>CRM Executed Profit (Delivered Jobs)</td><td class="good">${signedMoney(profitTotal,reportCurrency)}</td></tr>`);
-  plRows.push(`<tr class="pl-section"><td colspan="2">Expenses by Item · untick to exclude</td></tr>`);
+  plRows.push(`<tr class="pl-section"><td colspan="4">Revenue / Profit</td></tr>`);
+  plRows.push(`<tr><td>CRM Executed Profit (${selectedDeals.length} selected delivered jobs${excludedDealCount?`, ${excludedDealCount} excluded`:''})</td><td>—</td><td>—</td><td class="${profitTotal<0?'bad':'good'}">${signedMoney(profitTotal,reportCurrency)}</td></tr>`);
+  plRows.push(`<tr class="pl-section"><td colspan="4">Expenses by Item · untick to exclude</td></tr>`);
   if(itemRows.length){
     itemRows.forEach(item=>{
-      const itemTotal=sumConverted(groups[item.name]||[],expenseAmountOf,reportCurrency);
+      const itemBills=groups[item.name]||[];
+      const itemTotal=sumExpenseBaseInCurrency(itemBills,reportCurrency);
+      const sourceTotals={};
+      const baseTotal=itemBills.reduce((sum,row)=>sum+expenseBcyOf(row),0);
+      itemBills.forEach(row=>{
+        const currency=currencyOf(row)||'Unknown';
+        sourceTotals[currency]=(sourceTotals[currency]||0)+expenseAmountOf(row);
+      });
+      const sourceSummary=Object.entries(sourceTotals).map(([currency,total])=>expenseDisplayMoney(total,currency)).join(' · ')||'—';
       const excluded=plExcludedExpenseItems.has(item.name);
-      plRows.push(`<tr class="pl-item-row${excluded?' excluded':''}"><td><input type="checkbox" class="pl-item-checkbox" data-expense-item="${encodeURIComponent(item.name)}" ${excluded?'':'checked'}> <button type="button" class="expense-item-link" data-pl-item-name="${encodeURIComponent(item.name)}">${item.name}</button></td><td class="bad">${signedMoney(-itemTotal,reportCurrency)}</td></tr>`);
+      plRows.push(`<tr class="pl-item-row${excluded?' excluded':''}"><td><input type="checkbox" class="pl-item-checkbox" data-expense-item="${encodeURIComponent(item.name)}" ${excluded?'':'checked'}> <button type="button" class="expense-item-link" data-pl-item-name="${encodeURIComponent(item.name)}">${item.name}</button></td><td>${sourceSummary}</td><td>${expenseDisplayMoney(baseTotal,FX_BASE_CURRENCY)}</td><td class="bad">${signedMoney(-itemTotal,reportCurrency)}</td></tr>`);
     });
   } else {
-    plRows.push(`<tr><td colspan="2" class="empty">No expenses for selected filters</td></tr>`);
+    plRows.push(`<tr><td colspan="4" class="empty">No expenses for selected filters</td></tr>`);
   }
-  plRows.push(`<tr class="pl-total-row"><td>Total Expenses${excludedCount?' (selected items)':''}</td><td class="bad">${signedMoney(-expenseTotal,reportCurrency)}</td></tr>`);
-  plRows.push(`<tr class="pl-total-row pl-net"><td>Net Result (Profit − Expenses)</td><td class="${netResult<0?'bad':'good'}">${signedMoney(netResult,reportCurrency)}</td></tr>`);
+  plRows.push(`<tr class="pl-total-row"><td>Total Expenses${excludedCount?' (selected items)':''}</td><td>—</td><td>${expenseDisplayMoney(includedItems.reduce((sum,item)=>sum+(groups[item.name]||[]).reduce((s,row)=>s+expenseBcyOf(row),0),0),FX_BASE_CURRENCY)}</td><td class="bad">${signedMoney(-expenseTotal,reportCurrency)}</td></tr>`);
+  plRows.push(`<tr class="pl-total-row pl-net"><td>Net Result (Profit − Expenses)</td><td>—</td><td>—</td><td class="${netResult<0?'bad':'good'}">${signedMoney(netResult,reportCurrency)}</td></tr>`);
   $('plSummaryTable').innerHTML=plRows.join('');
 }
+function renderPlDealSelection(rows,reportCurrency){
+  plDealRows=rows;
+  const contactIndex=buildContactIndex();
+  $('plDealProfitHeader').textContent=`Profit used (${reportCurrency})`;
+  $('plDealSelectionCount').textContent=`${rows.filter(row=>!plExcludedDeals.has(row)).length} of ${rows.length} visible delivered deals included`;
+  const tbody=$('plDealSelectionTable');
+  tbody.replaceChildren();
+  if(!rows.length){
+    const cell=document.createElement('td');
+    cell.colSpan=8;
+    cell.className='empty';
+    cell.textContent='No delivered deals for selected filters';
+    const tr=document.createElement('tr');tr.appendChild(cell);tbody.appendChild(tr);
+    return;
+  }
+  rows.forEach((row,index)=>{
+    const customerName=dealCustomerNameOf(row,contactIndex);
+    const tr=document.createElement('tr'), cell=document.createElement('td'), checkbox=document.createElement('input');
+    checkbox.type='checkbox';
+    checkbox.className='pl-item-checkbox';
+    checkbox.dataset.plDealIndex=String(index);
+    checkbox.checked=!plExcludedDeals.has(row);
+    checkbox.setAttribute('aria-label',`Include deal ${refOf(row)||index+1} (${customerName}) in P&L`);
+    cell.appendChild(checkbox);tr.appendChild(cell);
+    const values=[refOf(row)||'—',customerName,deliveryDateOf(row),salespersonOf(row),currencyOf(row)||'Unknown',signedMoney(profitOf(row),currencyOf(row)),signedMoney(convertForRow(profitOf(row),row,reportCurrency),reportCurrency)];
+    values.forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.appendChild(td);});
+    tbody.appendChild(tr);
+  });
+}
+function refreshPlDealSelection(){
+  if(!plCache) return;
+  renderProfitLoss(plCache.groups,plCache.itemRows,plCache.targetCurrency);
+}
+$('plDealSelectionTable').onchange=event=>{
+  const checkbox=event.target.closest('[data-pl-deal-index]');
+  if(!checkbox) return;
+  const row=plDealRows[Number(checkbox.dataset.plDealIndex)];
+  if(!row) return;
+  if(checkbox.checked) plExcludedDeals.delete(row); else plExcludedDeals.add(row);
+  refreshPlDealSelection();
+};
+$('plDealsSelectAll').onclick=()=>{
+  plDealRows.forEach(row=>plExcludedDeals.delete(row));
+  refreshPlDealSelection();
+};
+$('plDealsSelectNone').onclick=()=>{
+  plDealRows.forEach(row=>plExcludedDeals.add(row));
+  refreshPlDealSelection();
+};
 $('plSummaryTable').onchange=event=>{
   const checkbox=event.target.closest('.pl-item-checkbox');
   if(!checkbox||!plCache) return;
   const name=decodeURIComponent(checkbox.dataset.expenseItem);
   if(checkbox.checked) plExcludedExpenseItems.delete(name); else plExcludedExpenseItems.add(name);
-  renderProfitLoss(plCache.groups,plCache.itemRows,plCache.targetCurrency);
+  renderExpenses();updatePeriodChips();
 };
 $('plSummaryTable').onclick=event=>{
   const btn=event.target.closest('[data-pl-item-name]');
@@ -1793,12 +2051,12 @@ $('plSummaryTable').onclick=event=>{
 $('plSelectAll').onclick=()=>{
   if(!plCache) return;
   plExcludedExpenseItems.clear();
-  renderProfitLoss(plCache.groups,plCache.itemRows,plCache.targetCurrency);
+  renderExpenses();updatePeriodChips();
 };
 $('plSelectNone').onclick=()=>{
   if(!plCache) return;
   plCache.itemRows.forEach(item=>plExcludedExpenseItems.add(item.name));
-  renderProfitLoss(plCache.groups,plCache.itemRows,plCache.targetCurrency);
+  renderExpenses();updatePeriodChips();
 };
 function renderAll(){
   if(!contacts.length||!invoices.length||!deals.length||!expenses.length)return;
@@ -1812,6 +2070,13 @@ function renderAll(){
 function clearDashboard(){
   contacts=[]; invoices=[]; deals=[]; expenses=[];
   plExcludedExpenseItems=new Set(); plCache=null;
+  plExcludedDeals.clear();plDealRows=[];
+  $('plDealSelectionTable').replaceChildren();
+  $('plDealSelectionCount').textContent='';
+  $('expenseCategoryOptions').innerHTML='';
+  $('expenseYearComparison').replaceChildren();
+  $('expenseYearComparison').hidden=true;
+  $('expenseCompareYear').checked=false;
   $('contactFile').value='';
   $('invoiceFile').value='';
   $('dealFile').value='';
@@ -1847,12 +2112,12 @@ function clearDashboard(){
   $('kRecvSub').innerHTML='';
   $('kLossSub').innerHTML='';
   $('kFeeProfitSub').innerHTML='';
-  $('kExpenses').textContent='—'; $('kExpenseBills').textContent='—';
+  $('kExpenses').textContent='—'; $('kExpensesSub').innerHTML=''; $('kExpenseBills').textContent='—';
   $('kNetResult').textContent='—'; $('kNetResultSub').innerHTML=''; $('kExpenseRatio').textContent='—';
   ['cTotalContacts','cNonWorkable','cWorkable','cSaleDeals','cSoldCustomers','cDealRate','cCustomerRate','cDeadRate','cNonWorkableRate','cDealsPerCustomer'].forEach(id=>{if($(id))$(id).textContent='—'});
   if($('contactAudit'))$('contactAudit').textContent='';
-  ['contactSourceTable','contactCohortTable','monthlyStatsTable','salespersonTable','leadTable','routeTable','customerTable','receivableTable','lossTable','expenseItemTable','expenseVendorTable'].forEach(id => $(id).innerHTML='<tr><td colspan="8" class="empty">No data for selected filters</td></tr>');
-  $('plSummaryTable').innerHTML='<tr><td colspan="2" class="empty">No data for selected filters</td></tr>';
+  ['contactSourceTable','contactCohortTable','monthlyStatsTable','salespersonTable','leadTable','monthlyLeadTable','routeTable','customerTable','receivableTable','lossTable','expenseItemTable','expenseVendorTable'].forEach(id => $(id).innerHTML='<tr><td colspan="8" class="empty">No data for selected filters</td></tr>');
+  $('plSummaryTable').innerHTML='<tr><td colspan="4" class="empty">No data for selected filters</td></tr>';
 }
 
 async function generate(){
@@ -1863,6 +2128,7 @@ async function generate(){
     showProgress(8,'Reading Excel files…'); await nextFrame();
     const [ct,a,b,c]=await Promise.all([readWorkbook(fc),readWorkbook(fi),readWorkbook(fd),readWorkbook(fe)]);
     contacts=ct;invoices=a;deals=b;expenses=c;
+    plExcludedDeals.clear();plDealRows=[];
     if(!contacts.length||!invoices.length||!deals.length||!expenses.length)throw new Error('One of the files contains no rows.');
     showProgress(45,'Loading historical EUR/GBP exchange rates…');
     status.textContent='Loading historical EUR/GBP exchange rates...';
