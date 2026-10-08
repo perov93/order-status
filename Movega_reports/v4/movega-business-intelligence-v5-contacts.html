@@ -479,14 +479,18 @@ function transactionDateKey(row){
 }
 
 function historicalRateForRow(row){
+  const entry=historicalRateEntryForRow(row);
+  return entry?entry.rate:null;
+}
+function historicalRateEntryForRow(row){
   const key=transactionDateKey(row);
   if(!key) return null;
-  if(historicalFxRates[key]) return historicalFxRates[key];
+  if(historicalFxRates[key]) return {date:key,rate:historicalFxRates[key]};
   const date=new Date(`${key}T00:00:00Z`);
   for(let days=1;days<=7;days++){
     date.setUTCDate(date.getUTCDate()-1);
     const prior=date.toISOString().slice(0,10);
-    if(historicalFxRates[prior]) return historicalFxRates[prior];
+    if(historicalFxRates[prior]) return {date:prior,rate:historicalFxRates[prior]};
   }
   return null;
 }
@@ -1181,7 +1185,8 @@ function fxRateInfoForRow(row){
 }
 function dealListRowHtml(r,targetCurrency,showExtraServiceProfit=false,contactIndex=null){
   const currency=currencyOf(r);
-  const converted = targetCurrency && currency && currency!==targetCurrency ? convertForRow(netProfitAfterFeesOf(r),r,targetCurrency) : null;
+  const converted=convertForRow(netProfitAfterFeesOf(r),r,'EUR');
+  const convertedValue=convertForRow(executedValueOf(r),r,'EUR');
   const extraServiceProfit = extraServiceBudgetProfitOf(r);
   const extraConverted = targetCurrency && currency && currency!==targetCurrency ? convertForRow(extraServiceProfit,r,targetCurrency) : null;
   return `<tr>
@@ -1193,11 +1198,24 @@ function dealListRowHtml(r,targetCurrency,showExtraServiceProfit=false,contactIn
     <td>${salespersonOf(r)}</td>
     <td>${routeOf(r)}</td>
     <td>${leadOf(r)}</td>
-    <td>${signedMoney(executedValueOf(r),currency)}</td>
-    <td class="${netProfitAfterFeesOf(r)<0?'bad':''}">${signedMoney(netProfitAfterFeesOf(r),currency)}${converted!==null?` <span class="fx-total">≈ ${signedMoney(converted,targetCurrency)}</span>`:''}</td>
+    <td>${currency||'Unknown'}</td>
+    <td>${expenseDisplayMoney(executedValueOf(r),currency)}</td>
+    <td>${expenseDisplayMoney(convertedValue,'EUR')}</td>
+    <td class="${netProfitAfterFeesOf(r)<0?'bad':''}">${expenseDisplayMoney(netProfitAfterFeesOf(r),currency)}</td>
     ${showExtraServiceProfit?`<td>${signedMoney(extraServiceProfit,currency)}${extraConverted!==null?` <span class="fx-total">≈ ${signedMoney(extraConverted,targetCurrency)}</span>`:''}</td>`:''}
-    <td>${fxRateInfoForRow(r)}</td>
+    <td>${dealEurRateInfo(r)}</td>
+    <td class="${converted<0?'bad':''}">${expenseDisplayMoney(converted,'EUR')}</td>
   </tr>`;
+}
+function dealEurRateInfo(row){
+  const source=currencyOf(row);
+  if(source==='EUR') return '1 EUR = 1 EUR (no conversion)';
+  const rate=convertForRow(1,row,'EUR');
+  if(source==='GBP'){
+    const entry=historicalRateEntryForRow(row);
+    return `1 GBP = ${rate.toFixed(8)} EUR (${entry?`historical rate dated ${entry.date}`:`latest/fallback estimate${fxAuditState.latestDate?` dated ${fxAuditState.latestDate}`:''}`})`;
+  }
+  return expenseConversionRate(row,'EUR').label.replace('bill-date','delivery-date');
 }
 function invoiceListRowHtml(r,targetCurrency){
   const currency=currencyOf(r);
@@ -1292,13 +1310,19 @@ function openDealsModal(title,rows,kind='deal',showExtraServiceProfit=false){
       groups.length ? groups.map((g,i)=>`<tr class="clickable-row" data-customer-idx="${i}"><td>${g.name}</td><td>${g.deals.toLocaleString()}</td><td>${g.latest?g.latest.toLocaleDateString('en-GB'):'—'}</td><td>${formatDual(splitMoney(g.rows,executedValueOf,targetCurrency))}</td><td>${formatDual(splitMoney(g.rows,profitOf,targetCurrency))}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">No records</td></tr>'
     }</tbody></table>`;
   } else {
-    count.textContent = rows.length ? `${rows.length.toLocaleString()} job(s) · FX rate shown per transaction date` : 'No matching records for this selection';
+    count.textContent = rows.length ? `${rows.length.toLocaleString()} job(s) · Original amounts retain each deal’s currency · EUR columns use delivery-date FX · profit after transaction fees` : 'No matching records for this selection';
     const extraHeader=showExtraServiceProfit?'<th>Extra Service Budget Profit</th>':'';
-    const dealColumnCount=showExtraServiceProfit?12:11;
+    const dealColumnCount=showExtraServiceProfit?15:14;
     const contactIndex=buildContactIndex();
-    body.innerHTML = `<table class="deals-modal-table"><thead><tr><th>Reference</th><th>Customer</th><th>Delivery Date</th><th>Deal Status</th><th>System Status</th><th>Salesperson</th><th>Route</th><th>Lead Provider</th><th>Job Value</th><th>Net Profit</th>${extraHeader}<th>FX Rate Used</th></tr></thead><tbody>${
+    const eurTotal=sumConverted(rows,netProfitAfterFeesOf,'EUR');
+    const nativeTotals=unique(rows.map(currencyOf)).map(currency=>{
+      const total=rows.filter(row=>currencyOf(row)===currency).reduce((sum,row)=>sum+netProfitAfterFeesOf(row),0);
+      return expenseDisplayMoney(total,currency);
+    }).join(' · ');
+    const footer=rows.length?`<tfoot><tr style="font-weight:750"><td colspan="11">Total net profit after fees</td><td>${nativeTotals}</td><td colspan="${showExtraServiceProfit?2:1}">Combined in EUR</td><td class="${eurTotal<0?'bad':'good'}">${expenseDisplayMoney(eurTotal,'EUR')}</td></tr></tfoot>`:'';
+    body.innerHTML = `<p class="legend-note">Original profits show each deal’s currency (EUR or GBP). The final column converts that profit to EUR using delivery-date FX. Native totals and combined EUR total are shown at the bottom. Totals use unrounded conversions; displayed rows are rounded to cents. Latest/fallback rates are estimates, not historical rates.</p><table class="deals-modal-table"><thead><tr><th>Reference</th><th>Customer</th><th>Delivery Date</th><th>Deal Status</th><th>System Status</th><th>Salesperson</th><th>Route</th><th>Lead Provider</th><th>Original currency</th><th>Job value (original)</th><th>Job value EUR</th><th>Profit after fees (original)</th>${extraHeader}<th>Applied rate to EUR</th><th>Converted profit EUR</th></tr></thead><tbody>${
       rows.length ? rows.map(r=>dealListRowHtml(r,targetCurrency,showExtraServiceProfit,contactIndex)).join('') : `<tr><td colspan="${dealColumnCount}" class="empty">No records</td></tr>`
-    }</tbody></table>`;
+    }</tbody>${footer}</table>`;
   }
   overlay.classList.add('open');
 }
@@ -1783,6 +1807,7 @@ function renderMonthlyLeadSources(rows){
     tr.appendChild(td);tbody.appendChild(tr);
     return;
   }
+  const totals={jobs:0,eur:0,gbp:0,profit:0,losses:0,fallbackCount:0};
   [...months.entries()].sort(([a],[b])=>a.localeCompare(b)).forEach(([month,sources])=>{
     const ranked=[...sources.entries()].map(([name,deals])=>({
       name,deals,profit:sumConverted(deals,netProfitAfterFeesOf,'EUR'),
@@ -1795,16 +1820,35 @@ function renderMonthlyLeadSources(rows){
     })).sort((a,b)=>b.profit-a.profit||a.name.localeCompare(b.name));
     const best=ranked[0].profit, worst=ranked[ranked.length-1].profit;
     ranked.forEach((source,index)=>{
+      const losses=source.deals.filter(row=>netProfitAfterFeesOf(row)<0).length;
+      totals.jobs+=source.deals.length;
+      totals.eur+=source.eur;
+      totals.gbp+=source.gbp;
+      totals.profit+=source.profit;
+      totals.losses+=losses;
+      totals.fallbackCount+=source.fallbackCount;
       const tr=document.createElement('tr');
       tr.className='clickable-row';
       tr.title='Click to view delivered deals';
       const rating=ranked.length===1?'Only source':best===worst?'Tied':source.profit===best?'Best':source.profit===worst?'Worst':'';
-      const values=[month,source.name,source.deals.length.toLocaleString(),signedMoney(source.eur,'EUR'),signedMoney(source.gbp,'GBP'),`${signedMoney(source.profit,'EUR')}${source.fallbackCount?` (${source.fallbackCount} latest/fallback FX estimates)`:''}`,signedMoney(source.profit/source.deals.length,'EUR'),source.deals.filter(row=>netProfitAfterFeesOf(row)<0).length.toLocaleString(),`${index+1} / ${ranked.length}${rating?` · ${rating}`:''}`];
+      const values=[month,source.name,source.deals.length.toLocaleString(),signedMoney(source.eur,'EUR'),signedMoney(source.gbp,'GBP'),`${signedMoney(source.profit,'EUR')}${source.fallbackCount?` (${source.fallbackCount} latest/fallback FX estimates)`:''}`,signedMoney(source.profit/source.deals.length,'EUR'),losses.toLocaleString(),`${index+1} / ${ranked.length}${rating?` · ${rating}`:''}`];
       values.forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.appendChild(td);});
       tr.addEventListener('click',()=>openDealsModal(`Delivered deals — ${source.name} — ${month}`,source.deals,'deal'));
       tbody.appendChild(tr);
     });
   });
+  const totalRow=document.createElement('tr');
+  totalRow.style.fontWeight='750';
+  totalRow.style.color='#fbbf24';
+  totalRow.style.background='rgba(245,158,11,0.12)';
+  const totalValues=['Total','All displayed sources / months',totals.jobs.toLocaleString(),signedMoney(totals.eur,'EUR'),signedMoney(totals.gbp,'GBP'),`${signedMoney(totals.profit,'EUR')}${totals.fallbackCount?` (${totals.fallbackCount} latest/fallback FX estimates)`:''}`,signedMoney(totals.profit/totals.jobs,'EUR'),totals.losses.toLocaleString(),'—'];
+  totalValues.forEach(value=>{
+    const td=document.createElement('td');
+    td.textContent=value;
+    td.style.borderTop='2px solid var(--border)';
+    totalRow.appendChild(td);
+  });
+  tbody.appendChild(totalRow);
 }
 function renderRoutes(){
   const dls=filteredDeals(); const groups={}; const targetCurrency = resolveTargetCurrency();
