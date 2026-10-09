@@ -31,7 +31,7 @@ body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);c
 .upload-panel,.filter-panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
 .upload-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:10px;align-items:end}
 label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px}
-input[type=file],select,button{width:100%;background:#0b1728;color:var(--text);border:1px solid #2a3d57;border-radius:9px;padding:10px 11px;font-size:13px}
+input[type=file],input[type=date],select,button{width:100%;background:#0b1728;color:var(--text);border:1px solid #2a3d57;border-radius:9px;padding:10px 11px;font-size:13px}
 button{width:auto;cursor:pointer;background:#1d4ed8;border-color:#2563eb;font-weight:700;padding:11px 16px}
 button:hover{filter:brightness(1.08)}
 .status{font-size:12px;color:var(--muted);margin-top:9px}.error{color:#fca5a5}.ok{color:#86efac}
@@ -40,7 +40,7 @@ button:hover{filter:brightness(1.08)}
 .progress-track{width:100%;height:7px;background:#16233a;border-radius:999px;overflow:hidden;border:1px solid var(--border)}
 .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#2563eb,#3b82f6);border-radius:999px;transition:width .3s ease}
 .fx-audit{font-size:11px;color:var(--muted);margin-top:10px;padding-top:9px;border-top:1px solid var(--border)}
-.filters{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:9px}
+.filters{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));gap:9px}
 .kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px;margin-bottom:18px}.kpis.primary{grid-template-columns:repeat(5,minmax(0,1fr))}
 .kpi{background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:15px;min-width:0}
 .kpi .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:6px}.kpi .label .src-badge{text-transform:none}.kpi .value{font-size:25px;font-weight:850;margin:7px 0;line-height:1.25}.kpi .value .fx-total{display:block;font-size:11px;font-weight:600;margin-top:2px}
@@ -101,7 +101,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;b
 .pl-item-checkbox{margin-right:8px;accent-color:#3b82f6;vertical-align:middle}
 #plSummaryTable .pl-item-row.excluded td{color:#5c6b80}
 #plSummaryTable .pl-item-row.excluded td.bad{color:#5c6b80}
-@media(max-width:1150px){.kpis,.kpis.primary{grid-template-columns:repeat(2,1fr)}.grid2,.grid21,.grid3{grid-template-columns:1fr}.filters{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:1150px){.kpis,.kpis.primary{grid-template-columns:repeat(2,1fr)}.grid2,.grid21,.grid3{grid-template-columns:1fr}.filters{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:760px){.sidebar{display:none}.main{margin-left:0;width:100%;padding:12px}.upload-grid,.filters,.kpis,.kpis.primary{grid-template-columns:1fr}.top{flex-direction:column}.chart{height:250px}}
 @page{size:A4 landscape;margin:10mm}
 @media print{
@@ -207,6 +207,8 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;b
     <div class="filters">
       <div><label>Year</label><select id="yearFilter"><option value="ALL">All Years</option></select></div>
       <div><label>Month</label><select id="monthFilter"><option value="ALL">All Months</option></select></div>
+      <div><label>From</label><input id="dateFromFilter" type="date"></div>
+      <div><label>To</label><input id="dateToFilter" type="date"></div>
       <div><label>Currency / Conversion</label><select id="currencyFilter"><option value="ALL">Both EUR + GBP · totals in EUR</option></select></div>
       <div><label>Salesperson</label><select id="salespersonFilter"><option value="ALL">All Salespeople</option></select></div>
       <div><label>Lead Source</label><select id="leadFilter"><option value="ALL">All Lead Sources</option></select></div>
@@ -443,6 +445,8 @@ function saveFiltersState(){
   const state = {
     year: $('yearFilter') ? $('yearFilter').value : 'ALL',
     month: $('monthFilter') ? $('monthFilter').value : 'ALL',
+    dateFrom: $('dateFromFilter') ? $('dateFromFilter').value : '',
+    dateTo: $('dateToFilter') ? $('dateToFilter').value : '',
     currency: $('currencyFilter') ? $('currencyFilter').value : 'ALL',
     salesperson: $('salespersonFilter') ? $('salespersonFilter').value : 'ALL',
     lead: $('leadFilter') ? $('leadFilter').value : 'ALL'
@@ -458,6 +462,8 @@ function restoreFiltersState(){
     const selectMap = {
       yearFilter: 'year',
       monthFilter: 'month',
+      dateFromFilter: 'dateFrom',
+      dateToFilter: 'dateTo',
       currencyFilter: 'currency',
       salespersonFilter: 'salesperson',
       leadFilter: 'lead'
@@ -465,6 +471,7 @@ function restoreFiltersState(){
     Object.entries(selectMap).forEach(([id,key]) => {
       const el = $(id);
       if(!el || !state[key]) return;
+      if(el.tagName==='INPUT') { el.value = String(state[key]); return; }
       if([...el.options].some(o => o.value === String(state[key]))) el.value = String(state[key]);
     });
     return true;
@@ -705,10 +712,19 @@ function dealContactIdOf(r){return String(val(r,['Contact ID','Contact Name ID',
 function dealContactRefOf(r){return String(val(r,['Contact Reference','CRM Reference'])||'')}
 function dealReferenceOf(r){return String(val(r,['d.Reference','Reference','Deal Reference'])||'')}
 function isSaleCompletedDeal(r){return !!dealSaleCompletedOf(r)}
+// Shared From/To custom-range check used alongside the Year/Month dropdowns everywhere a row date is tested.
+function inCustomDateRange(d,f){
+  if(!f.dateFrom && !f.dateTo) return true;
+  if(!d) return false;
+  if(f.dateFrom){ const x=new Date(f.dateFrom); if(d<x) return false; }
+  if(f.dateTo){ const x=new Date(f.dateTo); x.setHours(23,59,59,999); if(d>x) return false; }
+  return true;
+}
 function contactFilterPass(r){
   const f=selected(), d=contactCreatedOf(r);
   if(f.year!=='ALL' && (!d || d.getFullYear()!==Number(f.year))) return false;
   if(f.month!=='ALL' && (!d || d.getMonth()+1!==Number(f.month))) return false;
+  if(!inCustomDateRange(d,f)) return false;
   if(f.lead!=='ALL' && contactLeadSourceOf(r)!==f.lead) return false;
   return true;
 }
@@ -718,6 +734,7 @@ function saleCompletedFilterPass(r){
   if(!d) return false;
   if(f.year!=='ALL' && d.getFullYear()!==Number(f.year)) return false;
   if(f.month!=='ALL' && d.getMonth()+1!==Number(f.month)) return false;
+  if(!inCustomDateRange(d,f)) return false;
   if(f.salesperson!=='ALL' && salespersonOf(r)!==f.salesperson) return false;
   if(f.lead!=='ALL' && leadOf(r)!==f.lead) return false;
   return true;
@@ -808,12 +825,15 @@ function updateDataPeriodBadge(){
 function dealDateValue(row){
   return val(row,['Delivery Date','Move Date','Pickup Date','Collection Date','Scheduled Date','Expected Delivery Date','Payment Date','Paid Date','Closing Date','Created Time','Created Date']);
 }
+function periodDateOf(row,type){
+  return dateVal(type==='invoice'?val(row,['Invoice Date']):type==='expense'?val(row,['Bill Date']):dealDateValue(row));
+}
 function yearOf(row,type){
-  const d=dateVal(type==='invoice'?val(row,['Invoice Date']):type==='expense'?val(row,['Bill Date']):dealDateValue(row));
+  const d=periodDateOf(row,type);
   return d?d.getFullYear():null;
 }
 function monthOf(row,type){
-  const d=dateVal(type==='invoice'?val(row,['Invoice Date']):type==='expense'?val(row,['Bill Date']):dealDateValue(row));
+  const d=periodDateOf(row,type);
   return d?d.getMonth()+1:null;
 }
 function currencyOf(r){
@@ -967,10 +987,14 @@ function chartTextColor(){return printMode ? '#111827' : '#9fb0c5'}
 function chartGridColor(){return printMode ? '#d1d5db' : '#21344d'}
 Chart.defaults.color=chartTextColor(); Chart.defaults.borderColor=chartGridColor();
 
-function selected(){return {year:$('yearFilter').value,month:$('monthFilter').value,currency:$('currencyFilter').value,salesperson:$('salespersonFilter').value,lead:$('leadFilter').value}}
-// Describes the selected Year/Month filter, falling back gracefully when only one of the two is set.
+function selected(){return {year:$('yearFilter').value,month:$('monthFilter').value,dateFrom:$('dateFromFilter')?$('dateFromFilter').value:'',dateTo:$('dateToFilter')?$('dateToFilter').value:'',currency:$('currencyFilter').value,salesperson:$('salespersonFilter').value,lead:$('leadFilter').value}}
+// Describes the selected Year/Month/custom date-range filter, falling back gracefully when only some are set.
 function periodLabel(){
   const f=selected();
+  if(f.dateFrom || f.dateTo){
+    const fmt=v=>v?new Date(v).toLocaleDateString('en-GB'):'…';
+    return `${fmt(f.dateFrom)} – ${fmt(f.dateTo)}`;
+  }
   if(f.month!=='ALL' && f.year!=='ALL') return `${monthNames[Number(f.month)-1]} ${f.year}`;
   if(f.year!=='ALL') return `${f.year}`;
   if(f.month!=='ALL') return `${monthNames[Number(f.month)-1]} (all years)`;
@@ -1004,10 +1028,17 @@ function labelForSelect(id){
   const el=$(id);
   return el && el.selectedOptions && el.selectedOptions[0] ? el.selectedOptions[0].textContent : 'All';
 }
+// Short "From: dd/mm/yyyy | To: dd/mm/yyyy" fragment appended to filter summaries when a custom date range is set.
+function customRangeSummary(){
+  const f=selected();
+  if(!f.dateFrom && !f.dateTo) return '';
+  const fmt=v=>v?new Date(v).toLocaleDateString('en-GB'):'…';
+  return ` | From: ${fmt(f.dateFrom)} | To: ${fmt(f.dateTo)}`;
+}
 function updatePrintSummary(){
   const el=$('printFilterSummary');
   if(!el) return;
-  el.textContent=`Year: ${labelForSelect('yearFilter')} | Month: ${labelForSelect('monthFilter')} | Currency: ${labelForSelect('currencyFilter')} | Salesperson: ${labelForSelect('salespersonFilter')} | Lead Source: ${labelForSelect('leadFilter')}`;
+  el.textContent=`Year: ${labelForSelect('yearFilter')} | Month: ${labelForSelect('monthFilter')}${customRangeSummary()} | Currency: ${labelForSelect('currencyFilter')} | Salesperson: ${labelForSelect('salespersonFilter')} | Lead Source: ${labelForSelect('leadFilter')}`;
 }
 function currencyMatches(rowCurrency,filterCurrency){
   return filterCurrency==='ALL'||(filterCurrency==='EUR'||filterCurrency==='GBP' ? ['EUR','GBP'].includes(rowCurrency) : rowCurrency===filterCurrency);
@@ -1016,6 +1047,7 @@ function passCommon(row,type){
   const f=selected(), y=yearOf(row,type), m=monthOf(row,type), c=currencyOf(row), s=salespersonOf(row);
   if(f.year!=='ALL' && y!==Number(f.year)) return false;
   if(f.month!=='ALL' && m!==Number(f.month)) return false;
+  if(!inCustomDateRange(periodDateOf(row,type),f)) return false;
   if(type!=='expense'&&!currencyMatches(c,f.currency)) return false;
   if(f.salesperson!=='ALL' && s!==f.salesperson) return false;
   if(type==='deal' && f.lead!=='ALL' && leadOf(row)!==f.lead) return false;
@@ -1104,7 +1136,8 @@ function monthYearLabel(monthNumber, yearNumber){
 function compFor(rows,type,valueFn){
   const f=selected();
   const years=unique(rows.map(r=>yearOf(r,type))).filter(Boolean).sort((a,b)=>b-a);
-  const yr=f.year==='ALL' ? (years[0] || null) : Number(f.year);
+  const dateHintYear=f.dateFrom?new Date(f.dateFrom).getFullYear():(f.dateTo?new Date(f.dateTo).getFullYear():null);
+  const yr=f.year!=='ALL' ? Number(f.year) : (dateHintYear || years[0] || null);
   if(!yr) return {mom:null,yoy:null,momLabel:null,yoyLabel:null};
 
   const matchesFilters=(r,y)=>yearOf(r,type)===y&&(type==='expense'||currencyMatches(currencyOf(r),f.currency))&&(f.salesperson==='ALL'||salespersonOf(r)===f.salesperson)&&(type!=='deal'||f.lead==='ALL'||leadOf(r)===f.lead);
@@ -1178,6 +1211,8 @@ function invoiceRowsThroughCutoff(rows,year,cutoff){
 }
 function currentChartYear(){
   const f=selected(); if(f.year!=='ALL') return Number(f.year);
+  if(f.dateFrom) return new Date(f.dateFrom).getFullYear();
+  if(f.dateTo) return new Date(f.dateTo).getFullYear();
   const years=unique([...invoices.map(r=>yearOf(r,'invoice')),...deals.map(r=>yearOf(r,'deal')),...expenses.map(r=>yearOf(r,'expense'))]).filter(Boolean);
   return years.length?Math.max(...years):new Date().getFullYear();
 }
@@ -1376,7 +1411,7 @@ function printChart(id,type,labels,datasets,horizontal=false){
 }
 function reportChart(id){return `<div class="report-chart"><canvas id="${id}" width="900" height="260"></canvas></div>`}
 function reportPage(title,subtitle,body){
-  return `<section class="report-page"><div class="report-head"><div><h1>${title}</h1><p>${subtitle}</p></div><div class="report-meta">Movega Management Report<br>${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}<br>${labelForSelect('yearFilter')} | ${labelForSelect('monthFilter')} | ${labelForSelect('currencyFilter')}</div></div>${body}</section>`;
+  return `<section class="report-page"><div class="report-head"><div><h1>${title}</h1><p>${subtitle}</p></div><div class="report-meta">Movega Management Report<br>${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}<br>${labelForSelect('yearFilter')} | ${labelForSelect('monthFilter')}${customRangeSummary()} | ${labelForSelect('currencyFilter')}</div></div>${body}</section>`;
 }
 function reportTable(headers,rows){
   const head=headers.map(h=>`<th>${h}</th>`).join('');
@@ -1394,7 +1429,7 @@ function renderPrintReport(){
   const inv=filteredInvoices(), dls=filteredDeals(), delivered=dls.filter(isDeliveredDeal), upcoming=dls.filter(r=>!isDeliveredDeal(r)), paidFuture=dls.filter(isPaidFutureDeal);
   const netProfit=splitMoney(delivered,netProfitAfterFeesOf,targetCurrency), executedValue=splitMoney(delivered,executedValueOf,targetCurrency), margin=marginFromRows(delivered);
   const summary=reportPage('Executive Summary','Core performance, movement and cash position for the selected report filters.',`
-    <div class="report-note">Filters: ${labelForSelect('yearFilter')} | ${labelForSelect('monthFilter')} | ${labelForSelect('currencyFilter')} | ${labelForSelect('salespersonFilter')} | ${labelForSelect('leadFilter')}</div>
+    <div class="report-note">Filters: ${labelForSelect('yearFilter')} | ${labelForSelect('monthFilter')}${customRangeSummary()} | ${labelForSelect('currencyFilter')} | ${labelForSelect('salespersonFilter')} | ${labelForSelect('leadFilter')}</div>
     <div class="report-kpis">
       ${reportKpi('Sales EUR/GBP',moneyForRows(inv,salesOf,targetCurrency),'Zoho Books invoice sales before tax')}
       ${reportKpi('Net Profit After Fees',formatDual(netProfit),'Delivered CRM jobs only')}
@@ -1466,7 +1501,7 @@ function updateFilters(){
   if(!restored && years.length) $('yearFilter').value=String(Math.max(...years));
   if(old && old.y && restored) $('yearFilter').value = old.y;
 
-  ['yearFilter','monthFilter','currencyFilter','salespersonFilter','leadFilter'].forEach(id=>$(id).addEventListener('change',()=>{
+  ['yearFilter','monthFilter','dateFromFilter','dateToFilter','currencyFilter','salespersonFilter','leadFilter'].forEach(id=>$(id).addEventListener('change',()=>{
     saveFiltersState();
     renderAll();
   }));
@@ -2219,6 +2254,8 @@ function clearDashboard(){
   hideProgress();
   $('yearFilter').value='ALL';
   $('monthFilter').value='ALL';
+  $('dateFromFilter').value='';
+  $('dateToFilter').value='';
   $('currencyFilter').value='ALL';
   $('salespersonFilter').value='ALL';
   $('leadFilter').value='ALL';
