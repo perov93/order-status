@@ -322,6 +322,11 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;b
     <div class="card">
       <div class="card-head"><h3>Monthly Delivered Deals by Lead Source</h3><span>CRM delivered deals only</span></div>
       <p class="legend-note">Profit is after transaction fees. EUR and GBP columns show separate original-currency sums, not two versions of the same total. Combined EUR converts each deal using its historical delivery-date rate (nearest prior rate for weekends/holidays); latest/fallback estimates are flagged. Other currencies, when present, are included in Combined EUR. Rankings use Combined EUR. Click a row for its deals. P&amp;L exclusions do not affect this comparison.</p>
+      <label for="monthlyLeadSourceSearch">Search lead sources</label>
+      <input type="text" id="monthlyLeadSourceSearch" placeholder="Type a lead source name..." autocomplete="off">
+      <p class="legend-note">Untick a lead source to exclude it from this table's rows and Total, independent of the Lead Source filter above. Search only narrows this list; it does not exclude lead sources. Select all/Clear all applies only to matching visible lead sources.</p>
+      <div class="pl-controls"><span id="monthlyLeadSourceCount"></span><span class="pl-actions"><button type="button" id="monthlyLeadSelectAll" class="pl-link-btn">Select all visible</button><button type="button" id="monthlyLeadSelectNone" class="pl-link-btn">Clear all visible</button></span></div>
+      <div id="monthlyLeadSourceOptions" class="sub"></div>
       <div class="table-wrap"><table><thead><tr><th>Delivery month</th><th>Lead source</th><th>Delivered deals</th><th>Native profit EUR</th><th>Native profit GBP</th><th>Combined profit EUR</th><th>Avg combined profit / deal EUR</th><th>Loss deals</th><th>Monthly rank</th></tr></thead><tbody id="monthlyLeadTable"></tbody></table></div>
     </div>
   </section>
@@ -414,6 +419,11 @@ let plExcludedExpenseItems = new Set();
 let plExcludedDeals = new Set();
 let plDealRows = [];
 let plCache = null;
+// Lead sources unticked here are excluded only from the Monthly Delivered Deals by Lead Source
+// table's rows and Total, independent of the global Lead Source filter above.
+let monthlyLeadExcludedSources = new Set();
+let monthlyLeadDealsCache = [];
+let monthlyLeadVisibleSources = [];
 const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const STORAGE_KEY = 'movega_dashboard_filters';
 const FX_BASE_CURRENCY = 'GBP';
@@ -1786,13 +1796,47 @@ function renderLeadSources(){
   const rows=Object.values(groups).map(r=>({...r,sort:targetCurrency?r.profit[c]:r.profit.combinedEUR})).sort((a,b)=>b.sort-a.sort), top=rows.slice(0,12), col=colors();
   chartBar('leadChart',top.map(r=>r.name),[{label:'Profit '+c,data:top.map(r=>r.sort),backgroundColor:col.green}],true,{title:'Profit by Lead Source',kind:'deal',rowsFor:(label)=>dls.filter(r=>leadOf(r)===label)});
   fillTable('leadTable',rows.slice(0,20),r=>`<td>${r.name}</td><td>${r.jobs}</td><td>${formatDual(r.profit)}</td><td>${formatDual({EUR:r.jobs?r.profit.EUR/r.jobs:0,GBP:r.jobs?r.profit.GBP/r.jobs:0,combinedEUR:r.jobs?r.profit.combinedEUR/r.jobs:0})}</td><td>${r.lossJobs}</td>`);
+  monthlyLeadDealsCache=dls;
+  renderMonthlyLeadSourceControls(dls);
   renderMonthlyLeadSources(dls);
+}
+function monthlyLeadSourceIncluded(row){
+  return !monthlyLeadExcludedSources.has(leadOf(row));
+}
+function renderMonthlyLeadSourceControls(dls){
+  const options=$('monthlyLeadSourceOptions');
+  options.innerHTML='';
+  const query=$('monthlyLeadSourceSearch').value.trim().toLowerCase();
+  const allNames=unique(dls.map(leadOf)).sort();
+  const visibleNames=allNames.filter(name=>!query||name.toLowerCase().includes(query));
+  monthlyLeadVisibleSources=visibleNames;
+  $('monthlyLeadSourceCount').textContent=`${visibleNames.filter(name=>!monthlyLeadExcludedSources.has(name)).length} of ${visibleNames.length} matching lead sources included · ${allNames.filter(name=>!monthlyLeadExcludedSources.has(name)).length} of ${allNames.length} total lead sources included`;
+  if(!visibleNames.length){
+    const empty=document.createElement('span');
+    empty.className='legend-note';
+    empty.textContent=allNames.length?'No lead sources match your search':'No delivered deals for selected filters';
+    options.appendChild(empty);
+    return;
+  }
+  visibleNames.forEach(name=>{
+    const label=document.createElement('label');
+    label.style.display='inline-block';
+    label.style.marginRight='16px';
+    const checkbox=document.createElement('input');
+    checkbox.type='checkbox';
+    checkbox.className='pl-item-checkbox';
+    checkbox.dataset.monthlyLeadSource=name;
+    checkbox.checked=!monthlyLeadExcludedSources.has(name);
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(name));
+    options.appendChild(label);
+  });
 }
 function renderMonthlyLeadSources(rows){
   const tbody=$('monthlyLeadTable');
   tbody.replaceChildren();
   const months=new Map();
-  rows.forEach(row=>{
+  rows.filter(monthlyLeadSourceIncluded).forEach(row=>{
     const date=dateVal(dealDateValue(row));
     if(!date) return;
     const key=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
@@ -1990,6 +2034,27 @@ $('expenseSelectAll').onclick=()=>{
 $('expenseSelectNone').onclick=()=>{
   expenses.forEach(row=>plExcludedExpenseItems.add(expenseItemOf(row)));renderExpenses();updatePeriodChips();
 };
+$('monthlyLeadSourceSearch').addEventListener('input',()=>{
+  renderMonthlyLeadSourceControls(monthlyLeadDealsCache);
+});
+$('monthlyLeadSourceOptions').onchange=event=>{
+  const checkbox=event.target.closest('[data-monthly-lead-source]');
+  if(!checkbox) return;
+  const name=checkbox.dataset.monthlyLeadSource;
+  if(checkbox.checked) monthlyLeadExcludedSources.delete(name); else monthlyLeadExcludedSources.add(name);
+  renderMonthlyLeadSourceControls(monthlyLeadDealsCache);
+  renderMonthlyLeadSources(monthlyLeadDealsCache);
+};
+$('monthlyLeadSelectAll').onclick=()=>{
+  monthlyLeadVisibleSources.forEach(name=>monthlyLeadExcludedSources.delete(name));
+  renderMonthlyLeadSourceControls(monthlyLeadDealsCache);
+  renderMonthlyLeadSources(monthlyLeadDealsCache);
+};
+$('monthlyLeadSelectNone').onclick=()=>{
+  monthlyLeadVisibleSources.forEach(name=>monthlyLeadExcludedSources.add(name));
+  renderMonthlyLeadSourceControls(monthlyLeadDealsCache);
+  renderMonthlyLeadSources(monthlyLeadDealsCache);
+};
 $('expenseCompareYear').onchange=renderExpenseYearComparison;
 // Profit & Loss summary: CRM Executed Profit for the period, less the ticked expense items, down to
 // a single bottom-line Net Result. All lines are converted into one reporting currency (the selected
@@ -2128,6 +2193,10 @@ function clearDashboard(){
   contacts=[]; invoices=[]; deals=[]; expenses=[];
   plExcludedExpenseItems=new Set(); plCache=null;
   plExcludedDeals.clear();plDealRows=[];
+  monthlyLeadExcludedSources=new Set(); monthlyLeadDealsCache=[]; monthlyLeadVisibleSources=[];
+  $('monthlyLeadSourceSearch').value='';
+  $('monthlyLeadSourceCount').textContent='';
+  $('monthlyLeadSourceOptions').innerHTML='';
   $('plDealSearch').value='';
   $('plDealSelectionTable').replaceChildren();
   $('plDealSelectionCount').textContent='';
