@@ -27,6 +27,19 @@ ul{padding-left:18px;margin:0 0 24px;font-size:12px;color:#c7d2e2;line-height:1.
 .open:focus-visible{outline:3px solid #93c5fd;outline-offset:4px}
 .note{margin-top:28px;padding:18px 20px;background:#0b1626;border:1px solid var(--border);border-radius:12px;color:var(--muted);font-size:13px;line-height:1.7}
 footer{margin-top:32px;color:#65758b;font-size:12px}
+.autolocate-panel{background:var(--panel);border:1px solid var(--border);border-top:3px solid #60a5fa;border-radius:14px;padding:24px;margin:0 0 28px}
+.autolocate-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
+.autolocate-head h2{margin:8px 0 6px}
+.autolocate-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.autolocate-btn{white-space:nowrap;cursor:pointer}
+.clear-btn{color:var(--muted);background:transparent;border:1px solid var(--border);padding:12px 16px;border-radius:9px;cursor:pointer;font-size:14px;font-weight:700}
+.clear-btn:hover{color:var(--text);border-color:#3b4b64}
+.autolocate-status{margin-top:16px;font-size:13px;color:var(--muted);line-height:1.6}
+.autolocate-status.ok{color:#86efac}
+.autolocate-status.error{color:#fca5a5}
+.autolocate-filelist{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.autolocate-filelist li{font-size:12px;background:#0b1626;border:1px solid var(--border);border-radius:999px;padding:6px 12px;color:#c7d2e2}
+@media(max-width:600px){.autolocate-head{flex-direction:column}.autolocate-actions{width:100%}.autolocate-actions button{flex:1}}
 @media(max-width:900px){.reports{grid-template-columns:1fr}.container{max-width:650px}}
 @media(max-width:480px){.container{padding:24px 16px}header{align-items:flex-start;flex-direction:column}.logo{width:150px}h1{font-size:28px}}
 </style>
@@ -39,6 +52,22 @@ footer{margin-top:32px;color:#65758b;font-size:12px}
   </header>
   <h1>Business Intelligence Reports</h1>
   <p class="intro">Choose a report below, then upload your exported spreadsheets to explore the data.</p>
+  <section class="autolocate-panel" aria-label="Auto-locate files for all reports">
+    <div class="autolocate-head">
+      <div>
+        <span class="category" style="color:#60a5fa">One-time setup</span>
+        <h2>Auto-Locate Folder for All Reports</h2>
+        <p class="description" style="margin:0">Pick the folder with your exported spreadsheets once. Movega BI remembers the files in this browser so every report below loads and generates automatically — no re-uploading needed.</p>
+      </div>
+      <div class="autolocate-actions">
+        <button id="autoLocateAllBtn" type="button" class="open autolocate-btn">📁 Auto-Locate Folder</button>
+        <button id="clearAutoLocateBtn" type="button" class="clear-btn">Clear Saved Files</button>
+        <input id="autoLocateAllInput" type="file" webkitdirectory directory multiple style="display:none">
+      </div>
+    </div>
+    <div id="autoLocateStatus" class="autolocate-status">Select a folder to begin.</div>
+    <ul id="autoLocateFileList" class="autolocate-filelist"></ul>
+  </section>
   <section class="reports" aria-label="Available reports">
     <article class="report" style="--accent:#60a5fa">
       <span class="category">Business performance</span>
@@ -83,10 +112,123 @@ footer{margin-top:32px;color:#65758b;font-size:12px}
     </article>
   </section>
   <aside class="note">
-    <strong>Getting started:</strong> Open a report and select its spreadsheets, or use Auto-Locate to select the folder containing your exports. Each report loads its data separately.
+    <strong>Getting started:</strong> Use Auto-Locate Folder above to select the folder containing your exports once — each report will auto-load and auto-generate when opened. You can still open a report and select its spreadsheets manually, or use its own Auto-Locate button, any time.
     Keep this index page, the report pages and the logo in the same folder so the links continue to work.
   </aside>
   <footer>Movega BI</footer>
 </main>
+<script>
+const $ = id => document.getElementById(id);
+const MOVEGA_DB_NAME = 'movega-bi-autolocate';
+const MOVEGA_DB_STORE = 'files';
+const MOVEGA_FILE_DEFS = [
+  { key:'contacts', label:'Contacts.xlsx', names:['contacts.xlsx','qt_contacts.xlsx'] },
+  { key:'invoice_revenue', label:'QT_INVOICE_REVENUE.xlsx', names:['qt_invoice_revenue.xlsx'] },
+  { key:'deal_financials', label:'QT_DEAL_FINANCIALS.xlsx', names:['qt_deal_financials.xlsx'] },
+  { key:'expenses', label:'QT_EXPENSES.xlsx', names:['qt_expenses.xlsx'] }
+];
+function movegaOpenDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(MOVEGA_DB_NAME, 1);
+    req.onupgradeneeded = ()=>{ if(!req.result.objectStoreNames.contains(MOVEGA_DB_STORE)) req.result.createObjectStore(MOVEGA_DB_STORE,{keyPath:'key'}); };
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function movegaSaveFile(key,file){
+  const data = await file.arrayBuffer();
+  const db = await movegaOpenDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(MOVEGA_DB_STORE,'readwrite');
+    tx.objectStore(MOVEGA_DB_STORE).put({key,name:file.name,type:file.type,lastModified:file.lastModified,savedAt:Date.now(),data});
+    tx.oncomplete=()=>resolve(true);
+    tx.onerror=()=>reject(tx.error);
+  });
+}
+async function movegaGetAllFiles(){
+  const db = await movegaOpenDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(MOVEGA_DB_STORE,'readonly');
+    const req = tx.objectStore(MOVEGA_DB_STORE).getAll();
+    req.onsuccess=()=>resolve(req.result||[]);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function movegaClearFiles(){
+  const db = await movegaOpenDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(MOVEGA_DB_STORE,'readwrite');
+    tx.objectStore(MOVEGA_DB_STORE).clear();
+    tx.oncomplete=()=>resolve(true);
+    tx.onerror=()=>reject(tx.error);
+  });
+}
+function movegaNormalizeFilename(name){
+  return name.toLowerCase().replace(/\s*\(\d+\)(?=\.[^.]+$)/,'');
+}
+function movegaFindFileInList(fileList,targetNames){
+  for(const f of fileList){
+    // only match files directly inside the picked folder, not nested subfolders like node_modules
+    const rel = f.webkitRelativePath || f.name;
+    const depth = rel.split('/').length;
+    if(depth<=2 && targetNames.includes(movegaNormalizeFilename(f.name))) return f;
+  }
+  return null;
+}
+function movegaFmtTime(ts){
+  try{ return new Date(ts).toLocaleString(); }catch(e){ return ''; }
+}
+async function renderSavedFilesStatus(){
+  const statusEl = $('autoLocateStatus');
+  const listEl = $('autoLocateFileList');
+  const saved = await movegaGetAllFiles();
+  listEl.innerHTML='';
+  const byKey = Object.fromEntries(saved.map(s=>[s.key,s]));
+  MOVEGA_FILE_DEFS.forEach(def=>{
+    const rec = byKey[def.key];
+    const li = document.createElement('li');
+    li.textContent = rec ? `✓ ${rec.name}` : `✗ ${def.label} (not found)`;
+    if(!rec) li.style.opacity='0.5';
+    listEl.appendChild(li);
+  });
+  if(!saved.length){
+    statusEl.className='autolocate-status';
+    statusEl.textContent='Select a folder to begin. Looking for: '+MOVEGA_FILE_DEFS.map(d=>d.label).join(', ')+'.';
+    return;
+  }
+  const newest = Math.max(...saved.map(s=>s.savedAt||0));
+  statusEl.className='autolocate-status ok';
+  statusEl.textContent = `${saved.length} of ${MOVEGA_FILE_DEFS.length} files ready (saved ${movegaFmtTime(newest)}). They will load and generate automatically when you open a report below.`;
+}
+$('autoLocateAllBtn').addEventListener('click', ()=> $('autoLocateAllInput').click());
+$('autoLocateAllInput').addEventListener('change', async ()=>{
+  const files=[...$('autoLocateAllInput').files];
+  if(!files.length) return;
+  const statusEl = $('autoLocateStatus');
+  statusEl.className='autolocate-status';
+  statusEl.textContent=`Scanning folder (${files.length.toLocaleString()} files found)…`;
+  const foundNames=[], missing=[];
+  for(const def of MOVEGA_FILE_DEFS){
+    const found = movegaFindFileInList(files, def.names);
+    if(found){ await movegaSaveFile(def.key, found); foundNames.push(found.name); }
+    else missing.push(def.label);
+  }
+  await renderSavedFilesStatus();
+  const statusEl2 = $('autoLocateStatus');
+  if(foundNames.length){
+    statusEl2.className = missing.length ? 'autolocate-status error' : 'autolocate-status ok';
+    statusEl2.textContent = `Found ${foundNames.join(', ')}.` + (missing.length? ` Missing: ${missing.join(', ')}.`:'') + ' Saved in your browser — open any report below to load automatically.';
+  } else {
+    statusEl2.className='autolocate-status error';
+    statusEl2.textContent = `Could not find any of the expected files (${MOVEGA_FILE_DEFS.map(d=>d.label).join(', ')}) in that folder.`;
+  }
+  $('autoLocateAllInput').value='';
+});
+$('clearAutoLocateBtn').addEventListener('click', async ()=>{
+  await movegaClearFiles();
+  await renderSavedFilesStatus();
+});
+renderSavedFilesStatus();
+</script>
 </body>
 </html>

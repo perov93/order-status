@@ -90,6 +90,8 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;b
 .deals-modal-table th,.deals-modal-table td{padding:8px;border-bottom:1px solid #1d2e44;text-align:right;white-space:nowrap}
 .deals-modal-table th:first-child,.deals-modal-table td:first-child{text-align:left}
 .deals-modal-table th{color:#92a3ba;font-weight:650;position:sticky;top:0;background:var(--panel)}
+.deals-modal-table tr.excluded td{color:#5c6b80}
+.deals-modal-table tr.excluded td.bad,.deals-modal-table tr.excluded td.good{color:#5c6b80}
 .back-to-top{position:fixed;right:28px;top:20px;width:46px;height:46px;border-radius:50%;background:#1d4ed8;border:1px solid #2563eb;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4);opacity:0;visibility:hidden;transform:translateY(-12px);transition:opacity .2s ease,transform .2s ease,visibility .2s ease;z-index:500}
 .back-to-top.visible{opacity:1;visibility:visible;transform:translateY(0)}
 .back-to-top:hover{background:#2563eb}
@@ -323,7 +325,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;b
     </div>
     <div class="card">
       <div class="card-head"><h3>Monthly Delivered Deals by Lead Source</h3><span>CRM delivered deals only</span></div>
-      <p class="legend-note">Profit is after transaction fees. EUR and GBP columns show separate original-currency sums, not two versions of the same total. Combined EUR converts each deal using its historical delivery-date rate (nearest prior rate for weekends/holidays); latest/fallback estimates are flagged. Other currencies, when present, are included in Combined EUR. Rankings use Combined EUR. Click a row for its deals. P&amp;L exclusions do not affect this comparison.</p>
+      <p class="legend-note">Profit is after transaction fees. EUR and GBP columns show separate original-currency sums, not two versions of the same total. Combined EUR converts each deal using its historical delivery-date rate (nearest prior rate for weekends/holidays); latest/fallback estimates are flagged. Other currencies, when present, are included in Combined EUR. Rankings use Combined EUR. Click a row to see its individual jobs — untick any job in that list to exclude it from this row's counts, profit and the Total row below (and re-tick to bring it back). P&amp;L exclusions do not affect this comparison.</p>
       <label for="monthlyLeadSourceSearch">Search lead sources</label>
       <input type="text" id="monthlyLeadSourceSearch" placeholder="Type a lead source name..." autocomplete="off">
       <p class="legend-note">Untick a lead source to exclude it from this table's rows and Total, independent of the Lead Source filter above. Search only narrows this list; it does not exclude lead sources. Select all/Clear all applies only to matching visible lead sources.</p>
@@ -415,6 +417,41 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;b
 
 <script>
 const $ = id => document.getElementById(id);
+// Shared IndexedDB store written by index.html's "Auto-Locate Folder for All Reports" so this
+// report can auto-load the matching spreadsheets without the user re-selecting a folder here.
+const MOVEGA_DB_NAME = 'movega-bi-autolocate';
+const MOVEGA_DB_STORE = 'files';
+function movegaOpenDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(MOVEGA_DB_NAME, 1);
+    req.onupgradeneeded = ()=>{ if(!req.result.objectStoreNames.contains(MOVEGA_DB_STORE)) req.result.createObjectStore(MOVEGA_DB_STORE,{keyPath:'key'}); };
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function movegaSaveFile(key,file){
+  const data = await file.arrayBuffer();
+  const db = await movegaOpenDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(MOVEGA_DB_STORE,'readwrite');
+    tx.objectStore(MOVEGA_DB_STORE).put({key,name:file.name,type:file.type,lastModified:file.lastModified,savedAt:Date.now(),data});
+    tx.oncomplete=()=>resolve(true);
+    tx.onerror=()=>reject(tx.error);
+  });
+}
+async function movegaGetFile(key){
+  const db = await movegaOpenDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(MOVEGA_DB_STORE,'readonly');
+    const req = tx.objectStore(MOVEGA_DB_STORE).get(key);
+    req.onsuccess=()=>resolve(req.result||null);
+    req.onerror=()=>reject(req.error);
+  });
+}
+function movegaRecordToFile(rec){
+  if(!rec) return null;
+  return new File([rec.data], rec.name, {type:rec.type||'', lastModified:rec.lastModified||Date.now()});
+}
 let contacts = [], invoices = [], deals = [], expenses = [], charts = {}, printCharts = {}, printMode = false;
 // Category selection is shared by expense views and P&L; plCache retains the bill drilldown.
 let plExcludedExpenseItems = new Set();
@@ -426,6 +463,10 @@ let plCache = null;
 let monthlyLeadExcludedSources = new Set();
 let monthlyLeadDealsCache = [];
 let monthlyLeadVisibleSources = [];
+// Jobs unticked in a Monthly Delivered Deals by Lead Source row's drill-down modal. Keyed by the
+// deal row object itself (stable across re-renders of the same dataset), so the exclusion both
+// updates that row's own counts/totals live and survives reopening the modal.
+let monthlyLeadJobExcluded = new Set();
 const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const STORAGE_KEY = 'movega_dashboard_filters';
 const FX_BASE_CURRENCY = 'GBP';
@@ -1228,13 +1269,15 @@ function fxRateInfoForRow(row){
   }
   return '—';
 }
-function dealListRowHtml(r,targetCurrency,showExtraServiceProfit=false,contactIndex=null){
+function dealListRowHtml(r,targetCurrency,showExtraServiceProfit=false,contactIndex=null,selectable=false,index=0,checked=true){
   const currency=currencyOf(r);
   const converted=convertForRow(netProfitAfterFeesOf(r),r,'EUR');
   const convertedValue=convertForRow(executedValueOf(r),r,'EUR');
   const extraServiceProfit = extraServiceBudgetProfitOf(r);
   const extraConverted = targetCurrency && currency && currency!==targetCurrency ? convertForRow(extraServiceProfit,r,targetCurrency) : null;
-  return `<tr>
+  const checkboxCell = selectable ? `<td><input type="checkbox" class="pl-item-checkbox" data-deal-idx="${index}" ${checked?'checked':''} aria-label="Include job ${refOf(r)||index+1} in the totals below"></td>` : '';
+  return `<tr${selectable && !checked?' class="excluded"':''}>
+    ${checkboxCell}
     <td>${refOf(r)||'—'}</td>
     <td>${contactIndex?dealCustomerNameOf(r,contactIndex):'—'}</td>
     <td>${deliveryDateOf(r)}</td>
@@ -1308,6 +1351,19 @@ function contactListRowHtml(r){
   const created=contactCreatedOf(r);
   return `<tr><td>${contactNameOf(r)}</td><td>${contactRefOf(r)||contactIdOf(r)||'—'}</td><td>${created?created.toLocaleDateString('en-GB'):'—'}</td><td>${contactLeadSourceOf(r)}</td><td>${contactStatusOf(r)||'—'}</td><td>${deadReasonOf(r)||'—'}</td></tr>`;
 }
+// State for the deals modal's optional "selectable" mode (used by the Monthly Delivered Deals by Lead
+// Source row click) where unticking a job recomputes the totals shown below the list live, without
+// touching any other report total (P&L, KPIs, etc.).
+let modalDealRows=[];
+let modalDealExcludedIdx=new Set();
+let modalDealSelectable=false;
+let modalDealShowExtra=false;
+let modalDealTargetCurrency=null;
+let modalDealContactIndex=null;
+// Optional callback invoked with (includedRows, excludedRows) whenever the selectable modal's
+// checkboxes change, so a caller (e.g. the Monthly Lead Source table) can sync its own persistent
+// exclusion state and re-render the underlying row/table live.
+let modalDealOnSelectionChange=null;
 // Groups raw Sale Completed deal rows by the actual Contact behind them (same join used for Unique Customers
 // Sold), so a "customers" drill-down always shows exactly one row per customer, not one row per deal.
 let currentCustomerGroupsCache=[];
@@ -1327,7 +1383,7 @@ function customerGroupsFromDeals(dealRows){
     return {key,name,deals:list.length,latest,rows:list};
   }).sort((a,b)=>(b.latest?b.latest.getTime():0)-(a.latest?a.latest.getTime():0));
 }
-function openDealsModal(title,rows,kind='deal',showExtraServiceProfit=false){
+function openDealsModal(title,rows,kind='deal',showExtraServiceProfit=false,selectable=false,initiallyExcluded=null,onSelectionChange=null){
   const overlay=$('dealsModalOverlay'), body=$('dealsModalBody'), heading=$('dealsModalTitle'), count=$('dealsModalCount');
   if(!overlay||!body||!heading) return;
   heading.textContent=`${title} (${periodLabel()})`;
@@ -1355,21 +1411,50 @@ function openDealsModal(title,rows,kind='deal',showExtraServiceProfit=false){
       groups.length ? groups.map((g,i)=>`<tr class="clickable-row" data-customer-idx="${i}"><td>${g.name}</td><td>${g.deals.toLocaleString()}</td><td>${g.latest?g.latest.toLocaleDateString('en-GB'):'—'}</td><td>${formatDual(splitMoney(g.rows,executedValueOf,targetCurrency))}</td><td>${formatDual(splitMoney(g.rows,profitOf,targetCurrency))}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">No records</td></tr>'
     }</tbody></table>`;
   } else {
-    count.textContent = rows.length ? `${rows.length.toLocaleString()} job(s) · Original amounts retain each deal’s currency · EUR columns use delivery-date FX · profit after transaction fees` : 'No matching records for this selection';
-    const extraHeader=showExtraServiceProfit?'<th>Extra Service Budget Profit</th>':'';
-    const dealColumnCount=showExtraServiceProfit?15:14;
-    const contactIndex=buildContactIndex();
-    const eurTotal=sumConverted(rows,netProfitAfterFeesOf,'EUR');
-    const nativeTotals=unique(rows.map(currencyOf)).map(currency=>{
-      const total=rows.filter(row=>currencyOf(row)===currency).reduce((sum,row)=>sum+netProfitAfterFeesOf(row),0);
-      return expenseDisplayMoney(total,currency);
-    }).join(' · ');
-    const footer=rows.length?`<tfoot><tr style="font-weight:750"><td colspan="11">Total net profit after fees</td><td>${nativeTotals}</td><td colspan="${showExtraServiceProfit?2:1}">Combined in EUR</td><td class="${eurTotal<0?'bad':'good'}">${expenseDisplayMoney(eurTotal,'EUR')}</td></tr></tfoot>`:'';
-    body.innerHTML = `<p class="legend-note">Original profits show each deal’s currency (EUR or GBP). The final column converts that profit to EUR using delivery-date FX. Native totals and combined EUR total are shown at the bottom. Totals use unrounded conversions; displayed rows are rounded to cents. Latest/fallback rates are estimates, not historical rates.</p><table class="deals-modal-table"><thead><tr><th>Reference</th><th>Customer</th><th>Delivery Date</th><th>Deal Status</th><th>System Status</th><th>Salesperson</th><th>Route</th><th>Lead Provider</th><th>Original currency</th><th>Job value (original)</th><th>Job value EUR</th><th>Profit after fees (original)</th>${extraHeader}<th>Applied rate to EUR</th><th>Converted profit EUR</th></tr></thead><tbody>${
-      rows.length ? rows.map(r=>dealListRowHtml(r,targetCurrency,showExtraServiceProfit,contactIndex)).join('') : `<tr><td colspan="${dealColumnCount}" class="empty">No records</td></tr>`
-    }</tbody>${footer}</table>`;
+    modalDealRows=rows;
+    modalDealSelectable=selectable;
+    modalDealExcludedIdx=(selectable && initiallyExcluded) ? new Set(rows.map((r,i)=>i).filter(i=>initiallyExcluded.has(rows[i]))) : new Set();
+    modalDealShowExtra=showExtraServiceProfit;
+    modalDealTargetCurrency=targetCurrency;
+    modalDealContactIndex=buildContactIndex();
+    modalDealOnSelectionChange=selectable?onSelectionChange:null;
+    renderDealsModalDealsTable();
   }
   overlay.classList.add('open');
+}
+// Renders (and re-renders, on checkbox toggle) the plain or selectable deals table using the
+// modalDeal* state set by openDealsModal, so unticking a job live-recalculates the totals shown
+// below without reopening the modal or affecting any other report total.
+function renderDealsModalDealsTable(){
+  const body=$('dealsModalBody'), count=$('dealsModalCount');
+  const rows=modalDealRows, selectable=modalDealSelectable, showExtraServiceProfit=modalDealShowExtra;
+  const targetCurrency=modalDealTargetCurrency, contactIndex=modalDealContactIndex;
+  const includedRows=selectable?rows.filter((r,i)=>!modalDealExcludedIdx.has(i)):rows;
+  count.textContent = rows.length ? `${rows.length.toLocaleString()} job(s) · Original amounts retain each deal’s currency · EUR columns use delivery-date FX · profit after transaction fees${selectable?' · untick a job to exclude it from the totals below':''}` : 'No matching records for this selection';
+  const extraHeader=showExtraServiceProfit?'<th>Extra Service Budget Profit</th>':'';
+  const checkboxHeader=selectable?'<th>Include</th>':'';
+  const dealColumnCount=(showExtraServiceProfit?15:14)+(selectable?1:0);
+  const eurTotal=sumConverted(includedRows,netProfitAfterFeesOf,'EUR');
+  const nativeTotals=unique(includedRows.map(currencyOf)).map(currency=>{
+    const total=includedRows.filter(row=>currencyOf(row)===currency).reduce((sum,row)=>sum+netProfitAfterFeesOf(row),0);
+    return expenseDisplayMoney(total,currency);
+  }).join(' · ');
+  const totalLabelColspan=11+(selectable?1:0);
+  const footer=rows.length?`<tfoot><tr style="font-weight:750"><td colspan="${totalLabelColspan}">Total net profit after fees${selectable?` (${includedRows.length} of ${rows.length} selected)`:''}</td><td>${nativeTotals||'—'}</td><td colspan="${showExtraServiceProfit?2:1}">Combined in EUR</td><td class="${eurTotal<0?'bad':'good'}">${expenseDisplayMoney(eurTotal,'EUR')}</td></tr></tfoot>`:'';
+  const selectionBar=selectable?`<div class="pl-controls"><span id="dealsModalSelectionCount">${includedRows.length} of ${rows.length} jobs selected for the totals below</span><span class="pl-actions"><button type="button" id="dealsModalSelectAll" class="pl-link-btn">Select all</button><button type="button" id="dealsModalSelectNone" class="pl-link-btn">Clear all</button></span></div>`:'';
+  body.innerHTML = `<p class="legend-note">Original profits show each deal’s currency (EUR or GBP). The final column converts that profit to EUR using delivery-date FX. Native totals and combined EUR total are shown at the bottom. Totals use unrounded conversions; displayed rows are rounded to cents. Latest/fallback rates are estimates, not historical rates.${selectable?' Untick a job below to exclude it from the native and combined EUR totals.':''}</p>${selectionBar}<table class="deals-modal-table"><thead><tr>${checkboxHeader}<th>Reference</th><th>Customer</th><th>Delivery Date</th><th>Deal Status</th><th>System Status</th><th>Salesperson</th><th>Route</th><th>Lead Provider</th><th>Original currency</th><th>Job value (original)</th><th>Job value EUR</th><th>Profit after fees (original)</th>${extraHeader}<th>Applied rate to EUR</th><th>Converted profit EUR</th></tr></thead><tbody>${
+    rows.length ? rows.map((r,i)=>dealListRowHtml(r,targetCurrency,showExtraServiceProfit,contactIndex,selectable,i,!modalDealExcludedIdx.has(i))).join('') : `<tr><td colspan="${dealColumnCount}" class="empty">No records</td></tr>`
+  }</tbody>${footer}</table>`;
+  if(selectable){
+    $('dealsModalSelectAll').onclick=()=>{modalDealExcludedIdx=new Set();renderDealsModalDealsTable();notifyDealsModalSelectionChange();};
+    $('dealsModalSelectNone').onclick=()=>{modalDealExcludedIdx=new Set(rows.map((_,i)=>i));renderDealsModalDealsTable();notifyDealsModalSelectionChange();};
+  }
+}
+function notifyDealsModalSelectionChange(){
+  if(!modalDealOnSelectionChange) return;
+  const includedRows=modalDealRows.filter((r,i)=>!modalDealExcludedIdx.has(i));
+  const excludedRows=modalDealRows.filter((r,i)=>modalDealExcludedIdx.has(i));
+  modalDealOnSelectionChange(includedRows,excludedRows);
 }
 function closeDealsModal(){
   const overlay=$('dealsModalOverlay');
@@ -1888,19 +1973,24 @@ function renderMonthlyLeadSources(rows){
   }
   const totals={jobs:0,eur:0,gbp:0,profit:0,losses:0,fallbackCount:0};
   [...months.entries()].sort(([a],[b])=>a.localeCompare(b)).forEach(([month,sources])=>{
-    const ranked=[...sources.entries()].map(([name,deals])=>({
-      name,deals,profit:sumConverted(deals,netProfitAfterFeesOf,'EUR'),
-      eur:deals.filter(row=>currencyOf(row)==='EUR').reduce((sum,row)=>sum+netProfitAfterFeesOf(row),0),
-      gbp:deals.filter(row=>currencyOf(row)==='GBP').reduce((sum,row)=>sum+netProfitAfterFeesOf(row),0),
-      fallbackCount:deals.filter(row=>{
-        const currency=currencyOf(row);
-        return currency!=='EUR'&&!(currency==='GBP'?historicalRateForRow(row):historicalExtraRateForRow(row,currency));
-      }).length
-    })).sort((a,b)=>b.profit-a.profit||a.name.localeCompare(b.name));
+    const ranked=[...sources.entries()].map(([name,deals])=>{
+      const includedDeals=deals.filter(row=>!monthlyLeadJobExcluded.has(row));
+      return {
+        name,deals,includedDeals,
+        profit:sumConverted(includedDeals,netProfitAfterFeesOf,'EUR'),
+        eur:includedDeals.filter(row=>currencyOf(row)==='EUR').reduce((sum,row)=>sum+netProfitAfterFeesOf(row),0),
+        gbp:includedDeals.filter(row=>currencyOf(row)==='GBP').reduce((sum,row)=>sum+netProfitAfterFeesOf(row),0),
+        fallbackCount:includedDeals.filter(row=>{
+          const currency=currencyOf(row);
+          return currency!=='EUR'&&!(currency==='GBP'?historicalRateForRow(row):historicalExtraRateForRow(row,currency));
+        }).length
+      };
+    }).sort((a,b)=>b.profit-a.profit||a.name.localeCompare(b.name));
     const best=ranked[0].profit, worst=ranked[ranked.length-1].profit;
     ranked.forEach((source,index)=>{
-      const losses=source.deals.filter(row=>netProfitAfterFeesOf(row)<0).length;
-      totals.jobs+=source.deals.length;
+      const losses=source.includedDeals.filter(row=>netProfitAfterFeesOf(row)<0).length;
+      const excludedCount=source.deals.length-source.includedDeals.length;
+      totals.jobs+=source.includedDeals.length;
       totals.eur+=source.eur;
       totals.gbp+=source.gbp;
       totals.profit+=source.profit;
@@ -1910,9 +2000,13 @@ function renderMonthlyLeadSources(rows){
       tr.className='clickable-row';
       tr.title='Click to view delivered deals';
       const rating=ranked.length===1?'Only source':best===worst?'Tied':source.profit===best?'Best':source.profit===worst?'Worst':'';
-      const values=[month,source.name,source.deals.length.toLocaleString(),signedMoney(source.eur,'EUR'),signedMoney(source.gbp,'GBP'),`${signedMoney(source.profit,'EUR')}${source.fallbackCount?` (${source.fallbackCount} latest/fallback FX estimates)`:''}`,signedMoney(source.profit/source.deals.length,'EUR'),losses.toLocaleString(),`${index+1} / ${ranked.length}${rating?` · ${rating}`:''}`];
+      const values=[month,source.name,`${source.includedDeals.length.toLocaleString()}${excludedCount?` (${excludedCount} excluded)`:''}`,signedMoney(source.eur,'EUR'),signedMoney(source.gbp,'GBP'),`${signedMoney(source.profit,'EUR')}${source.fallbackCount?` (${source.fallbackCount} latest/fallback FX estimates)`:''}`,source.includedDeals.length?signedMoney(source.profit/source.includedDeals.length,'EUR'):'—',losses.toLocaleString(),`${index+1} / ${ranked.length}${rating?` · ${rating}`:''}`];
       values.forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.appendChild(td);});
-      tr.addEventListener('click',()=>openDealsModal(`Delivered deals — ${source.name} — ${month}`,source.deals,'deal'));
+      tr.addEventListener('click',()=>openDealsModal(`Delivered deals — ${source.name} — ${month}`,source.deals,'deal',false,true,monthlyLeadJobExcluded,(includedRows,excludedRows)=>{
+        source.deals.forEach(row=>monthlyLeadJobExcluded.delete(row));
+        excludedRows.forEach(row=>monthlyLeadJobExcluded.add(row));
+        renderMonthlyLeadSources(monthlyLeadDealsCache);
+      }));
       tbody.appendChild(tr);
     });
   });
@@ -1920,7 +2014,7 @@ function renderMonthlyLeadSources(rows){
   totalRow.style.fontWeight='750';
   totalRow.style.color='#fbbf24';
   totalRow.style.background='rgba(245,158,11,0.12)';
-  const totalValues=['Total','All displayed sources / months',totals.jobs.toLocaleString(),signedMoney(totals.eur,'EUR'),signedMoney(totals.gbp,'GBP'),`${signedMoney(totals.profit,'EUR')}${totals.fallbackCount?` (${totals.fallbackCount} latest/fallback FX estimates)`:''}`,signedMoney(totals.profit/totals.jobs,'EUR'),totals.losses.toLocaleString(),'—'];
+  const totalValues=['Total','All displayed sources / months',totals.jobs.toLocaleString(),signedMoney(totals.eur,'EUR'),signedMoney(totals.gbp,'GBP'),`${signedMoney(totals.profit,'EUR')}${totals.fallbackCount?` (${totals.fallbackCount} latest/fallback FX estimates)`:''}`,totals.jobs?signedMoney(totals.profit/totals.jobs,'EUR'):'—',totals.losses.toLocaleString(),'—'];
   totalValues.forEach(value=>{
     const td=document.createElement('td');
     td.textContent=value;
@@ -2229,6 +2323,7 @@ function clearDashboard(){
   plExcludedExpenseItems=new Set(); plCache=null;
   plExcludedDeals.clear();plDealRows=[];
   monthlyLeadExcludedSources=new Set(); monthlyLeadDealsCache=[]; monthlyLeadVisibleSources=[];
+  monthlyLeadJobExcluded=new Set();
   $('monthlyLeadSourceSearch').value='';
   $('monthlyLeadSourceCount').textContent='';
   $('monthlyLeadSourceOptions').innerHTML='';
@@ -2293,6 +2388,7 @@ async function generate(){
     const [ct,a,b,c]=await Promise.all([readWorkbook(fc),readWorkbook(fi),readWorkbook(fd),readWorkbook(fe)]);
     contacts=ct;invoices=a;deals=b;expenses=c;
     plExcludedDeals.clear();plDealRows=[];
+    monthlyLeadJobExcluded=new Set();
     $('plDealSearch').value='';
     if(!contacts.length||!invoices.length||!deals.length||!expenses.length)throw new Error('One of the files contains no rows.');
     showProgress(45,'Loading historical EUR/GBP exchange rates…');
@@ -2340,22 +2436,42 @@ $('autoLocateInput').addEventListener('change', async ()=>{
   const invoice = findFileInList(files, 'qt_invoice_revenue.xlsx');
   const deal = findFileInList(files, 'qt_deal_financials.xlsx');
   const expense = findFileInList(files, 'qt_expenses.xlsx');
+  if(contact) setFileInput($('contactFile'), contact);
+  if(invoice) setFileInput($('invoiceFile'), invoice);
+  if(deal) setFileInput($('dealFile'), deal);
+  if(expense) setFileInput($('expenseFile'), expense);
+  await Promise.all([
+    contact && movegaSaveFile('contacts', contact),
+    invoice && movegaSaveFile('invoice_revenue', invoice),
+    deal && movegaSaveFile('deal_financials', deal),
+    expense && movegaSaveFile('expenses', expense)
+  ]);
   if(!contact || !invoice || !deal || !expense){
     const missing = [!contact&&'Contacts.xlsx', !invoice&&'QT_INVOICE_REVENUE.xlsx', !deal&&'QT_DEAL_FINANCIALS.xlsx', !expense&&'QT_EXPENSES.xlsx'].filter(Boolean).join(', ');
     status.className='status error';status.textContent=`Could not find: ${missing}. Please select missing file(s) manually.`;
-    if(contact) setFileInput($('contactFile'), contact);
-    if(invoice) setFileInput($('invoiceFile'), invoice);
-    if(deal) setFileInput($('dealFile'), deal);
-    if(expense) setFileInput($('expenseFile'), expense);
     return;
   }
-  setFileInput($('contactFile'), contact);
-  setFileInput($('invoiceFile'), invoice);
-  setFileInput($('dealFile'), deal);
-  setFileInput($('expenseFile'), expense);
   status.className='status ok';status.textContent=`Found all 4 files. Generating report…`;
   $('generateBtn').click();
 });
+(async function autoLoadFromSavedFolder(){
+  try{
+    const inputKeyMap = { contactFile:'contacts', invoiceFile:'invoice_revenue', dealFile:'deal_financials', expenseFile:'expenses' };
+    const foundNames = [];
+    let allPresent = true;
+    for(const [inputId, key] of Object.entries(inputKeyMap)){
+      const rec = await movegaGetFile(key);
+      if(rec){ setFileInput($(inputId), movegaRecordToFile(rec)); foundNames.push(rec.name); }
+      else allPresent = false;
+    }
+    if(foundNames.length){
+      const status = $('status');
+      status.className = allPresent ? 'status ok' : 'status';
+      status.textContent = `Auto-loaded ${foundNames.join(', ')} from your Auto-Located folder (saved on the index page).` + (allPresent?' Generating report…':' Some files are still missing — please select them manually or use Auto-Locate.');
+    }
+    if(allPresent) $('generateBtn').click();
+  }catch(e){ console.warn('Auto-load from saved folder failed', e); }
+})();
 $('exportPdfBtn').addEventListener('click',()=>{
   if(!contacts.length || !invoices.length || !deals.length || !expenses.length){
     $('status').className='status error';
@@ -2382,6 +2498,14 @@ $('dealsModalBody').addEventListener('click',e=>{
   if(!tr) return;
   const g=currentCustomerGroupsCache[Number(tr.dataset.customerIdx)];
   if(g) openDealsModal(`Customer: ${g.name} — Deals`, g.rows, 'deal');
+});
+$('dealsModalBody').addEventListener('change',e=>{
+  const checkbox=e.target.closest('[data-deal-idx]');
+  if(!checkbox) return;
+  const idx=Number(checkbox.dataset.dealIdx);
+  if(checkbox.checked) modalDealExcludedIdx.delete(idx); else modalDealExcludedIdx.add(idx);
+  renderDealsModalDealsTable();
+  notifyDealsModalSelectionChange();
 });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDealsModal(); });
 const backToTopBtn=$('backToTopBtn');

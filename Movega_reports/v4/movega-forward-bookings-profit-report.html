@@ -306,6 +306,41 @@ tr.clickable-row:hover{background:#12233a}
 
 <script>
 const $ = id => document.getElementById(id);
+// Shared IndexedDB store written by index.html's "Auto-Locate Folder for All Reports" so this
+// report can auto-load the matching spreadsheet without the user re-selecting a folder here.
+const MOVEGA_DB_NAME = 'movega-bi-autolocate';
+const MOVEGA_DB_STORE = 'files';
+function movegaOpenDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(MOVEGA_DB_NAME, 1);
+    req.onupgradeneeded = ()=>{ if(!req.result.objectStoreNames.contains(MOVEGA_DB_STORE)) req.result.createObjectStore(MOVEGA_DB_STORE,{keyPath:'key'}); };
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function movegaSaveFile(key,file){
+  const data = await file.arrayBuffer();
+  const db = await movegaOpenDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(MOVEGA_DB_STORE,'readwrite');
+    tx.objectStore(MOVEGA_DB_STORE).put({key,name:file.name,type:file.type,lastModified:file.lastModified,savedAt:Date.now(),data});
+    tx.oncomplete=()=>resolve(true);
+    tx.onerror=()=>reject(tx.error);
+  });
+}
+async function movegaGetFile(key){
+  const db = await movegaOpenDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(MOVEGA_DB_STORE,'readonly');
+    const req = tx.objectStore(MOVEGA_DB_STORE).get(key);
+    req.onsuccess=()=>resolve(req.result||null);
+    req.onerror=()=>reject(req.error);
+  });
+}
+function movegaRecordToFile(rec){
+  if(!rec) return null;
+  return new File([rec.data], rec.name, {type:rec.type||'', lastModified:rec.lastModified||Date.now()});
+}
 let allDeals = [];
 let charts = {};
 let currentSnap = null;
@@ -1028,6 +1063,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       return;
     }
     setFileInput($('dealsFile'), deals);
+    await movegaSaveFile('deal_financials', deals);
     $('status').innerHTML = `<span class="ok">Found ${deals.name}. Generating report…</span>`;
     $('generateBtn').click();
   });
@@ -1078,6 +1114,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.querySelectorAll('table tbody').forEach(tb=>tb.innerHTML='');
     document.querySelectorAll('.kpi .value').forEach(v=>v.innerHTML='—');
   });
+
+  (async function autoLoadFromSavedFolder(){
+    try{
+      const rec = await movegaGetFile('deal_financials');
+      if(rec){
+        setFileInput($('dealsFile'), movegaRecordToFile(rec));
+        $('status').innerHTML = `<span class="ok">Auto-loaded ${rec.name} from your Auto-Located folder (saved on the index page).</span>`;
+        $('generateBtn').click();
+      }
+    }catch(e){ console.warn('Auto-load from saved folder failed', e); }
+  })();
 });
 </script>
 

@@ -482,6 +482,41 @@ td.clickable-row:hover{background:#17304d}
 
 <script>
 const $ = id => document.getElementById(id);
+// Shared IndexedDB store written by index.html's "Auto-Locate Folder for All Reports" so this
+// report can auto-load the matching spreadsheets without the user re-selecting a folder here.
+const MOVEGA_DB_NAME = 'movega-bi-autolocate';
+const MOVEGA_DB_STORE = 'files';
+function movegaOpenDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(MOVEGA_DB_NAME, 1);
+    req.onupgradeneeded = ()=>{ if(!req.result.objectStoreNames.contains(MOVEGA_DB_STORE)) req.result.createObjectStore(MOVEGA_DB_STORE,{keyPath:'key'}); };
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function movegaSaveFile(key,file){
+  const data = await file.arrayBuffer();
+  const db = await movegaOpenDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(MOVEGA_DB_STORE,'readwrite');
+    tx.objectStore(MOVEGA_DB_STORE).put({key,name:file.name,type:file.type,lastModified:file.lastModified,savedAt:Date.now(),data});
+    tx.oncomplete=()=>resolve(true);
+    tx.onerror=()=>reject(tx.error);
+  });
+}
+async function movegaGetFile(key){
+  const db = await movegaOpenDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(MOVEGA_DB_STORE,'readonly');
+    const req = tx.objectStore(MOVEGA_DB_STORE).get(key);
+    req.onsuccess=()=>resolve(req.result||null);
+    req.onerror=()=>reject(req.error);
+  });
+}
+function movegaRecordToFile(rec){
+  if(!rec) return null;
+  return new File([rec.data], rec.name, {type:rec.type||'', lastModified:rec.lastModified||Date.now()});
+}
 const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 let allRows = [];
 let allContactRows = [];
@@ -2153,6 +2188,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
     setFileInput($('contactsFile'), contacts);
     if(deals) setFileInput($('dealsFile'), deals);
     if(exp) setFileInput($('expensesFile'), exp);
+    await Promise.all([
+      movegaSaveFile('contacts', contacts),
+      deals && movegaSaveFile('deal_financials', deals),
+      exp && movegaSaveFile('expenses', exp)
+    ]);
     $('status').innerHTML = `<span class="ok">Found ${contacts.name}${deals?` + ${deals.name}`:''}${exp?` + ${exp.name}`:''}. Generating report…</span>`;
     $('generateBtn').click();
   });
@@ -2276,6 +2316,22 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('spMetric').addEventListener('change', ()=>renderSalespersonSection(getFilteredRows()));
   $('matrixMetric').addEventListener('change', ()=>renderSalespersonSection(getFilteredRows()));
   $('repeatOnlyToggle').addEventListener('change', ()=>renderRepeatSection(getPeriodActivityRows()));
+
+  (async function autoLoadFromSavedFolder(){
+    try{
+      const contactsRec = await movegaGetFile('contacts');
+      const dealsRec = await movegaGetFile('deal_financials');
+      const expensesRec = await movegaGetFile('expenses');
+      const foundNames = [];
+      if(contactsRec){ setFileInput($('contactsFile'), movegaRecordToFile(contactsRec)); foundNames.push(contactsRec.name); }
+      if(dealsRec){ setFileInput($('dealsFile'), movegaRecordToFile(dealsRec)); foundNames.push(dealsRec.name); }
+      if(expensesRec){ setFileInput($('expensesFile'), movegaRecordToFile(expensesRec)); foundNames.push(expensesRec.name); }
+      if(foundNames.length){
+        $('status').innerHTML = `<span class="ok">Auto-loaded ${foundNames.join(', ')} from your Auto-Located folder (saved on the index page).</span>`;
+      }
+      if(contactsRec) $('generateBtn').click();
+    }catch(e){ console.warn('Auto-load from saved folder failed', e); }
+  })();
 });
 </script>
 </body>
