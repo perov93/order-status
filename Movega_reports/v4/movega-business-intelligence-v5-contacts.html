@@ -401,7 +401,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 8px;b
         <input type="text" id="plDealSearch" placeholder="Type a name or reference..." autocomplete="off">
         <p class="legend-note">Search only narrows this list; it does not exclude deals from profit. Select all/Clear all applies only to matching visible deals.</p>
         <div class="pl-controls"><span id="plDealSelectionCount"></span><span class="pl-actions"><button type="button" id="plDealsSelectAll" class="pl-link-btn">Select all visible deals</button><button type="button" id="plDealsSelectNone" class="pl-link-btn">Clear all visible deals</button></span></div>
-        <div class="table-wrap"><table><thead><tr><th>Include</th><th>Reference</th><th>Customer / Contact</th><th>Delivery date</th><th>Salesperson</th><th>Currency</th><th>Net Profit (original)</th><th id="plDealProfitHeader">Profit used (EUR)</th></tr></thead><tbody id="plDealSelectionTable"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Include</th><th>Reference</th><th>Customer / Contact</th><th>Delivery date</th><th>Salesperson</th><th>Currency</th><th>FX Rate</th><th>FX Rate Date</th><th>Net Profit (original)</th><th id="plDealProfitHeader">Profit used (EUR)</th></tr></thead><tbody id="plDealSelectionTable"></tbody></table></div>
       </details>
       <div class="table-wrap"><table><thead><tr><th>Line</th><th>Original bill amount(s) (FCY, incl. tax)</th><th>Zoho Books base amount (GBP, BCY)</th><th id="plAmountHeader">P&amp;L amount (EUR)</th></tr></thead><tbody id="plSummaryTable"></tbody></table></div>
     </div>
@@ -577,16 +577,21 @@ function otherFxCurrencies(){
 }
 // Mirrors historicalRateForRow but for the extra-currency rate table and any requested currency.
 function historicalExtraRateForRow(row,currency){
+  const entry=historicalExtraRateEntryForRow(row,currency);
+  return entry?entry.rate:null;
+}
+// Mirrors historicalRateEntryForRow (date + rate) but for the extra-currency rate table.
+function historicalExtraRateEntryForRow(row,currency){
   const key=transactionDateKey(row);
   if(!key) return null;
   const byDate=historicalFxRatesExtra[key];
-  if(byDate && byDate[currency]) return byDate[currency];
+  if(byDate && byDate[currency]) return {date:key,rate:byDate[currency]};
   const date=new Date(`${key}T00:00:00Z`);
   for(let days=1;days<=7;days++){
     date.setUTCDate(date.getUTCDate()-1);
     const prior=date.toISOString().slice(0,10);
     const priorByDate=historicalFxRatesExtra[prior];
-    if(priorByDate && priorByDate[currency]) return priorByDate[currency];
+    if(priorByDate && priorByDate[currency]) return {date:prior,rate:priorByDate[currency]};
   }
   return null;
 }
@@ -717,6 +722,38 @@ function convertForRow(value,row,toCurrency=null){
     }
   }
   return convertCurrencyValue(value,source,target);
+}
+// Exposes the exact rate convertForRow() applies to a deal (source currency -> target currency),
+// plus the historical date that rate is dated to (when available) and a human-readable label, so
+// the "Select delivered deals for P&L profit" table can show both per row.
+function dealConversionRate(row,targetCurrency){
+  const source=currencyOf(row);
+  const target=targetCurrency?String(targetCurrency).toUpperCase():null;
+  if(!source||!target) return {rate:null,date:null,label:'—'};
+  if(source===target) return {rate:1,date:null,label:`1 ${source} = 1 ${target} (no conversion)`};
+  let historicalDate=null;
+  const rateOf=code=>{
+    if(code==='EUR') return 1;
+    if(code==='GBP'){
+      const entry=historicalRateEntryForRow(row);
+      if(entry){ historicalDate=entry.date; return entry.rate; }
+      return fxRates.GBP||null;
+    }
+    const entry=historicalExtraRateEntryForRow(row,code);
+    if(entry){ historicalDate=entry.date; return entry.rate; }
+    return fxRatesExtra[code]||null;
+  };
+  const fromRate=rateOf(source), toRate=rateOf(target);
+  if(!fromRate||!toRate) return {rate:null,date:null,label:'Rate unavailable'};
+  const rate=toRate/fromRate;
+  const basis=historicalDate ? `historical rate for ${historicalDate}` : 'latest / fallback rate (estimate)';
+  return {rate,date:historicalDate,label:`1 ${source} = ${rate.toFixed(6)} ${target} (${basis})`};
+}
+// Formats a 'YYYY-MM-DD' historical FX rate date key for display, e.g. '01 Oct 2026'.
+function fmtFxDate(dateKey){
+  if(!dateKey) return '—';
+  const d=new Date(`${dateKey}T00:00:00Z`);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',timeZone:'UTC'});
 }
 
 function readWorkbook(file){
@@ -2289,7 +2326,7 @@ function renderPlDealSelection(rows,reportCurrency){
   tbody.replaceChildren();
   if(!visibleRows.length){
     const cell=document.createElement('td');
-    cell.colSpan=8;
+    cell.colSpan=10;
     cell.className='empty';
     cell.textContent=rows.length?'No deals match your search':'No delivered deals for selected filters';
     const tr=document.createElement('tr');tr.appendChild(cell);tbody.appendChild(tr);
@@ -2304,8 +2341,16 @@ function renderPlDealSelection(rows,reportCurrency){
     checkbox.checked=!plExcludedDeals.has(row);
     checkbox.setAttribute('aria-label',`Include deal ${refOf(row)||index+1} (${customerName}) in P&L`);
     cell.appendChild(checkbox);tr.appendChild(cell);
-    const values=[refOf(row)||'—',customerName,deliveryDateOf(row),salespersonOf(row),currencyOf(row)||'Unknown',signedMoney(profitOf(row),currencyOf(row)),signedMoney(convertForRow(profitOf(row),row,reportCurrency),reportCurrency)];
-    values.forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.appendChild(td);});
+    const fxInfo=dealConversionRate(row,reportCurrency);
+    const fxRateText=fxInfo.rate!=null?fxInfo.rate.toFixed(6):'—';
+    const fxDateText=fxInfo.date?fmtFxDate(fxInfo.date):(fxInfo.rate!=null&&fxInfo.rate!==1?'Latest/fallback':'—');
+    const values=[refOf(row)||'—',customerName,deliveryDateOf(row),salespersonOf(row),currencyOf(row)||'Unknown',{text:fxRateText,title:fxInfo.label},{text:fxDateText,title:fxInfo.label},signedMoney(profitOf(row),currencyOf(row)),signedMoney(convertForRow(profitOf(row),row,reportCurrency),reportCurrency)];
+    values.forEach(value=>{
+      const td=document.createElement('td');
+      if(value&&typeof value==='object'){ td.textContent=value.text; if(value.title) td.title=value.title; }
+      else td.textContent=value;
+      tr.appendChild(td);
+    });
     tbody.appendChild(tr);
   });
 }

@@ -227,7 +227,7 @@ td.clickable-row:hover{background:#17304d}
 
   <section id="leadsource" class="section">
     <h3 class="section-title">Contact Source Performance</h3>
-    <div class="section-sub">Total Contacts / Workable Contacts / Conv % / Repeat % below are the Contact-Created cohort (contacts created in the selected period). Sale Completed Deals, Sales, Profit, Delivered Deals and the Avg Deal/Avg Profit columns are period-activity figures (deal's own Sale Completed date for sales, Delivery date for profit) — the same two contacts/deal populations used in the Executive Overview, shown side by side per lead source. Delivery Ratio compares two independently-dated sets (Delivered this period ÷ Sale Completed this period) so it can exceed 100% when deals booked in an earlier period get delivered this period. A row with 0 Total Contacts but nonzero deal figures means that source had no contacts created this period, only deals (from earlier-period contacts) dated this period.</div>
+    <div class="section-sub">Total Contacts / Workable Contacts / Conv % / Repeat % below are the Contact-Created cohort (contacts created in the selected period). UK &rarr; UK / UK &rarr; EU / EU &rarr; UK / EU &rarr; EU break those Total Contacts down by lead route (based on each contact's Collection/Delivery Country; "EU" means not UK), so you can see how many leads each provider is sending on each route. Unidentified counts contacts where the Collection and/or Delivery Country is missing, blank or not recognized — click it to see exactly which contacts, so bad/unrecognized country data can be spotted and fixed. UK &rarr; UK + UK &rarr; EU + EU &rarr; UK + EU &rarr; EU + Unidentified should sum to Total Contacts. Sale Completed Deals, Sales, Profit, Delivered Deals and the Avg Deal/Avg Profit columns are period-activity figures (deal's own Sale Completed date for sales, Delivery date for profit) — the same two contacts/deal populations used in the Executive Overview, shown side by side per lead source. Delivery Ratio compares two independently-dated sets (Delivered this period ÷ Sale Completed this period) so it can exceed 100% when deals booked in an earlier period get delivered this period. A row with 0 Total Contacts but nonzero deal figures means that source had no contacts created this period, only deals (from earlier-period contacts) dated this period.</div>
     <div class="card" style="margin-bottom:12px">
       <div class="card-head"><h3>Lead Source Normalization</h3><span>Configurable alias mapping — merges duplicate source names</span></div>
       <textarea id="leadSourceAliasJson" rows="3" style="width:100%;font-family:monospace;font-size:11px;background:#0b1728;color:var(--text);border:1px solid #2a3d57;border-radius:9px;padding:8px"></textarea>
@@ -246,6 +246,11 @@ td.clickable-row:hover{background:#17304d}
       <div class="card">
         <div class="card-head"><h3>Metric by Lead Source</h3><select id="leadSourceMetric">
           <option value="leads">Contacts by Lead Source</option>
+          <option value="ukUkContacts">UK &rarr; UK Contacts by Lead Source</option>
+          <option value="ukEuContacts">UK &rarr; EU Contacts by Lead Source</option>
+          <option value="euUkContacts">EU &rarr; UK Contacts by Lead Source</option>
+          <option value="euEuContacts">EU &rarr; EU Contacts by Lead Source</option>
+          <option value="unidentifiedContacts">Unidentified Route Contacts by Lead Source</option>
           <option value="conversion">Conversion % by Lead Source</option>
           <option value="bookedDeals">Sale Completed Deals by Lead Source</option>
           <option value="salesEUR">Sales EUR by Lead Source</option>
@@ -278,7 +283,7 @@ td.clickable-row:hover{background:#17304d}
       <div class="table-wrap">
       <table>
         <thead><tr>
-          <th>Lead Source</th><th>Total Contacts</th><th>Workable Contacts</th><th>Conv %</th><th>Booked Customers</th><th>Sale Completed Deals</th><th>Delivered</th><th>Delivery Ratio</th><th>Repeat Cust.</th><th>Repeat %</th>
+          <th>Lead Source</th><th>Total Contacts</th><th title="Collection Country UK &amp; Delivery Country UK">UK &rarr; UK</th><th title="Collection Country UK &amp; Delivery Country not UK">UK &rarr; EU</th><th title="Collection Country not UK &amp; Delivery Country UK">EU &rarr; UK</th><th title="Collection Country not UK &amp; Delivery Country not UK">EU &rarr; EU</th><th title="Collection and/or Delivery Country missing, blank or Unknown — click to see exactly which contacts">Unidentified</th><th>Workable Contacts</th><th>Conv %</th><th>Booked Customers</th><th>Sale Completed Deals</th><th>Delivered</th><th>Delivery Ratio</th><th>Repeat Cust.</th><th>Repeat %</th>
           <th>Sales EUR</th><th>Sales GBP</th><th>Profit EUR</th><th>Profit GBP</th><th>Sales/Contact EUR</th><th>Sales/Contact GBP</th><th>Profit/Contact EUR</th><th>Profit/Contact GBP</th><th>Avg Deal EUR</th><th>Avg Deal GBP</th><th>Avg Profit EUR</th><th>Avg Profit GBP</th>
         </tr></thead>
         <tbody id="leadSourceTable"></tbody>
@@ -660,10 +665,23 @@ const NON_WORKABLE_REASONS = new Set([
 function field(r,names){ for(const n of names){ if(Object.prototype.hasOwnProperty.call(r,n) && r[n]!==null && r[n]!==undefined && r[n]!=='') return r[n]; } return null; }
 function contactKeyFrom(c){ return c.contactReference || c.contactId || `${c.contactName}|${c.contactCreated?c.contactCreated.toISOString():''}`; }
 // Match complete country names, not text that merely contains a UK name.
-const UK_COUNTRY_RE = /^(?:uk|united\s*kingdoms?|great britain|britain|england|scotland|(?:north )?wales|northern ireland|united kingdom \(england, scotland, wales, northern ireland\)|verenigd koninkrijk \(engeland, schotland, wales, noord-ierland\)|vereinigtes königreich \(england, schottland, wales, nordirland\))$/i;
+const UK_COUNTRY_RE = /^(?:uk|gb|united\s*kingdoms?|great britain|britain|england|scotland|(?:north )?wales|northern ireland|united kingdom \(england, scotland, wales, northern ireland\)|verenigd koninkrijk \(engeland, schotland, wales, noord-ierland\)|vereinigtes königreich \(england, schottland, wales, nordirland\))$/i;
 function isUKCountry(v){
   const country = str(v).replace(/^[_.\s]+|[.\\\]\s]+$/g,'').replace(/\s+/g,' ');
   return UK_COUNTRY_RE.test(country) || /^u\.k\.*$/i.test(country);
+}
+// Classifies a contact's lead route into one of the 4 UK/EU lead-provider buckets requested for reporting.
+// "EU" here means "non-UK" (collection/delivery country not matched by isUKCountry) - consistent with the
+// existing binary UK-vs-not-UK model used by isUKCountry/ukToUk elsewhere in this file. Returns null when
+// either country is Unknown so incomplete records aren't silently miscounted into a bucket.
+function routeBucket(r){
+  const coll = r.leadCollectionCountry, del = r.leadDeliveryCountry;
+  if(!coll || !del || coll==='Unknown' || del==='Unknown') return null;
+  const collUK = isUKCountry(coll), delUK = isUKCountry(del);
+  if(collUK && delUK) return 'UK \u2192 UK';
+  if(collUK && !delUK) return 'UK \u2192 EU';
+  if(!collUK && delUK) return 'EU \u2192 UK';
+  return 'EU \u2192 EU';
 }
 function normalizeContactRow(r){
   const contactCreated = parseCrmDateTime(field(r,['Created Time','Contact Created Time']));
@@ -825,6 +843,15 @@ function statsForRows(rows){
   const nonWorkableContacts = rows.filter(r=>r.nonWorkable).length;
   const workableContacts = Math.max(0,totalLeads-nonWorkableContacts);
   const ukToUkContacts = rows.filter(r=>r.ukToUk).length;
+  // Leads received per route, regardless of whether they converted into a deal - answers "how many leads
+  // are we receiving" by provider, broken into the 4 UK/EU route buckets.
+  const ukUkContacts = rows.filter(r=>routeBucket(r)==='UK \u2192 UK').length;
+  const ukEuContacts = rows.filter(r=>routeBucket(r)==='UK \u2192 EU').length;
+  const euUkContacts = rows.filter(r=>routeBucket(r)==='EU \u2192 UK').length;
+  const euEuContacts = rows.filter(r=>routeBucket(r)==='EU \u2192 EU').length;
+  // Contacts routeBucket() couldn't classify (Collection and/or Delivery Country missing/blank/"Unknown") -
+  // surfaced as its own column so these gaps are visible per provider instead of silently vanishing from the 4 buckets.
+  const unidentifiedContacts = rows.filter(r=>routeBucket(r)===null).length;
   const bookedRows = rows.filter(r=>r.bookedDeal); // Sale Completed deals
   const bookedLeads = workableContacts; // legacy field used by existing UI card/table; now Workable Contacts
   const bookedCustomers = uniqueByKey(bookedRows, contactKey).length;
@@ -859,6 +886,7 @@ function statsForRows(rows){
 
   return {
     totalLeads, totalContacts:totalLeads, nonWorkableContacts, workableContacts, ukToUkContacts,
+    ukUkContacts, ukEuContacts, euUkContacts, euEuContacts, unidentifiedContacts,
     bookedLeads, conversion, customerConversion, bookedCustomers, bookedDeals, deliveredDeals, deliveryRate,
     repeatCustomers, repeatRate, salesEUR, salesGBP, profitEUR, profitGBP,
     avgDealEUR:cEUR?salesEUR/cEUR:0, avgDealGBP:cGBP?salesGBP/cGBP:0,
@@ -1538,6 +1566,11 @@ function drillDownForGroupMetric(group, metric){
   const sale = group.saleDealsRaw||[], delivered = group.deliveredDealsRaw||[];
   switch(metric){
     case 'totalLeads': return {type:'contacts', rows:group.rows, title:'All Contacts'};
+    case 'ukUkContacts': return {type:'contacts', rows:group.rows.filter(r=>routeBucket(r)==='UK \u2192 UK'), title:'Contacts \u2014 UK \u2192 UK'};
+    case 'ukEuContacts': return {type:'contacts', rows:group.rows.filter(r=>routeBucket(r)==='UK \u2192 EU'), title:'Contacts \u2014 UK \u2192 EU'};
+    case 'euUkContacts': return {type:'contacts', rows:group.rows.filter(r=>routeBucket(r)==='EU \u2192 UK'), title:'Contacts \u2014 EU \u2192 UK'};
+    case 'euEuContacts': return {type:'contacts', rows:group.rows.filter(r=>routeBucket(r)==='EU \u2192 EU'), title:'Contacts \u2014 EU \u2192 EU'};
+    case 'unidentifiedContacts': return {type:'contacts', rows:group.rows.filter(r=>routeBucket(r)===null), title:'Contacts \u2014 Unidentified Route (Collection/Delivery Country missing or unrecognized)'};
     case 'bookedLeads': return {type:'contacts', rows:group.rows.filter(r=>r.workable), title:'Workable Contacts'};
     case 'conversion':
     case 'bookedDeals': return {type:'deals', rows:sale, sortField:'saleCompleted', title:'Sale Completed Deals'};
@@ -1582,7 +1615,11 @@ function renderLeadSourceSection(rows){
   const labels = groups.map(g=>g.key);
   const metricSel = $('leadSourceMetric').value;
   const metricMap = {
-    leads:['totalLeads',colors().blue,int], conversion:['conversion',colors().amber,pct], bookedDeals:['bookedDeals',colors().purple,int],
+    leads:['totalLeads',colors().blue,int],
+    ukUkContacts:['ukUkContacts',colors().blue,int], ukEuContacts:['ukEuContacts',colors().cyan,int],
+    euUkContacts:['euUkContacts',colors().amber,int], euEuContacts:['euEuContacts',colors().purple,int],
+    unidentifiedContacts:['unidentifiedContacts',colors().red,int],
+    conversion:['conversion',colors().amber,pct], bookedDeals:['bookedDeals',colors().purple,int],
     salesEUR:['salesEUR',colors().blue,v=>money(v,'EUR')], salesGBP:['salesGBP',colors().cyan,v=>money(v,'GBP')],
     profitEUR:['profitEUR',colors().green,v=>money(v,'EUR')], profitGBP:['profitGBP',colors().green,v=>money(v,'GBP')],
     profitPerLeadEUR:['profitPerLeadEUR',colors().green,v=>money(v,'EUR')], profitPerLeadGBP:['profitPerLeadGBP',colors().green,v=>money(v,'GBP')]
@@ -1602,6 +1639,11 @@ function renderLeadSourceSection(rows){
     const cells = [
       [g.key, 'totalLeads'],
       [int(g.totalLeads), 'totalLeads'],
+      [int(g.ukUkContacts), 'ukUkContacts'],
+      [int(g.ukEuContacts), 'ukEuContacts'],
+      [int(g.euUkContacts), 'euUkContacts'],
+      [int(g.euEuContacts), 'euEuContacts'],
+      [int(g.unidentifiedContacts), 'unidentifiedContacts'],
       [int(g.bookedLeads), 'bookedLeads'],
       [pct(g.conversion), 'conversion'],
       [int(g.bookedCustomers), 'bookedCustomers'],
