@@ -10,7 +10,7 @@
 <style>
 :root{
   --bg:#08111f;--panel:#0f1b2d;--panel2:#132238;--border:#22344c;--text:#eef4fb;--muted:#91a1b7;
-  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--purple:#a855f7;--cyan:#06b6d4;
+  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;--amber:#ffad33;--purple:#a855f7;--cyan:#06b6d4;
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -48,11 +48,23 @@ button.ghost{background:#0f172a;border-color:#334155}
 .subgroup-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px}
 .kpi{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;min-width:0;flex:1 1 190px}
 .kpi-clickable{cursor:pointer;transition:border-color .15s,background .15s}
-.kpi-clickable:hover{border-color:#3b82f6;background:#0f2238}
-.kpi .label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.kpi-clickable:hover{border-color:var(--amber);background:#201c18}
+.kpi .label{font-size:10.5px;color:#ffbd59;text-transform:uppercase;letter-spacing:.06em}
 .kpi .value{font-size:20px;font-weight:800;margin:6px 0;line-height:1.3}
 .kpi .value .line2{display:block;font-size:13px;font-weight:700;color:#7fe0c4;margin-top:1px}
 .kpi .sub{font-size:10.5px;color:var(--muted)}
+.kpi:not(.month-kpi) .sub{color:#ffbd59}
+.kpi-scope{display:inline-block;background:#302211;border:1px solid #795018;border-radius:6px;padding:4px 8px;color:#ffbd59;font-size:11px;margin:-5px 0 11px}
+.primary-kpi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:12px 0 28px}
+.primary-kpi{border-color:#795018;background:linear-gradient(145deg,#211b14 0%,#111b29 70%);padding:20px;box-shadow:inset 0 3px 0 #ffad33,0 8px 26px rgba(0,0,0,.16)}
+.primary-kpi .label{font-size:12px;color:#ffd18a;letter-spacing:.08em}
+.primary-kpi .value.primary-count{font-size:38px;line-height:1.1;margin:13px 0 5px;color:#fff}
+.primary-scope{display:inline-block;color:#ffc365;background:#332313;border:1px solid #704918;border-radius:999px;padding:5px 9px;margin:13px 0 0;font-size:11px;font-weight:650}
+.primary-kpi .primary-caption{font-size:11px;color:var(--muted)}
+.primary-support{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #49371f;margin-top:17px;padding-top:12px}
+.primary-support-item{min-width:0;color:#aab8ca;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.primary-support-item .value{font-size:13px;font-weight:700;color:#fff;margin:4px 0 0;line-height:1.25}
+.primary-support-item .value .line2{font-size:11px}
 .kpi .yoy{display:flex;flex-wrap:wrap;gap:7px;margin-top:7px;padding-top:7px;border-top:1px solid #1d2e44;font-size:10px}
 .kpi .yoy:empty{display:none;margin:0;padding:0;border:0}
 .yoy-badge{font-weight:700;white-space:nowrap;cursor:help}
@@ -71,7 +83,7 @@ button.ghost{background:#0f172a;border-color:#334155}
 .card:last-child{margin-bottom:0}
 .card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .card-head h3{font-size:13.5px;margin:0}.card-head span{font-size:11px;color:var(--muted)}
-.period-chip{color:#f59e0b;font-weight:700;white-space:nowrap;margin-left:6px}
+.period-chip{color:var(--amber);font-weight:700;white-space:nowrap;margin-left:6px}
 .chart{height:270px}.chart.small{height:230px}
 table{width:100%;border-collapse:collapse;font-size:11.5px}
 th,td{padding:8px 7px;border-bottom:1px solid #1d2e44;text-align:right;white-space:nowrap}
@@ -101,6 +113,7 @@ tr.clickable-row:hover{background:#12233a}
 #backToTopBtn:hover{filter:brightness(1.1)}
 .disclaimer{font-size:11px;color:var(--muted);background:#0f2748;border:1px solid #1e4a86;border-radius:10px;padding:9px 12px;margin-bottom:14px}
 @media(max-width:1250px){.grid2,.grid3{grid-template-columns:1fr}.control-grid{grid-template-columns:1fr 1fr}.upload-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.primary-kpi-grid{grid-template-columns:1fr}}
 @media(max-width:760px){.sidebar{display:none}.main{margin-left:0;width:100%;padding:12px}.control-grid{grid-template-columns:1fr}.upload-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -122,7 +135,7 @@ tr.clickable-row:hover{background:#12233a}
 
 <main class="main">
   <div class="top">
-    <div><h2>Historical Forward Bookings &amp; Profit</h2><p>Pick any "As Of Date" to reconstruct exactly what the future order book looked like on that day: already booked by then, but not loaded yet.</p></div>
+    <div><h2>Historical Forward Bookings &amp; Profit</h2><p>Pick an "As Of Date" to see sales completed from the start of that month through that day, full-month loadings secured by then, and the historical future order book.</p></div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <span class="badge-files" title="Download this from Zoho Analytics and upload below">FILE: QT_DEAL_FINANCIALS.xlsx (required)</span>
       <span class="badge-live">LOCAL · YOUR DATA STAYS IN BROWSER</span>
@@ -154,14 +167,49 @@ tr.clickable-row:hover{background:#12233a}
     </div>
   </div>
 
-  <div class="disclaimer">💷💶 Currency note: EUR and GBP (and any other currency present) are always shown <strong>separately</strong>, never blended into one sum — so totals are never distorted by exchange rates. Where a card has two amounts stacked, the <strong>top line is EUR</strong> and the <strong>smaller line below is GBP</strong>. All deal counts use distinct <strong>Reference</strong>.</div>
+  <div class="disclaimer">EUR and GBP are shown separately. Booking counts use unique Reference numbers.</div>
+  <div class="disclaimer"><strong>Orange = date scope.</strong> Hover over a KPI for details. EUR and GBP totals are shown separately.</div>
 
   <section id="overview" class="section">
     <h3 class="section-title">Overview</h3>
     <div class="section-sub" id="filterSummary">Upload data to see results.</div>
 
+    <div class="group-title">Key Monthly Bookings</div>
+    <div class="primary-kpi-grid">
+      <div class="kpi primary-kpi">
+        <div class="label">Sales Completed</div>
+        <div id="kMonthToDateCount" class="value primary-count">—</div>
+        <div class="primary-caption">Unique bookings</div>
+        <div class="primary-scope" id="monthToDateSub">Sale date · month start to selected day</div>
+        <div class="primary-support">
+          <div class="primary-support-item">Sales Value<div id="kMonthToDateValue" class="value">—</div></div>
+          <div class="primary-support-item">NET Profit<div id="kMonthToDateProfit" class="value">—</div></div>
+        </div>
+      </div>
+      <div class="kpi primary-kpi">
+        <div class="label">Same-Month Loadings</div>
+        <div id="kSameMonthCount" class="value primary-count">—</div>
+        <div class="primary-caption">Booked and loading in selected month</div>
+        <div class="primary-scope" id="sameMonthSub">Sale date to selected day · loading this month</div>
+        <div class="primary-support">
+          <div class="primary-support-item">Sales Value<div id="kSameMonthValue" class="value">—</div></div>
+          <div class="primary-support-item">NET Profit<div id="kSameMonthProfit" class="value">—</div></div>
+        </div>
+      </div>
+      <div class="kpi primary-kpi">
+        <div class="label">Full-Month Loadings Secured</div>
+        <div id="kSelectedMonthCount" class="value primary-count">—</div>
+        <div class="primary-caption">Unique bookings</div>
+        <div class="primary-scope" id="selectedMonthSub">Loading this month · booked by selected day</div>
+        <div class="primary-support">
+          <div class="primary-support-item">Sales Value<div id="kSelectedMonthValue" class="value">—</div></div>
+          <div class="primary-support-item">NET Profit<div id="kSelectedMonthProfit" class="value">—</div></div>
+        </div>
+      </div>
+    </div>
+
     <div class="group-title">Future Bookings — Secured, Not Yet Loaded</div>
-    <div class="section-sub" style="margin:-6px 0 10px">Deals already booked (Sale Completed) on or before the As Of Date, whose loading date is still on or after it.</div>
+    <div class="section-sub kpi-scope" id="futureScope">Booked by selected date · loading from selected date onward</div>
     <div class="kpis">
       <div class="kpi"><div class="label">Future Bookings</div><div id="kFutureCount" class="value">—</div><div class="sub">Distinct Reference</div><div class="yoy" id="kFutureCountYoy"></div></div>
       <div class="kpi"><div class="label">Future Sales Value</div><div id="kFutureValue" class="value">—</div><div class="sub">Executed Job Value</div><div class="yoy" id="kFutureValueYoy"></div></div>
@@ -172,11 +220,11 @@ tr.clickable-row:hover{background:#12233a}
     <div class="kpis kpis-secondary">
       <div class="kpi"><div class="label">Average Job Value</div><div id="kAvgJobValue" class="value">—</div><div class="sub">Per future booking</div><div class="yoy" id="kAvgJobValueYoy"></div></div>
       <div class="kpi"><div class="label">Average Profit / Job</div><div id="kAvgProfitJob" class="value">—</div><div class="sub">Per future booking</div><div class="yoy" id="kAvgProfitJobYoy"></div></div>
-      <div class="kpi"><div class="label">Avg Days Booked Ahead</div><div id="kAvgDaysAhead" class="value">—</div><div class="sub">Loading Date − As Of Date</div><div class="yoy" id="kAvgDaysAheadYoy"></div></div>
+      <div class="kpi"><div class="label">Average Days Until Loading</div><div id="kAvgDaysAhead" class="value">—</div><div class="sub">Loading Date − As Of Date, not Sale Completed</div><div class="yoy" id="kAvgDaysAheadYoy"></div></div>
     </div>
 
     <div class="group-title">Future Loadings by Month</div>
-    <div class="section-sub" style="margin:-6px 0 10px">Already-secured future bookings, broken down by the month they're due to load. Click a card to see the underlying deals.</div>
+    <div class="section-sub kpi-scope">Future bookings by loading month · click to view</div>
     <div class="kpis" id="futureMonthCards"></div>
 
     <div class="group-title" id="nextMonthTitle">Bookings For Next Calendar Month</div>
@@ -189,10 +237,10 @@ tr.clickable-row:hover{background:#12233a}
     <div id="actualMonthBlock" style="display:none">
       <div class="group-title" id="actualMonthTitle">Actual Loadings</div>
       <div class="kpis">
-        <div class="kpi"><div class="label">Actual Loadings</div><div id="kActualCount" class="value">—</div><div class="sub" id="actualMonthSub">Booked deals (Sale Completed) with loading date in that month, as of today</div><div class="yoy" id="kActualCountYoy"></div></div>
+        <div class="kpi"><div class="label">Month Loadings Known Today</div><div id="kActualCount" class="value">—</div><div class="sub" id="actualMonthSub">Booked deals (Sale Completed) with loading date in that month, as of today</div><div class="yoy" id="kActualCountYoy"></div></div>
         <div class="kpi"><div class="label">Actual Sales Value</div><div id="kActualValue" class="value">—</div><div class="sub">Executed Job Value</div><div class="yoy" id="kActualValueYoy"></div></div>
         <div class="kpi"><div class="label">Actual NET Profit</div><div id="kActualProfit" class="value">—</div><div class="sub">NET Profit</div><div class="yoy" id="kActualProfitYoy"></div></div>
-        <div class="kpi"><div class="label">Added After Snapshot</div><div id="kActualDelta" class="value">—</div><div class="sub">Actual − Predicted on As Of Date</div></div>
+        <div class="kpi"><div class="label">Net Change Since Snapshot</div><div id="kActualDelta" class="value">—</div><div class="sub">Today's month count minus snapshot month count; not gross new bookings</div></div>
       </div>
     </div>
 
@@ -588,6 +636,27 @@ function nextMonthBookings(snap){
   return uniqueByRef(snap.future).filter(d=> d.collectionDate && d.collectionDate>=start && d.collectionDate<end);
 }
 function realToday(){ return startOfDay(new Date()); }
+function selectedMonthWindow(date){
+  return {
+    start: new Date(date.getFullYear(), date.getMonth(), 1),
+    end: new Date(date.getFullYear(), date.getMonth()+1, 1)
+  };
+}
+function bookedLoadingsInMonth(deals, asOf){
+  const {start, end} = selectedMonthWindow(asOf);
+  const bookedBefore = new Date(asOf.getFullYear(), asOf.getMonth(), asOf.getDate()+1);
+  return uniqueByRef(deals.filter(d=> d.saleCompleted && d.saleCompleted<bookedBefore &&
+    d.collectionDate && d.collectionDate>=start && d.collectionDate<end));
+}
+function salesCompletedMonthToDate(deals, asOf){
+  const {start} = selectedMonthWindow(asOf);
+  const end = new Date(asOf.getFullYear(), asOf.getMonth(), asOf.getDate()+1);
+  return uniqueByRef(deals.filter(d=> d.saleCompleted && d.saleCompleted>=start && d.saleCompleted<end));
+}
+function bookedAndLoadingThisMonth(deals, asOf){
+  const {start} = selectedMonthWindow(asOf);
+  return bookedLoadingsInMonth(deals.filter(d=> d.saleCompleted && d.saleCompleted>=start), asOf);
+}
 // "Actual" = every BOOKED deal (Sale Completed set, on/before today) whose loading date falls in the target
 // month - i.e. what really happened/will happen, as known TODAY, vs. what was predicted on the historical
 // As Of Date snapshot. Only meaningful once the target month has actually started.
@@ -638,7 +707,8 @@ function renderFutureMonthCards(snap, lySnap){
     return `<div class="kpi kpi-clickable month-kpi${isCurrent?' current-month':''}" data-ym="${ym}">
       <div class="label">${monthLabelFromYM(ym)}${isCurrent?' (current)':''}</div>
       <div class="value">${int(deals.length)}<span class="unit">bookings</span></div>
-      <div class="sub"><span class="sub-tag">Revenue</span><span>${compactMoneyHtml(valueSums)}</span></div>
+      <div class="sub">Booked by ${fmtDate(snap.asOf)} · loading ${monthLabelFromYM(ym)}</div>
+      <div class="sub"><span class="sub-tag">Sales Value</span><span>${compactMoneyHtml(valueSums)}</span></div>
       <div class="sub"><span class="sub-tag">NET Profit</span><span>${compactMoneyHtml(profitSums)}</span></div>
       <div class="yoy">${yoy}</div>
     </div>`;
@@ -651,6 +721,88 @@ function renderFutureMonthCards(snap, lySnap){
 }
 
 /* ---------------- KPI rendering ---------------- */
+function kpiDescriptions(asOf){
+  const date = fmtDate(asOf);
+  const {start, end} = selectedMonthWindow(asOf);
+  const monthRange = `${fmtDate(start)} to ${fmtDate(new Date(end.getFullYear(), end.getMonth(), 0))}`;
+  const sales = `Sale Completed ${fmtDate(start)} to ${date}, whole days inclusive; any loading/delivery date.`;
+  const loading = `Loading ${monthRange} inclusive; Sale Completed on/before ${date}, whole day included (earlier months allowed).`;
+  const sameMonth = `Sale Completed ${fmtDate(start)} to ${date} inclusive AND loading ${monthRange} inclusive. Distinct Reference; excludes sales booked in earlier months.`;
+  const future = `Sale Completed by start of ${date}; loading on/after ${date}, any future month.`;
+  const {start: targetStart, end: targetEnd} = nextMonthWindow(asOf);
+  const targetRange = `${fmtDate(targetStart)} to ${fmtDate(new Date(targetEnd.getFullYear(), targetEnd.getMonth(), 0))}`;
+  const target = `Loading ${targetRange} inclusive; Sale Completed by start of ${date}. On the 1st, target is the selected month; otherwise next month.`;
+  const actual = `Loading ${targetRange} inclusive; Sale Completed by start of today (${fmtDate(realToday())}), not the historical cutoff. Includes scheduled loadings; not proof of completion.`;
+  const collected = `Loading from 01 Jan ${asOf.getFullYear()} strictly before ${date}; selected day excluded. No Sale Completed filter.`;
+  const delivered = `Delivery from 01 Jan ${asOf.getFullYear()} through start of ${date}; later times that day excluded. No Sale Completed filter.`;
+  const descriptions = {};
+  const group = (prefix, scope)=>{
+    descriptions[`${prefix}Count`] = `Distinct bookings (Reference). ${scope}`;
+    descriptions[`${prefix}Value`] = `Total Executed Job Value, per currency. ${scope}`;
+    descriptions[`${prefix}Profit`] = `Total Net Profit, per currency. ${scope}`;
+  };
+  group('kMonthToDate', sales);
+  group('kSameMonth', sameMonth);
+  group('kSelectedMonth', loading);
+  group('kFuture', future);
+  group('kNextMonth', target);
+  group('kActual', actual);
+  group('kCollected', collected);
+  group('kDelivered', delivered);
+  descriptions.kFutureMargin = `Net Profit / Executed Job Value × 100, per currency (not an average of job margins). ${future}`;
+  descriptions.kAvgJobValue = `Executed Job Value / distinct future bookings in each currency. ${future}`;
+  descriptions.kAvgProfitJob = `Net Profit / distinct future bookings in each currency. ${future}`;
+  descriptions.kAvgDaysAhead = `Average calendar days from ${date} to loading, per distinct future booking; not days from Sale Completed. ${future}`;
+  descriptions.kActualDelta = `Distinct month loadings known today minus those secured at the ${date} snapshot. Net difference, not a count of new sales. Click to see all month loadings known today, not only changed bookings. ${actual}`;
+  return descriptions;
+}
+function renderKpiDescriptions(asOf){
+  Object.entries(kpiDescriptions(asOf)).forEach(([id, description])=>{
+    const card = $(id).closest('.kpi');
+    card.title = `${description}${card.onclick ? ' Click to view underlying bookings.' : ''}`;
+  });
+}
+function renderMonthToDate(asOf){
+  const deals = salesCompletedMonthToDate(allDeals, asOf);
+  const {start} = selectedMonthWindow(asOf);
+  const dateRange = `${start.toLocaleDateString('en-GB',{day:'2-digit'})}–${asOf.toLocaleDateString('en-GB',{day:'2-digit'})} ${asOf.toLocaleDateString('en-GB',{month:'short',year:'numeric'})}`;
+  $('monthToDateSub').textContent = `Sale ${dateRange} · any loading date`;
+  $('kMonthToDateCount').textContent = int(deals.length);
+  $('kMonthToDateValue').innerHTML = currencyLines(sumByCurrency(deals,'jobValue'), money);
+  $('kMonthToDateProfit').innerHTML = currencyLines(sumByCurrency(deals,'netProfit'), money);
+  ['kMonthToDateCount','kMonthToDateValue','kMonthToDateProfit'].forEach(id=>{
+    const card = $(id).closest('.kpi');
+    card.classList.add('kpi-clickable');
+    card.onclick = ()=> openDealsModal(`Sales Completed — ${fmtDate(start)} to ${fmtDate(asOf)}`, deals, asOf);
+  });
+  const sameMonth = bookedAndLoadingThisMonth(allDeals, asOf);
+  const monthLabel = asOf.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  $('kSameMonthCount').textContent = int(sameMonth.length);
+  $('sameMonthSub').textContent = `Sale ${dateRange} · loading ${monthLabel}`;
+  $('kSameMonthValue').innerHTML = currencyLines(sumByCurrency(sameMonth,'jobValue'), money);
+  $('kSameMonthProfit').innerHTML = currencyLines(sumByCurrency(sameMonth,'netProfit'), money);
+  ['kSameMonthCount','kSameMonthValue','kSameMonthProfit'].forEach(id=>{
+    const card = $(id).closest('.kpi');
+    card.classList.add('kpi-clickable');
+    card.onclick = ()=> openDealsModal(`Same-Month Loadings — ${fmtDate(start)} to ${fmtDate(asOf)}`, sameMonth, asOf);
+  });
+}
+function renderSelectedMonth(asOf){
+  const deals = bookedLoadingsInMonth(allDeals, asOf);
+  const label = asOf.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  const {start, end} = selectedMonthWindow(asOf);
+  const lastDay = new Date(end.getFullYear(), end.getMonth(), 0);
+  const monthRange = `${start.toLocaleDateString('en-GB',{day:'2-digit'})}–${lastDay.toLocaleDateString('en-GB',{day:'2-digit'})} ${label}`;
+  $('selectedMonthSub').textContent = `Loading ${monthRange} · Sale Completed by ${asOf.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}`;
+  $('kSelectedMonthCount').textContent = int(deals.length);
+  $('kSelectedMonthValue').innerHTML = currencyLines(sumByCurrency(deals,'jobValue'), money);
+  $('kSelectedMonthProfit').innerHTML = currencyLines(sumByCurrency(deals,'netProfit'), money);
+  ['kSelectedMonthCount','kSelectedMonthValue','kSelectedMonthProfit'].forEach(id=>{
+    const card = $(id).closest('.kpi');
+    card.classList.add('kpi-clickable');
+    card.onclick = ()=> openDealsModal(`Full-Month Loadings — ${label} — Secured By ${fmtDate(asOf)}`, deals, asOf);
+  });
+}
 function renderKpis(snap, lySnap){
   const future = uniqueByRef(snap.future);
   const collected = uniqueByRef(snap.collected);
@@ -686,7 +838,7 @@ function renderKpis(snap, lySnap){
   const lyNmBookings = nextMonthBookings(lySnap);
   const nmLabel = nextMonthLabel(snap.asOf);
   $('nextMonthTitle').textContent = `Bookings For ${nmLabel}`;
-  $('nextMonthSub').textContent = `Already booked as of ${fmtDate(snap.asOf)}, loading date in ${nmLabel}`;
+  $('nextMonthSub').textContent = `Booked by ${fmtDate(snap.asOf)} · loading ${nmLabel}`;
   $('kNextMonthCount').textContent = int(nmBookings.length);
   $('kNextMonthCountYoy').innerHTML = yoyCountHtml(nmBookings.length, lyNmBookings.length, lyAsOf);
   const nmValueSums = sumByCurrency(nmBookings,'jobValue');
@@ -720,8 +872,8 @@ function renderKpis(snap, lySnap){
     const lyActualDeals = actualMonthDeals(lyNmStart, lyNmEnd);
     const lyActualValueSums = sumByCurrency(lyActualDeals,'jobValue');
     const lyActualProfitSums = sumByCurrency(lyActualDeals,'netProfit');
-    $('actualMonthTitle').textContent = `Actual Loadings — ${nmLabel} (${isFinal?'Final':'In Progress'})`;
-    $('actualMonthSub').textContent = `Booked deals (Sale Completed) with loading date in ${nmLabel}, as known today (${fmtDate(today)})`;
+    $('actualMonthTitle').textContent = `Month Loadings Known Today — ${nmLabel} (${isFinal?'Month Ended':'Month In Progress'})`;
+    $('actualMonthSub').textContent = `Booked by today · loading ${nmLabel}`;
     $('kActualCount').textContent = int(actualDeals.length);
     $('kActualCountYoy').innerHTML = yoyCountHtml(actualDeals.length, lyActualDeals.length, lyAsOf);
     $('kActualValue').innerHTML = currencyLines(actualValueSums, money);
@@ -970,10 +1122,14 @@ function renderAll(){
   const lySnap = mode==='lastyear' ? cmp : computeSnapshot(allDeals, addYears(asOf,-1));
   currentSnap = snap; currentCmpSnap = cmp;
 
-  $('filterSummary').textContent = `Order book reconstructed as of ${fmtDate(asOf)} — Booked (Sale Completed) ≤ ${fmtDate(asOf)} AND Loading Date ≥ ${fmtDate(asOf)}.`;
+  $('filterSummary').textContent = `Selected date: ${fmtDate(asOf)} · orange text shows each KPI's date scope.`;
+  $('futureScope').textContent = `Booked by ${fmtDate(asOf)} · loading from ${fmtDate(asOf)} onward`;
   $('asOfSummary').textContent = `As Of ${fmtDate(asOf)} · comparing against ${mode==='today'?'Today':'same date last year'} (${fmtDate(compareDate)})`;
 
+  renderMonthToDate(asOf);
+  renderSelectedMonth(asOf);
   renderKpis(snap, lySnap);
+  renderKpiDescriptions(asOf);
   renderFutureMonthCards(snap, lySnap);
   renderComparison(snap, cmp, mode, asOf, compareDate);
   renderBucketCharts(snap);
@@ -1007,7 +1163,7 @@ function updatePeriodChips(asOf){
       gt.appendChild(document.createTextNode(' '));
       gt.appendChild(chip);
     }
-    chip.textContent = `\u00B7 ${label}`;
+    chip.textContent = gt.id==='actualMonthTitle' ? `\u00B7 Known Today ${fmtDate(realToday())}` : `\u00B7 ${label}`;
   });
 }
 
@@ -1108,6 +1264,21 @@ document.addEventListener('DOMContentLoaded', ()=>{
     $('filterSummary').textContent = 'Upload data to see results.';
     $('asOfSummary').textContent = 'Upload data to begin.';
     $('cmpSub').textContent = 'Upload data to see results.';
+    $('futureScope').textContent = 'Booked by selected date · loading from selected date onward';
+    document.querySelectorAll('.kpi .sub[data-original-text]').forEach(sub=>{
+      sub.textContent = sub.dataset.originalText;
+      delete sub.dataset.originalText;
+      sub.closest('.kpi').removeAttribute('title');
+    });
+    $('monthToDateSub').textContent = 'Sale date · month start to selected day';
+    $('sameMonthSub').textContent = 'Sale date to selected day · loading this month';
+    $('selectedMonthSub').textContent = 'Loading this month · booked by selected day';
+    ['kSelectedMonthCount','kSelectedMonthValue','kSelectedMonthProfit','kMonthToDateCount','kMonthToDateValue','kMonthToDateProfit','kSameMonthCount','kSameMonthValue','kSameMonthProfit'].forEach(id=>{
+      const card = $(id).closest('.kpi');
+      card.onclick = null;
+      card.classList.remove('kpi-clickable');
+      card.removeAttribute('title');
+    });
     updateDealCreatedBadge();
     hideProgress();
     Object.keys(charts).forEach(destroyChart);
